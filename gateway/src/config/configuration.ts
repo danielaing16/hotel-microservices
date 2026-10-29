@@ -11,6 +11,7 @@ export default () => ({
     availability: process.env.AVAILABILITY_SERVICE_URL || 'http://availability-service:3004',
     bookings: process.env.BOOKINGS_SERVICE_URL || 'http://booking-service:3005',
     payments: process.env.PAYMENTS_SERVICE_URL || 'http://payment-service:3006',
+    notifications: process.env.NOTIFICATIONS_SERVICE_URL || 'http://notification-service:3008',
   },
   throttler: {
     ttl: parseInt(process.env.THROTTLE_TTL, 10) || 60,

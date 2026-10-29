@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { Role } from '../auth/enums/role.enum';
 
 @Injectable()
 export class UsersService {
@@ -39,6 +40,24 @@ export class UsersService {
   async findAll(): Promise<User[]> {
     return await this.userRepository.find({
       select: ['id', 'email', 'firstName', 'lastName', 'phone', 'role', 'isActive', 'createdAt'],
+      order: { createdAt: 'DESC' },
     });
+  }
+
+  async deleteGuests(): Promise<{ deletedCount: number; message: string }> {
+    const guests = await this.userRepository.find({ where: { role: Role.GUEST } });
+    if (guests.length > 0) {
+      await this.userRepository.remove(guests);
+    }
+    return {
+      deletedCount: guests.length,
+      message: `${guests.length} usuarios con rol GUEST eliminados exitosamente. Correos liberados.`,
+    };
+  }
+
+  async deleteById(id: string): Promise<{ message: string }> {
+    const user = await this.findById(id);
+    await this.userRepository.remove(user);
+    return { message: `Usuario ${user.email} eliminado exitosamente` };
   }
 }

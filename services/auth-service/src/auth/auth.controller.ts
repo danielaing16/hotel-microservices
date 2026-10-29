@@ -2,12 +2,15 @@ import {
   Controller,
   Post,
   Get,
+  Delete,
+  Param,
   Body,
   UseGuards,
   HttpCode,
   HttpStatus,
   Headers,
   UnauthorizedException,
+  ForbiddenException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -16,8 +19,10 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
+import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { GoogleLoginDto } from './dto/google-login.dto';
 import { AuthResponseDto, UserProfileDto } from './dto/auth-response.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
@@ -28,7 +33,10 @@ import { Role } from './enums/role.enum';
 @ApiTags('Autenticación & Usuarios')
 @Controller('api/auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
+  ) {}
 
   @Post('register')
   @ApiOperation({
@@ -69,6 +77,21 @@ export class AuthController {
   })
   async login(@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
     return await this.authService.login(loginDto);
+  }
+
+  @Post('google')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Iniciar sesión o registro con Google OAuth',
+    description: 'Valida o crea el usuario a partir de sus credenciales de Google y retorna el token JWT.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Inicio de sesión con Google exitoso',
+    type: AuthResponseDto,
+  })
+  async googleLogin(@Body() googleDto: GoogleLoginDto): Promise<AuthResponseDto> {
+    return await this.authService.googleLogin(googleDto);
   }
 
   @Get('profile')
@@ -135,5 +158,39 @@ export class AuthController {
       adminUser: user,
       timestamp: new Date().toISOString(),
     };
+  }
+
+  @Get('users')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.HOTEL_ADMIN, Role.RECEPTIONIST)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Listar todos los usuarios registrados (Admin / Recepcionista)',
+    description: 'Devuelve la lista de usuarios con datos básicos. Solo accesible para HOTEL_ADMIN y RECEPTIONIST.',
+  })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Lista de usuarios obtenida correctamente' })
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Acceso denegado: rol insuficiente' })
+  async getAllUsers(@CurrentUser() currentUser: any) {
+    if (!currentUser) throw new ForbiddenException('Acceso restringido');
+    return await this.usersService.findAll();
+  }
+
+  @Delete('users/guests')
+  @ApiOperation({
+    summary: 'Eliminar todos los usuarios con rol GUEST para pruebas y liberar correos',
+  })
+  async deleteGuests() {
+    return await this.usersService.deleteGuests();
+  }
+
+  @Delete('users/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.HOTEL_ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Eliminar un usuario por ID (Solo HOTEL_ADMIN)',
+  })
+  async deleteUser(@Param('id') id: string) {
+    return await this.usersService.deleteById(id);
   }
 }

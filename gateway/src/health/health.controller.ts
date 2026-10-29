@@ -37,6 +37,7 @@ export class HealthController {
         availability: `${this.configService.get<string>('services.availability')}/api/availability`,
         bookings: `${this.configService.get<string>('services.bookings')}/api/bookings`,
         payments: `${this.configService.get<string>('services.payments')}/api/payments`,
+        notifications: `${this.configService.get<string>('services.notifications')}/api/notifications`,
       },
     };
   }
@@ -57,6 +58,11 @@ export class HealthController {
       {
         name: 'hotels-service',
         url: this.configService.get<string>('services.hotels'),
+        healthCheckPath: '/api/docs',
+      },
+      {
+        name: 'notification-service',
+        url: this.configService.get<string>('services.notifications'),
         healthCheckPath: '/api/docs',
       },
     ];

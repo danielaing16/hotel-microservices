@@ -13,6 +13,7 @@ export class ReverseProxyMiddleware implements NestMiddleware {
   private availabilityProxy: any;
   private bookingsProxy: any;
   private paymentsProxy: any;
+  private notificationsProxy: any;
 
   constructor(
     private readonly configService: ConfigService,
@@ -34,6 +35,8 @@ export class ReverseProxyMiddleware implements NestMiddleware {
       this.configService.get<string>('services.bookings') || 'http://booking-service:3005';
     const paymentsTarget =
       this.configService.get<string>('services.payments') || 'http://payment-service:3006';
+    const notificationsTarget =
+      this.configService.get<string>('services.notifications') || 'http://notification-service:3008';
 
     this.authProxy = this.createServiceProxy('AuthService', authTarget);
     this.hotelsProxy = this.createServiceProxy('HotelsService', hotelsTarget);
@@ -41,6 +44,7 @@ export class ReverseProxyMiddleware implements NestMiddleware {
     this.availabilityProxy = this.createServiceProxy('AvailabilityService', availTarget);
     this.bookingsProxy = this.createServiceProxy('BookingsService', bookingsTarget);
     this.paymentsProxy = this.createServiceProxy('PaymentsService', paymentsTarget);
+    this.notificationsProxy = this.createServiceProxy('NotificationsService', notificationsTarget);
   }
 
   private createServiceProxy(serviceName: string, target: string) {
@@ -119,6 +123,9 @@ export class ReverseProxyMiddleware implements NestMiddleware {
     }
     if (url.startsWith('/api/payments')) {
       return this.paymentsProxy(req, res, next);
+    }
+    if (url.startsWith('/api/notifications')) {
+      return this.notificationsProxy(req, res, next);
     }
 
     next();

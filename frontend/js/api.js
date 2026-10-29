@@ -63,10 +63,23 @@ class HotelApiClient {
   }
 
   // Auth Endpoints (vía Gateway: /api/auth/*)
-  async register(userData) {
+  async register(userData, autoLogin = false) {
     const res = await this.request('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify(userData),
+    });
+
+    const token = res?.accessToken || res?.access_token;
+    if (autoLogin && res && token) {
+      this.saveSession(token, res.user);
+    }
+    return res;
+  }
+
+  async googleLogin(googleData) {
+    const res = await this.request('/api/auth/google', {
+      method: 'POST',
+      body: JSON.stringify(googleData),
     });
 
     const token = res?.accessToken || res?.access_token;
@@ -88,7 +101,6 @@ class HotelApiClient {
     }
     return res;
   }
-
 
   async getProfile() {
     return await this.request('/api/auth/profile', {
@@ -157,6 +169,79 @@ class HotelApiClient {
   async seedHotels() {
     return await this.request('/api/hotels/seed', {
       method: 'POST',
+    });
+  }
+
+  // =========================================================================
+  // Notifications Endpoints (vía Gateway: /api/notifications/*)
+  // =========================================================================
+  async getNotificationStatus() {
+    return await this.request('/api/notifications/status', {
+      method: 'GET',
+      silent: true,
+    });
+  }
+
+  async getNotificationHistory() {
+    return await this.request('/api/notifications/history', {
+      method: 'GET',
+    });
+  }
+
+  getVoucherSampleUrl() {
+    return `${this.baseUrl}/api/notifications/voucher/sample`;
+  }
+
+  async sendWelcomeNotification(userData) {
+    return await this.request('/api/notifications/send-welcome', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+  }
+
+  async sendBookingConfirmationNotification(bookingData) {
+    return await this.request('/api/notifications/send-booking-confirmation', {
+      method: 'POST',
+      body: JSON.stringify(bookingData),
+    });
+  }
+
+  async sendPaymentFailedNotification(paymentData) {
+    return await this.request('/api/notifications/send-payment-failed', {
+      method: 'POST',
+      body: JSON.stringify(paymentData),
+    });
+  }
+
+  async sendCheckinReminderNotification(reminderData) {
+    return await this.request('/api/notifications/send-checkin-reminder', {
+      method: 'POST',
+      body: JSON.stringify(reminderData),
+    });
+  }
+
+  async sendRefundReceiptNotification(refundData) {
+    return await this.request('/api/notifications/send-refund-receipt', {
+      method: 'POST',
+      body: JSON.stringify(refundData),
+    });
+  }
+
+  async getAllUsers() {
+    return await this.request('/api/auth/users', {
+      method: 'GET',
+    });
+  }
+
+  async deleteGuests() {
+    return await this.request('/api/auth/users/guests', {
+      method: 'DELETE',
+    });
+  }
+
+  async deleteUser(id) {
+    return await this.request(`/api/auth/users/${id}`, {
+      method: 'DELETE',
     });
   }
 

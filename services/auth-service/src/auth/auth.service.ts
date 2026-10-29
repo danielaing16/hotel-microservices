@@ -1,10 +1,11 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { GoogleLoginDto } from './dto/google-login.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { Role } from './enums/role.enum';
 
@@ -39,6 +40,32 @@ export class AuthService {
     const isPasswordMatching = await bcrypt.compare(loginDto.password, user.password);
     if (!isPasswordMatching) {
       throw new UnauthorizedException('Credenciales inválidas (correo o contraseña incorrectos)');
+    }
+
+    if (!user.isActive) {
+      throw new UnauthorizedException('La cuenta de usuario se encuentra deshabilitada');
+    }
+
+    return this.buildAuthResponse(user);
+  }
+
+  async googleLogin(googleDto: GoogleLoginDto): Promise<AuthResponseDto> {
+    if (!googleDto.email) {
+      throw new BadRequestException('El correo electrónico de Google es obligatorio');
+    }
+
+    let user = await this.usersService.findByEmail(googleDto.email);
+
+    if (!user) {
+      // Si el usuario accede por primera vez con Google, se registra automáticamente como Huésped (GUEST)
+      const randomPassword = await bcrypt.hash(`google-oauth-${Date.now()}-${Math.random()}`, 10);
+      user = await this.usersService.create({
+        email: googleDto.email,
+        firstName: googleDto.firstName || 'Usuario',
+        lastName: googleDto.lastName || 'Google',
+        password: randomPassword,
+        role: Role.GUEST,
+      });
     }
 
     if (!user.isActive) {
@@ -92,7 +119,6 @@ export class AuthService {
       token_type: 'Bearer',
       expires_in: expiresIn,
       user: {
-
         id: user.id,
         email: user.email,
         firstName: user.firstName,

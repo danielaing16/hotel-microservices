@@ -10,6 +10,26 @@ services:
     networks:
       - hotel-network
 
+  # Broker de Mensajería RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: hotel_rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_UI_PORT:-15672}:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - hotel-network
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "check_port_connectivity" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Base de datos PostgreSQL para el Auth Service
   auth-db:
@@ -108,6 +128,38 @@ services:
     networks:
       - hotel-network
 
+  # Microservicio de Notificaciones y Vouchers PDF (Worker RabbitMQ)
+  notification-service:
+    build:
+      context: ./services/notification-service
+      dockerfile: Dockerfile
+    container_name: hotel_notification_service
+    restart: always
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: 3008
+      RABBITMQ_URL: ${RABBITMQ_URL:-amqp://guest:guest@rabbitmq:5672}
+      RABBITMQ_QUEUE: ${RABBITMQ_QUEUE:-hotel_notifications_queue}
+      SMTP_SERVICE: ${SMTP_SERVICE:-gmail}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_SECURE: ${SMTP_SECURE:-true}
+      SMTP_FROM: ${SMTP_FROM:-reservas@travel-resorts.com}
+      FRONTEND_URL: http://frontend:80
+      API_GATEWAY_URL: http://api-gateway:3000
+    ports:
+      - "${NOTIFICATIONS_PORT:-3008}:3008"
+    volumes:
+      # Sincronización en vivo para desarrollo
+      - ./services/notification-service/src:/app/src
+    networks:
+      - hotel-network
+
   # API Gateway Unificado
   api-gateway:
     build:
@@ -118,6 +170,7 @@ services:
     depends_on:
       - auth-service
       - hotels-service
+      - notification-service
     environment:
       NODE_ENV: development
       PORT: 3000
@@ -128,6 +181,7 @@ services:
       AVAILABILITY_SERVICE_URL: http://availability-service:3004
       BOOKINGS_SERVICE_URL: http://booking-service:3005
       PAYMENTS_SERVICE_URL: http://payment-service:3006
+      NOTIFICATIONS_SERVICE_URL: http://notification-service:3008
       THROTTLE_TTL: 60
       THROTTLE_LIMIT: 100
     ports:
@@ -159,8 +213,9 @@ volumes:
     driver: local
   hotels_db_data:
     driver: local
+  rabbitmq_data:
+    driver: local
 
 networks:
   hotel-network:
     driver: bridge
-
