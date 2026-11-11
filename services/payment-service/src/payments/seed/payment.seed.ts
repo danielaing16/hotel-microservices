@@ -1,0 +1,41 @@
+import { PaymentStatus } from '../../common/enums/payment-status.enum';
+
+export const INITIAL_PAYMENT_SEED = [
+  {
+    bookingId: '0b797a71-8519-4565-bb2a-fe480a3aa901',
+    bookingCode: 'TR-2026-CTGB01',
+    userId: 'd95d8141-dfd5-4735-a9db-749c95ded6b0',
+    userEmail: 'test.availability@hotel.com',
+    amount: 585.0,
+    amountCents: 58500,
+    currency: 'USD',
+    gatewayProvider: 'STRIPE',
+    transactionReference: 'pay_seed_stripe_mock_01',
+    idempotencyKey: 'idemp_seed_ctgb01_init',
+    status: PaymentStatus.SUCCEEDED,
+    paymentMethod: 'CREDIT_CARD',
+    cardLast4: '4242',
+    cardBrand: 'Visa',
+    receiptUrl: 'https://pay.travel-resorts.com/receipts/pay_seed_stripe_mock_01',
+    errorMessage: null,
+  },
+  {
+    bookingId: '0ef13036-8e63-45ca-8dd7-0d88fca649c2',
+    bookingCode: 'TR-2026-CTGB02',
+    userId: 'd95d8141-dfd5-4735-a9db-749c95ded6b0',
+    userEmail: 'test.availability@hotel.com',
+    amount: 1160.0,
+    amountCents: 116000,
+    currency: 'USD',
+    gatewayProvider: 'STRIPE',
+    transactionReference: 'pay_seed_stripe_mock_02',
+    idempotencyKey: 'idemp_seed_ctgb02_init',
+    status: PaymentStatus.SUCCEEDED,
+    paymentMethod: 'CREDIT_CARD',
+    cardLast4: '5555',
+    cardBrand: 'Mastercard',
+    receiptUrl: 'https://pay.travel-resorts.com/receipts/pay_seed_stripe_mock_02',
+    errorMessage: null,
+  },
+];
+

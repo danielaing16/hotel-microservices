@@ -173,6 +173,52 @@ class HotelApiClient {
   }
 
   // =========================================================================
+  // Rooms Endpoints (vía Gateway: /api/rooms/*)
+  // =========================================================================
+  async getRooms(filters = {}) {
+    const params = new URLSearchParams();
+    ['hotelId', 'roomType', 'status', 'minPrice', 'maxPrice', 'minAdults', 'search', 'page', 'limit'].forEach(key => {
+      if (filters[key] !== undefined && filters[key] !== '') params.append(key, filters[key]);
+    });
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    return await this.request(`/api/rooms${queryString}`, { method: 'GET' });
+  }
+
+  async getRoomTypes(hotelId) {
+    const qs = hotelId ? `?hotelId=${encodeURIComponent(hotelId)}` : '';
+    return await this.request(`/api/rooms/types${qs}`, { method: 'GET' });
+  }
+
+  async createRoom(roomData) {
+    return await this.request('/api/rooms', {
+      method: 'POST',
+      body: JSON.stringify(roomData),
+    });
+  }
+
+  async updateRoom(id, roomData) {
+    return await this.request(`/api/rooms/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(roomData),
+    });
+  }
+
+  async updateRoomStatus(id, status) {
+    return await this.request(`/api/rooms/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  }
+
+  async deleteRoom(id, force = false) {
+    return await this.request(`/api/rooms/${id}?force=${force}`, { method: 'DELETE' });
+  }
+
+  async seedRooms() {
+    return await this.request('/api/rooms/seed', { method: 'POST' });
+  }
+
+  // =========================================================================
   // Notifications Endpoints (vía Gateway: /api/notifications/*)
   // =========================================================================
   async getNotificationStatus() {
@@ -190,6 +236,33 @@ class HotelApiClient {
 
   getVoucherSampleUrl() {
     return `${this.baseUrl}/api/notifications/voucher/sample`;
+  }
+
+  async downloadVoucherPdf(customData) {
+    try {
+      if (!customData) {
+        window.open(this.getVoucherSampleUrl(), '_blank');
+        return;
+      }
+      const token = this.getToken();
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`${this.baseUrl}/api/notifications/voucher/preview`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(customData),
+      });
+      if (!res.ok) {
+        window.open(this.getVoucherSampleUrl(), '_blank');
+        return;
+      }
+      const blob = await res.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      window.open(blobUrl, '_blank');
+    } catch {
+      window.open(this.getVoucherSampleUrl(), '_blank');
+    }
   }
 
   async sendWelcomeNotification(userData) {
@@ -242,6 +315,127 @@ class HotelApiClient {
   async deleteUser(id) {
     return await this.request(`/api/auth/users/${id}`, {
       method: 'DELETE',
+    });
+  }
+
+  // =========================================================================
+  // Availability Endpoints (vía Gateway: /api/availability/*)
+  // =========================================================================
+  async searchAvailability(params = {}) {
+    const qs = new URLSearchParams();
+    if (params.hotelId) qs.append('hotelId', params.hotelId);
+    if (params.checkIn) qs.append('checkIn', params.checkIn);
+    if (params.checkOut) qs.append('checkOut', params.checkOut);
+    if (params.adults) qs.append('adults', params.adults);
+    if (params.children) qs.append('children', params.children);
+    return await this.request(`/api/availability/search?${qs.toString()}`, { method: 'GET' });
+  }
+
+  async holdRoom(holdData) {
+    return await this.request('/api/availability/hold', {
+      method: 'POST',
+      body: JSON.stringify(holdData),
+    });
+  }
+
+  async releaseHold(holdId) {
+    return await this.request('/api/availability/release', {
+      method: 'POST',
+      body: JSON.stringify({ holdId }),
+    });
+  }
+
+  async getRoomCalendar(roomId, year, month) {
+    const qs = new URLSearchParams();
+    if (year) qs.append('year', year);
+    if (month) qs.append('month', month);
+    return await this.request(`/api/availability/calendar/${roomId}?${qs.toString()}`, { method: 'GET' });
+  }
+
+  async blockDates(blockData) {
+    return await this.request('/api/availability/admin/block-dates', {
+      method: 'POST',
+      body: JSON.stringify(blockData),
+    });
+  }
+
+  async unblockDates(unblockData) {
+    return await this.request('/api/availability/admin/unblock-dates', {
+      method: 'POST',
+      body: JSON.stringify(unblockData),
+    });
+  }
+
+  // =========================================================================
+  // Bookings Endpoints (vía Gateway: /api/bookings/*)
+  // =========================================================================
+  async createBooking(bookingData) {
+    return await this.request('/api/bookings', {
+      method: 'POST',
+      body: JSON.stringify(bookingData),
+    });
+  }
+
+  async getMyBookings() {
+    return await this.request('/api/bookings/my-bookings', { method: 'GET' });
+  }
+
+  async getBooking(idOrCode) {
+    return await this.request(`/api/bookings/${idOrCode}`, { method: 'GET' });
+  }
+
+  async cancelBooking(idOrCode, reason = '') {
+    return await this.request(`/api/bookings/${idOrCode}/cancel`, {
+      method: 'PATCH',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  async checkInBooking(idOrCode) {
+    return await this.request(`/api/bookings/${idOrCode}/checkin`, {
+      method: 'PATCH',
+    });
+  }
+
+  async checkOutBooking(idOrCode) {
+    return await this.request(`/api/bookings/${idOrCode}/checkout`, {
+      method: 'PATCH',
+    });
+  }
+
+  async getAllBookings(query = {}) {
+    const qs = new URLSearchParams();
+    if (query.hotelId) qs.append('hotelId', query.hotelId);
+    if (query.status) qs.append('status', query.status);
+    if (query.search) qs.append('search', query.search);
+    if (query.page) qs.append('page', query.page);
+    if (query.limit) qs.append('limit', query.limit);
+    const queryString = qs.toString() ? `?${qs.toString()}` : '';
+    return await this.request(`/api/bookings${queryString}`, { method: 'GET' });
+  }
+
+  // =========================================================================
+  // Payments Endpoints (vía Gateway: /api/payments/*)
+  // =========================================================================
+  async processPayment(paymentData) {
+    return await this.request('/api/payments/process', {
+      method: 'POST',
+      body: JSON.stringify(paymentData),
+    });
+  }
+
+  async getMyPayments() {
+    return await this.request('/api/payments/my-payments', { method: 'GET' });
+  }
+
+  async getPayment(idOrRef) {
+    return await this.request(`/api/payments/${idOrRef}`, { method: 'GET' });
+  }
+
+  async refundPayment(idOrRef, reason = '') {
+    return await this.request(`/api/payments/${idOrRef}/refund`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
     });
   }
 

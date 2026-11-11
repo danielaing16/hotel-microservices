@@ -37,6 +37,13 @@ export class NotificationsController {
     return await this.notificationsService.handleUserRegistered(data);
   }
 
+  @EventPattern('booking.created')
+  async handleBookingCreatedRmq(@Payload() data: any) {
+    const code = data?.bookingCode || data?.bookingReference || 'N/A';
+    this.logger.log(`📥 [RabbitMQ] Evento recibido: 'booking.created' [${code}] (Pendiente de pago)`);
+    return { status: 'RECEIVED', event: 'booking.created', bookingCode: code };
+  }
+
   @EventPattern('booking.confirmed')
   async handleBookingConfirmedRmq(@Payload() data: BookingConfirmedEventDto) {
     this.logger.log(`📥 [RabbitMQ] Evento recibido: 'booking.confirmed' [${data.bookingReference}]`);

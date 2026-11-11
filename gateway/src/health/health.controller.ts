@@ -61,6 +61,26 @@ export class HealthController {
         healthCheckPath: '/api/docs',
       },
       {
+        name: 'rooms-service',
+        url: this.configService.get<string>('services.rooms'),
+        healthCheckPath: '/api/docs',
+      },
+      {
+        name: 'availability-service',
+        url: this.configService.get<string>('services.availability'),
+        healthCheckPath: '/api/docs',
+      },
+      {
+        name: 'booking-service',
+        url: this.configService.get<string>('services.bookings'),
+        healthCheckPath: '/api/docs',
+      },
+      {
+        name: 'payment-service',
+        url: this.configService.get<string>('services.payments'),
+        healthCheckPath: '/api/docs',
+      },
+      {
         name: 'notification-service',
         url: this.configService.get<string>('services.notifications'),
         healthCheckPath: '/api/docs',

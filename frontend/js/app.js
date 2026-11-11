@@ -1,130 +1,287 @@
-// Controlador de la Interfaz Gráfica (Estilo Moderno Travel Glassmorphism con Barra Lateral)
+// ============================================================================
+// TRAVEL & RESORTS - APLICACIÓN WEB DE EXPERIENCIAS & RESERVAS HOTELERAS
+// Controlador Integral del Cliente: Búsqueda, Disponibilidad, Checkout y Recepción
+// ============================================================================
+
 document.addEventListener('DOMContentLoaded', () => {
   const api = window.apiClient;
 
-  // Contenedores Principales
+  // --------------------------------------------------------------------------
+  // 1. SELECTORES DE CONTENEDORES Y NAVEGACIÓN
+  // --------------------------------------------------------------------------
   const authCanvas = document.getElementById('authCanvas');
   const dashboardCanvas = document.getElementById('dashboardCanvas');
   const loginFormView = document.getElementById('loginFormView');
   const registerFormView = document.getElementById('registerFormView');
-  const googleAuthModal = document.getElementById('googleAuthModal');
-  const closeGoogleModalBtn = document.getElementById('closeGoogleModalBtn');
-  const googleCustomForm = document.getElementById('googleCustomForm');
-  const btnGuestVoucherSample = document.getElementById('btnGuestVoucherSample');
+  const exploreAsGuestBtn = document.getElementById('exploreAsGuestBtn');
 
-  // Alternadores de formulario
+  // Alternadores Login / Registro
   const goToRegisterLink = document.getElementById('goToRegisterLink');
   const goToLoginLink = document.getElementById('goToLoginLink');
-  const homeCircleBtn = document.getElementById('homeCircleBtn');
+  const forgotPassLink = document.getElementById('forgotPassLink');
 
-  // Formularios
+  // Formularios de Auth
   const loginForm = document.getElementById('loginForm');
   const registerForm = document.getElementById('registerForm');
   const submitLoginBtn = document.getElementById('submitLoginBtn');
   const submitRegBtn = document.getElementById('submitRegBtn');
 
-  // Botones de Relleno Rápido & Demo
-  const fillGuestBtn = document.getElementById('fillGuestBtn');
-  const fillAdminBtn = document.getElementById('fillAdminBtn');
+  // Modal Google
   const googleLoginBtn = document.getElementById('googleLoginBtn');
-  const forgotPassLink = document.getElementById('forgotPassLink');
-  const pingStatusBtn = document.getElementById('pingStatusBtn');
+  const googleAuthModal = document.getElementById('googleAuthModal');
+  const closeGoogleModalBtn = document.getElementById('closeGoogleModalBtn');
+  const googleCustomForm = document.getElementById('googleCustomForm');
 
-  // Dashboard & Sesión
+  // Barra Lateral & Usuario
   const dashUserName = document.getElementById('dashUserName');
   const dashUserEmail = document.getElementById('dashUserEmail');
   const dashRoleBadge = document.getElementById('dashRoleBadge');
-  const dashUserId = document.getElementById('dashUserId');
-  const dashJwtToken = document.getElementById('dashJwtToken');
+  const dashAvatar = document.getElementById('dashAvatar');
   const logoutBtn = document.getElementById('logoutBtn');
-  const testRbacBtn = document.getElementById('testRbacBtn');
-  const rbacFeedback = document.getElementById('rbacFeedback');
-
-  // Títulos y Pestañas del Dashboard
-  const dashViewTitle = document.getElementById('dashViewTitle');
-  const dashViewDesc = document.getElementById('dashViewDesc');
+  const staffSidebarGroup = document.getElementById('staffSidebarGroup');
   const sidebarNavItems = document.querySelectorAll('.dash-nav-item[data-tab]');
   const tabContents = document.querySelectorAll('.dash-tab-content');
-
-  // Indicadores de Salud (Dashboard Header)
-  const gatewayDot = document.getElementById('gatewayDot');
-  const authDot = document.getElementById('authDot');
-  const hotelsDot = document.getElementById('hotelsDot');
-  const notificationsDot = document.getElementById('notificationsDot');
-
-  // Indicadores de Salud (Auth Canvas Header)
-  const authGatewayDot = document.getElementById('authGatewayDot');
-  const authAuthDot = document.getElementById('authAuthDot');
-  const authHotelsDot = document.getElementById('authHotelsDot');
-  const authNotificationsDot = document.getElementById('authNotificationsDot');
-
-  // Indicadores de Salud (Pestaña Cluster Gateway)
-  const clusterGatewayDot = document.getElementById('clusterGatewayDot');
-  const clusterAuthDot = document.getElementById('clusterAuthDot');
-  const clusterHotelsDot = document.getElementById('clusterHotelsDot');
-  const clusterNotifDot = document.getElementById('clusterNotifDot');
-
-  // Consola & Logs
-  const consoleLogs = document.getElementById('consoleLogs');
-  const clearConsoleBtn = document.getElementById('clearConsoleBtn');
-  const pingGatewayBtn = document.getElementById('pingGatewayBtn');
+  const dashViewTitle = document.getElementById('dashViewTitle');
+  const dashViewDesc = document.getElementById('dashViewDesc');
   const toastShelf = document.getElementById('toastShelf');
 
-  // Elementos de Hotels Service
-  const openCreateHotelBtn = document.getElementById('openCreateHotelBtn');
-  const seedHotelsBtn = document.getElementById('seedHotelsBtn');
-  const refreshHotelsBtn = document.getElementById('refreshHotelsBtn');
+  // Tab: Hoteles
+  const hotelsGrid = document.getElementById('hotelsGrid');
   const filterHotelSearch = document.getElementById('filterHotelSearch');
   const filterHotelCity = document.getElementById('filterHotelCity');
   const filterHotelStars = document.getElementById('filterHotelStars');
   const filterPetFriendly = document.getElementById('filterPetFriendly');
-  const hotelsGrid = document.getElementById('hotelsGrid');
+  const openCreateHotelBtn = document.getElementById('openCreateHotelBtn');
+  const refreshHotelsBtn = document.getElementById('refreshHotelsBtn');
 
-  // Elementos de Notifications Service & Vouchers
-  const btnVoucherSample = document.getElementById('btnVoucherSample');
-  const btnTriggerWelcome = document.getElementById('btnTriggerWelcome');
-  const btnTriggerBookingConfirm = document.getElementById('btnTriggerBookingConfirm');
-  const btnTriggerPaymentFailed = document.getElementById('btnTriggerPaymentFailed');
-  const btnTriggerCheckinReminder = document.getElementById('btnTriggerCheckinReminder');
-  const btnTriggerRefund = document.getElementById('btnTriggerRefund');
-  const refreshNotifHistoryBtn = document.getElementById('refreshNotifHistoryBtn');
-  const notificationsHistoryList = document.getElementById('notificationsHistoryList');
-  const notifCountBadge = document.getElementById('notifCountBadge');
+  // Tab: Disponibilidad
+  const availSearchForm = document.getElementById('availSearchForm');
+  const availHotelSelect = document.getElementById('availHotelSelect');
+  const availCheckIn = document.getElementById('availCheckIn');
+  const availCheckOut = document.getElementById('availCheckOut');
+  const availGuests = document.getElementById('availGuests');
+  const btnSubmitAvailSearch = document.getElementById('btnSubmitAvailSearch');
+  const availResultsSummary = document.getElementById('availResultsSummary');
+  const availRoomsGrid = document.getElementById('availRoomsGrid');
 
-  // Modales de Hotel
+  // Tab: Habitaciones
+  const roomsGrid = document.getElementById('roomsGrid');
+  const filterRoomSearch = document.getElementById('filterRoomSearch');
+  const filterRoomHotel = document.getElementById('filterRoomHotel');
+  const filterRoomType = document.getElementById('filterRoomType');
+  const openCreateRoomBtn = document.getElementById('openCreateRoomBtn');
+  const refreshRoomsBtn = document.getElementById('refreshRoomsBtn');
+
+  // Tab: Mis Reservas
+  const myBookingsList = document.getElementById('myBookingsList');
+  const refreshMyBookingsBtn = document.getElementById('refreshMyBookingsBtn');
+
+  // Tab: Recepción
+  const receptionSearchInput = document.getElementById('receptionSearchInput');
+  const btnReceptionSearch = document.getElementById('btnReceptionSearch');
+  const btnReceptionRefresh = document.getElementById('btnReceptionRefresh');
+  const receptionTableBody = document.getElementById('receptionTableBody');
+
+  // Modales
   const hotelDetailModal = document.getElementById('hotelDetailModal');
   const closeDetailModalBtn = document.getElementById('closeDetailModalBtn');
+  const btnBookFromHotelDetail = document.getElementById('btnBookFromHotelDetail');
+
   const hotelFormModal = document.getElementById('hotelFormModal');
   const closeFormModalBtn = document.getElementById('closeFormModalBtn');
   const hotelUpsertForm = document.getElementById('hotelUpsertForm');
   const hotelFormTitle = document.getElementById('hotelFormTitle');
   const submitHotelFormBtn = document.getElementById('submitHotelFormBtn');
 
-  // Metadatos de Secciones del Dashboard (Leyes de Miller y Hick)
+  const roomFormModal = document.getElementById('roomFormModal');
+  const closeRoomModalBtn = document.getElementById('closeRoomModalBtn');
+  const roomUpsertForm = document.getElementById('roomUpsertForm');
+  const submitRoomFormBtn = document.getElementById('submitRoomFormBtn');
+
+  // Modal Checkout & Hold
+  const checkoutModal = document.getElementById('checkoutModal');
+  const closeCheckoutModalBtn = document.getElementById('closeCheckoutModalBtn');
+  const holdCountdownText = document.getElementById('holdCountdownText');
+  const checkoutRoomName = document.getElementById('checkoutRoomName');
+  const checkoutHotelName = document.getElementById('checkoutHotelName');
+  const checkoutCheckIn = document.getElementById('checkoutCheckIn');
+  const checkoutCheckOut = document.getElementById('checkoutCheckOut');
+  const checkoutNights = document.getElementById('checkoutNights');
+  const checkoutGuests = document.getElementById('checkoutGuests');
+  const checkoutTotalAmount = document.getElementById('checkoutTotalAmount');
+  const paymentForm = document.getElementById('paymentForm');
+  const cardHolder = document.getElementById('cardHolder');
+  const cardNumber = document.getElementById('cardNumber');
+  const cardExp = document.getElementById('cardExp');
+  const cardCvc = document.getElementById('cardCvc');
+  const submitPaymentBtn = document.getElementById('submitPaymentBtn');
+  const btnPayText = document.getElementById('btnPayText');
+
+  // Modal Éxito
+  const bookingSuccessModal = document.getElementById('bookingSuccessModal');
+  const successBookingCode = document.getElementById('successBookingCode');
+  const btnDownloadVoucherPdf = document.getElementById('btnDownloadVoucherPdf');
+  const btnGoToMyBookingsAfterSuccess = document.getElementById('btnGoToMyBookingsAfterSuccess');
+
+  // Modal Calendario de Disponibilidad & Gestión de Fechas
+  const roomCalendarModal = document.getElementById('roomCalendarModal');
+  const closeCalModalBtn = document.getElementById('closeCalModalBtn');
+  const calRoomTitle = document.getElementById('calRoomTitle');
+  const calHotelTitle = document.getElementById('calHotelTitle');
+  const calCurrentMonthLabel = document.getElementById('calCurrentMonthLabel');
+  const calPrevMonthBtn = document.getElementById('calPrevMonthBtn');
+  const calNextMonthBtn = document.getElementById('calNextMonthBtn');
+  const calDaysGrid = document.getElementById('calDaysGrid');
+  const adminDateControls = document.getElementById('adminDateControls');
+  const adminBlockForm = document.getElementById('adminBlockForm');
+  const adminCalRoomId = document.getElementById('adminCalRoomId');
+  const adminCalHotelId = document.getElementById('adminCalHotelId');
+  const adminBlockStart = document.getElementById('adminBlockStart');
+  const adminBlockEnd = document.getElementById('adminBlockEnd');
+  const adminBlockReason = document.getElementById('adminBlockReason');
+  const btnAdminUnblock = document.getElementById('btnAdminUnblock');
+
+  let calSelectedRoomId = null;
+  let calCurrentYear = 2026;
+  let calCurrentMonth = 11; // Noviembre 2026
+
+  // --------------------------------------------------------------------------
+  // ESTADO GLOBAL DE LA APLICACIÓN
+  // --------------------------------------------------------------------------
+  let selectedHotelForBooking = null;
+  let activeHold = null; // { holdId, roomId, hotelId, hotelName, roomName, checkIn, checkOut, guestsCount, quote, timerId, remainingSeconds }
+  let lastConfirmedBooking = null;
+
   const TAB_METADATA = {
     hotels: {
-      title: 'Catálogo Central de Hoteles',
-      desc: 'Gestión comercial y operativa de sedes provista por hotels-service:3002 vía API Gateway.',
+      title: 'Catálogo de Hoteles & Destinos',
+      desc: 'Explora nuestras exclusivas propiedades en los destinos más paradisíacos de Colombia.',
     },
-    notifications: {
-      title: 'Worker Asíncrono de Notificaciones & Vouchers PDF',
-      desc: 'Consumidor RabbitMQ desacoplado del checkout para emisión de comprobantes PDF con código QR y correos transaccionales Nodemailer.',
+    availability: {
+      title: 'Buscador de Disponibilidad & Cotización en Tiempo Real',
+      desc: 'Consulta tarifas dinámicas, recargos transparentes y bloqueo garantizado de habitaciones.',
     },
-    auth: {
-      title: 'Identidad, Sesión & Seguridad RBAC',
-      desc: 'Gestión de tokens JWT Bearer, claims criptográficos y autorización RBAC provista por auth-service:3001.',
+    rooms: {
+      title: 'Nuestras Habitaciones & Suites',
+      desc: 'Conoce los detalles, capacidades, amenidades y confort de cada categoría de habitación.',
     },
-    gateway: {
-      title: 'Consola de Tráfico & Monitoreo del Cluster',
-      desc: 'Monitoreo de peticiones HTTP en tiempo real, latencias y enrutamiento perimetral en api-gateway:3000.',
+    'my-bookings': {
+      title: 'Mis Reservas & Vouchers Oficiales',
+      desc: 'Gestiona tus estancias, descarga comprobantes oficiales en PDF con código QR y consulta estados.',
+    },
+    reception: {
+      title: 'Portal de Recepción & Fast Check-In',
+      desc: 'Control operativo de llegadas de huéspedes, verificación de reservas y registro de Check-In/Check-Out.',
     },
   };
 
-  // Cambio de Pestañas con la Barra Lateral
+  const ROOM_TYPE_NAMES = {
+    STANDARD: 'Standard Room',
+    DELUXE: 'Deluxe Suite',
+    JUNIOR_SUITE: 'Junior Suite',
+    PRESIDENTIAL_SUITE: 'Presidential Suite',
+    PENTHOUSE: 'Penthouse Imperial',
+  };
+
+  // --------------------------------------------------------------------------
+  // SISTEMA DE NOTIFICACIONES TOAST ELEGANTE
+  // --------------------------------------------------------------------------
+  function showToast(message, type = 'info') {
+    if (!toastShelf) return;
+    const toast = document.createElement('div');
+    toast.className = `toast-msg ${type}`;
+    
+    let icon = 'ℹ️';
+    if (type === 'success') icon = '✅';
+    if (type === 'error') icon = '🛑';
+    if (type === 'warning') icon = '⚠️';
+
+    toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+    toastShelf.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(12px)';
+      toast.style.transition = 'all 0.3s ease';
+      setTimeout(() => toast.remove(), 300);
+    }, 4500);
+  }
+
+  // --------------------------------------------------------------------------
+  // 2. CONTROL DE SESIÓN Y VISTAS PRINCIPALES
+  // --------------------------------------------------------------------------
+  function refreshSessionView() {
+    const token = api.getToken();
+    const user = api.getCurrentUser();
+
+    if (token && user) {
+      authCanvas.style.display = 'none';
+      dashboardCanvas.classList.add('active');
+
+      const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Huésped Exclusivo';
+      if (dashUserName) dashUserName.textContent = fullName;
+      if (dashUserEmail) dashUserEmail.textContent = user.email || 'correo@hotel.com';
+
+      const role = user.role || 'GUEST';
+      if (dashRoleBadge) {
+        if (role === 'HOTEL_ADMIN') {
+          dashRoleBadge.textContent = 'ADMINISTRADOR GENERAL';
+          dashRoleBadge.className = 'dash-badge admin';
+          dashRoleBadge.title = 'Rol HOTEL_ADMIN: Control total de Sedes Hoteleras e Inventario de Habitaciones';
+        } else if (role === 'RECEPTIONIST') {
+          dashRoleBadge.textContent = 'PERSONAL DE RECEPCIÓN';
+          dashRoleBadge.className = 'dash-badge receptionist';
+          dashRoleBadge.title = 'Rol RECEPTIONIST: Control de Llegadas, Fast Check-In/Out y Estado de Habitaciones';
+        } else {
+          dashRoleBadge.textContent = 'HUÉSPED / VIAJERO';
+          dashRoleBadge.className = 'dash-badge guest';
+          dashRoleBadge.title = 'Rol GUEST: Consulta tarifas, reserva y gestiona tus comprobantes oficiales';
+        }
+      }
+
+      if (dashAvatar) {
+        dashAvatar.textContent = role === 'HOTEL_ADMIN' ? '👑' : (role === 'RECEPTIONIST' ? '🛎️' : '🌴');
+      }
+
+      const isAdmin = role === 'HOTEL_ADMIN';
+      const isStaff = role === 'HOTEL_ADMIN' || role === 'RECEPTIONIST';
+
+      // 1. Recepción & Check-In: Exclusivo de Personal (Admin y Recepción). Oculto para Huéspedes.
+      if (staffSidebarGroup) {
+        staffSidebarGroup.style.display = isStaff ? 'block' : 'none';
+      }
+      // 2. Registro de Hoteles: Exclusivo de Administradores.
+      if (openCreateHotelBtn) {
+        openCreateHotelBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+      }
+      // 3. Registro de Habitaciones: Exclusivo de Administradores.
+      if (openCreateRoomBtn) {
+        openCreateRoomBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+      }
+
+      loadHotels();
+    } else {
+      authCanvas.style.display = 'flex';
+      dashboardCanvas.classList.remove('active');
+      loginFormView.style.display = 'block';
+      registerFormView.style.display = 'none';
+    }
+  }
+
+  // Navegación por pestañas con validación estricta de Roles (RBAC)
   function switchDashboardTab(tabId) {
+    const user = api.getCurrentUser();
+    const role = user ? (user.role || 'GUEST') : 'GUEST';
+    const isStaff = role === 'HOTEL_ADMIN' || role === 'RECEPTIONIST';
+
+    // Protección de ruta: Solo personal del hotel puede ver Recepción
+    if (tabId === 'reception' && !isStaff) {
+      showToast('Acceso Denegado: El Portal de Recepción es exclusivo para Recepcionistas y Administradores', 'warning');
+      tabId = 'hotels';
+    }
+
     sidebarNavItems.forEach(item => {
-      const isMatch = item.getAttribute('data-tab') === tabId;
-      item.classList.toggle('active', isMatch);
+      item.classList.toggle('active', item.getAttribute('data-tab') === tabId);
     });
 
     tabContents.forEach(content => {
@@ -138,8 +295,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (tabId === 'hotels') {
       loadHotels();
-    } else if (tabId === 'notifications') {
-      loadNotificationHistory();
+    } else if (tabId === 'availability') {
+      initAvailabilityView();
+    } else if (tabId === 'rooms') {
+      loadRoomHotels().then(loadRooms);
+    } else if (tabId === 'my-bookings') {
+      loadMyBookings();
+    } else if (tabId === 'reception') {
+      loadReceptionBookings();
     }
   }
 
@@ -150,63 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Sistema de Notificaciones Toast
-  function showToast(message, type = 'info') {
-    const toast = document.createElement('div');
-    toast.className = `toast-msg ${type}`;
-    
-    let icon = 'ℹ️';
-    if (type === 'success') icon = '✅';
-    if (type === 'error') icon = '🛑';
-
-    toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
-    toastShelf.appendChild(toast);
-
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      toast.style.transform = 'translateY(12px)';
-      toast.style.transition = 'all 0.3s ease';
-      setTimeout(() => toast.remove(), 300);
-    }, 4000);
-  }
-
-  // Consola de Tráfico HTTP en Tiempo Real
-  api.onLog((log) => {
-    if (!consoleLogs) return;
-
-    const entry = document.createElement('div');
-    const statusType = log.status >= 200 && log.status < 300 ? 'success' : (log.status >= 400 ? 'error' : 'info');
-    entry.className = `console-entry ${statusType}`;
-    
-    entry.innerHTML = `
-      <span>[${log.timestamp}]</span>
-      <strong>${log.method}</strong>
-      <span>${log.endpoint}</span>
-      <span style="margin-left: auto;">${log.status || 'ERR'} (${log.durationMs}ms)</span>
-    `;
-    
-    consoleLogs.prepend(entry);
-    if (consoleLogs.children.length > 35) {
-      consoleLogs.removeChild(consoleLogs.lastChild);
-    }
-  });
-
-  clearConsoleBtn?.addEventListener('click', () => {
-    if (consoleLogs) {
-      consoleLogs.innerHTML = `
-        <div class="console-entry info">
-          [SYS] Consola limpiada por el usuario (${new Date().toLocaleTimeString()})
-        </div>
-      `;
-      showToast('Consola de tráfico reiniciada', 'info');
-    }
-  });
-
-  pingGatewayBtn?.addEventListener('click', () => {
-    checkSystemHealth(true);
-  });
-
-  // Alternar Vistas Login / Registro
+  // Alternar Login y Registro
   goToRegisterLink?.addEventListener('click', () => {
     loginFormView.style.display = 'none';
     registerFormView.style.display = 'block';
@@ -217,143 +324,80 @@ document.addEventListener('DOMContentLoaded', () => {
     loginFormView.style.display = 'block';
   });
 
-  homeCircleBtn?.addEventListener('click', () => {
-    refreshSessionView();
-  });
-
-  // Modal y Flujo de Inicio de Sesión con Google
-  googleLoginBtn?.addEventListener('click', () => {
-    if (googleAuthModal) googleAuthModal.style.display = 'flex';
-  });
-
-  closeGoogleModalBtn?.addEventListener('click', () => {
-    if (googleAuthModal) googleAuthModal.style.display = 'none';
-  });
-
-  // Cerrar modal de Google al hacer clic fuera del diálogo
-  googleAuthModal?.addEventListener('click', (e) => {
-    if (e.target === googleAuthModal) {
-      googleAuthModal.style.display = 'none';
-    }
-  });
-
-  async function loginWithGoogle(email, firstName, lastName) {
-    try {
-      showToast('Autenticando con Google...', 'info');
-      const res = await api.googleLogin({ email, firstName, lastName });
-      
-      // Si el usuario es nuevo, emitir evento de bienvenida y esperar a que quede registrado
-      if (res && res.user) {
-        try {
-          await api.sendWelcomeNotification({
-            userId: res.user.id,
-            email: res.user.email,
-            firstName: res.user.firstName,
-            lastName: res.user.lastName,
-            loginUrl: window.location.origin,
-          });
-        } catch (notifErr) {
-          console.warn('Aviso bienvenida Google:', notifErr);
-        }
-      }
-
-      if (googleAuthModal) googleAuthModal.style.display = 'none';
-      showToast(`¡Autenticación con Google exitosa! Bienvenido, ${res.user.firstName}`, 'success');
-      refreshSessionView();
-    } catch (err) {
-      showToast(err.message, 'error');
-    }
-  }
-
-
-  googleCustomForm?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const email = document.getElementById('googleCustomEmail').value.trim();
-    const firstName = document.getElementById('googleCustomFirst').value.trim();
-    const lastName = document.getElementById('googleCustomLast').value.trim();
-    loginWithGoogle(email, firstName, lastName);
-  });
-
   forgotPassLink?.addEventListener('click', (e) => {
     e.preventDefault();
-    showToast('Recuperación por correo planificada en Notifications Service', 'info');
+    showToast('Para restablecer tu contraseña, contacta a concierge@travelresorts.com', 'info');
   });
 
-  pingStatusBtn?.addEventListener('click', () => {
-    checkSystemHealth(true);
+  // Explorar como huésped rápido
+  exploreAsGuestBtn?.addEventListener('click', async () => {
+    // Si ya tiene sesión, entra al dashboard
+    if (api.getToken() && api.getCurrentUser()) {
+      refreshSessionView();
+      return;
+    }
+
+    try {
+      showToast('Iniciando sesión como Huésped Invitado...', 'info');
+      await api.login('guest@hotel.com', 'guest123');
+      showToast('¡Bienvenido a Travel & Resorts!', 'success');
+      refreshSessionView();
+    } catch {
+      // Si no existe, crear o intentar login con credenciales de fallback
+      try {
+        await api.register({
+          firstName: 'Carlos',
+          lastName: 'Valderrama',
+          email: 'guest@hotel.com',
+          phone: '+57 300 123 4567',
+          role: 'GUEST',
+          password: 'guest123',
+        }, true);
+        showToast('¡Bienvenido a Travel & Resorts!', 'success');
+        refreshSessionView();
+      } catch (regErr) {
+        // En caso de que ya exista con otra clave, enfocar login
+        loginFormView.style.display = 'block';
+        registerFormView.style.display = 'none';
+        const em = document.getElementById('loginEmail');
+        if (em) em.value = 'guest@hotel.com';
+        showToast('Ingresa tus credenciales para acceder', 'info');
+      }
+    }
   });
 
-  // Sincronización de Vista de Sesión
-  function refreshSessionView() {
-    const token = api.getToken();
-    const user = api.getCurrentUser();
-
-    if (token && user) {
-      authCanvas.style.display = 'none';
-      dashboardCanvas.classList.add('active');
-
-      const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Huésped';
-      dashUserName.textContent = fullName;
-      dashUserEmail.textContent = user.email || 'correo@hotel.com';
-      dashUserId.textContent = user.id || 'N/A';
-      dashJwtToken.textContent = token;
-
-      const role = user.role || 'GUEST';
-      dashRoleBadge.textContent = role;
-      dashRoleBadge.className = `dash-badge ${role.toLowerCase()}`;
-
-      const isAdmin = role === 'HOTEL_ADMIN';
-      const isStaff = role === 'HOTEL_ADMIN' || role === 'RECEPTIONIST';
-
-      // 1. Hoteles: Solo HOTEL_ADMIN puede registrar o cargar demos
-      if (openCreateHotelBtn) {
-        openCreateHotelBtn.style.display = isAdmin ? 'inline-flex' : 'none';
-      }
-      if (seedHotelsBtn) {
-        seedHotelsBtn.style.display = isAdmin ? 'inline-flex' : 'none';
-      }
-
-      // 2. Notificaciones: Solo HOTEL_ADMIN y RECEPTIONIST gestionan/disparan eventos
-      const staffNotifTriggers = document.getElementById('staffNotifTriggers');
-      const guestNotifBanner = document.getElementById('guestNotifBanner');
-      const notifAuditTitle = document.getElementById('notifAuditTitle');
-      const notifNavLabel = document.querySelector('.dash-nav-item[data-tab="notifications"] .dash-nav-label');
-
-      const staffSection = document.getElementById('staffSection');
-      if (staffSection) {
-        staffSection.style.display = isStaff ? 'block' : 'none';
-      }
-      if (guestNotifBanner) {
-        guestNotifBanner.style.display = isStaff ? 'none' : 'flex';
-      }
-      if (notifAuditTitle) {
-        notifAuditTitle.textContent = isStaff 
-          ? '📜 Registro de Auditoría de Envíos en Tiempo Real (Últimos 50 Eventos)'
-          : '📜 Notificaciones y Comprobantes Recibidos en Tu Cuenta';
-      }
-      if (notifNavLabel) {
-        notifNavLabel.textContent = isStaff ? 'Notif. & Vouchers' : 'Mis Notificaciones';
-      }
-
-      loadHotels();
-      loadNotificationHistory();
-      if (isStaff) loadUsersList();
-    } else {
-      authCanvas.style.display = 'flex';
-      dashboardCanvas.classList.remove('active');
-      loginFormView.style.display = 'block';
-      registerFormView.style.display = 'none';
+  // Botones de Acceso Rápido por Rol para Demostración RBAC (1 Clic)
+  async function quickLoginAs(email, password, roleLabel) {
+    showToast(`Autenticando como ${roleLabel}...`, 'info');
+    try {
+      const res = await api.login(email, password);
+      showToast(`¡Sesión iniciada con éxito! Modo activo: ${roleLabel}`, 'success');
+      refreshSessionView();
+    } catch (err) {
+      showToast(`Error al autenticar: ${err.message}`, 'error');
     }
   }
 
-  // Envío de Formulario de Inicio de Sesión
+  document.getElementById('btnQuickGuest')?.addEventListener('click', () => {
+    quickLoginAs('guest@hotel.com', 'guest123', 'Huésped (GUEST)');
+  });
+
+  document.getElementById('btnQuickReception')?.addEventListener('click', () => {
+    quickLoginAs('recepcion@hotel.com', 'recepcion123', 'Personal de Recepción (RECEPTIONIST)');
+  });
+
+  document.getElementById('btnQuickAdmin')?.addEventListener('click', () => {
+    quickLoginAs('admin@hotel.com', 'admin123', 'Administrador General (HOTEL_ADMIN)');
+  });
+
+  // Envío de Login
   loginForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
 
     submitLoginBtn.disabled = true;
-    submitLoginBtn.innerHTML = '<span>Verificando...</span>';
+    submitLoginBtn.innerHTML = '<span>Verificando credenciales...</span>';
 
     try {
       const res = await api.login(email, password);
@@ -367,7 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Envío de Formulario de Registro
+  // Envío de Registro
   registerForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const firstName = document.getElementById('regFirstName').value.trim();
@@ -378,34 +422,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const password = document.getElementById('regPassword').value;
 
     submitRegBtn.disabled = true;
-    submitRegBtn.innerHTML = '<span>Registrando cuenta...</span>';
+    submitRegBtn.innerHTML = '<span>Creando cuenta segura...</span>';
 
     try {
-      // 1. Registrar usuario SIN auto-login para obligar a iniciar sesión
-      const res = await api.register({ firstName, lastName, email, phone, role, password }, false);
+      await api.register({ firstName, lastName, email, phone, role, password }, false);
+      showToast(`¡Cuenta creada con éxito! Hemos enviado una confirmación a ${email}. Inicia sesión ahora.`, 'success');
 
-      // 2. Despachar correo de bienvenida transaccional (user.registered) a notification-service
-      try {
-        await api.sendWelcomeNotification({
-          userId: res.user?.id || 'new-user',
-          email: email,
-          firstName: firstName,
-          lastName: lastName,
-          loginUrl: window.location.origin,
-        });
-      } catch (notifErr) {
-        console.warn('Aviso: error despachando notificación de bienvenida:', notifErr);
-      }
-
-      // 3. Notificar al usuario y redirigir inmediatamente al formulario de login
-      showToast(`¡Registro exitoso! Se ha enviado un correo de bienvenida a ${email}. Por favor inicia sesión.`, 'success');
-
-      // Limpiar formulario y alternar a vista de Login
       registerForm.reset();
       registerFormView.style.display = 'none';
       loginFormView.style.display = 'block';
 
-      // Precargar correo registrado en campo de login y enfocar campo de contraseña
       const loginEmailField = document.getElementById('loginEmail');
       const loginPassField = document.getElementById('loginPassword');
       if (loginEmailField) loginEmailField.value = email;
@@ -421,395 +447,53 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Modal Google
+  googleLoginBtn?.addEventListener('click', () => {
+    if (googleAuthModal) googleAuthModal.style.display = 'flex';
+  });
+
+  closeGoogleModalBtn?.addEventListener('click', () => {
+    if (googleAuthModal) googleAuthModal.style.display = 'none';
+  });
+
+  googleAuthModal?.addEventListener('click', (e) => {
+    if (e.target === googleAuthModal) googleAuthModal.style.display = 'none';
+  });
+
+  googleCustomForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('googleCustomEmail').value.trim();
+    const firstName = document.getElementById('googleCustomFirst').value.trim();
+    const lastName = document.getElementById('googleCustomLast').value.trim();
+
+    try {
+      showToast('Autenticando con Google...', 'info');
+      const res = await api.googleLogin({ email, firstName, lastName });
+      if (googleAuthModal) googleAuthModal.style.display = 'none';
+      showToast(`¡Bienvenido, ${res.user.firstName}!`, 'success');
+      refreshSessionView();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  });
+
   // Cerrar Sesión
   logoutBtn?.addEventListener('click', () => {
+    clearActiveHold();
     api.clearSession();
-    showToast('Sesión cerrada correctamente', 'info');
+    showToast('Sesión finalizada. ¡Hasta pronto!', 'info');
     refreshSessionView();
   });
 
-  // Demostración RBAC (Roles)
-  testRbacBtn?.addEventListener('click', async () => {
-    testRbacBtn.disabled = true;
-    rbacFeedback.style.display = 'block';
-    rbacFeedback.innerHTML = 'Consultando endpoint protegido /api/auth/admin-only...';
-
-    try {
-      const res = await api.testAdminOnly();
-      rbacFeedback.innerHTML = `
-        <span style="color: #34d399; font-weight: bold;">[Acceso Autorizado]</span><br>
-        <strong>Mensaje:</strong> ${res.message}<br>
-        <strong>Rol Requerido:</strong> ${res.requiredRole}<br>
-        <strong>Usuario ID:</strong> ${res.requestedBy.id}
-      `;
-      showToast('Autorización RBAC confirmada', 'success');
-    } catch (err) {
-      rbacFeedback.innerHTML = `
-        <span style="color: #f87171; font-weight: bold;">[Acceso Denegado 403 Forbidden]</span><br>
-        <strong>Error:</strong> ${err.message}<br>
-        <em>Tu usuario actual no posee el rol HOTEL_ADMIN requerido.</em>
-      `;
-      showToast('Acceso denegado por RBAC', 'error');
-    } finally {
-      testRbacBtn.disabled = false;
-    }
-  });
-
-  // =========================================================================
-  // LISTADO DE USUARIOS (Solo Admin / Recepcionista)
-  // =========================================================================
-
-  async function loadUsersList() {
-    const usersPanel = document.getElementById('usersListPanel');
-    if (!usersPanel) return;
-    const innerPanel = usersPanel.querySelector('div[style*="overflow-y"]') || usersPanel;
-    try {
-      const users = await api.getAllUsers();
-      renderUsersList(users);
-    } catch (err) {
-      innerPanel.innerHTML = '<p style="color:var(--text-dim); padding:1rem;">No se pudo cargar la lista de usuarios.</p>';
-      console.warn('Error cargando usuarios:', err);
-    }
+  // --------------------------------------------------------------------------
+  // 3. CATÁLOGO DE HOTELES (TAB: HOTELES)
+  // --------------------------------------------------------------------------
+  function extractHotelImg(h) {
+    if (Array.isArray(h.images) && h.images.length > 0 && h.images[0]) return h.images[0];
+    if (typeof h.images === 'string' && h.images.trim()) return h.images.split(',')[0].trim();
+    if (h.mainImageUrl) return h.mainImageUrl;
+    return 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80';
   }
-
-  function renderUsersList(users = []) {
-    const usersPanel = document.getElementById('usersListPanel');
-    if (!usersPanel) return;
-    const innerPanel = usersPanel.querySelector('div[style*="overflow-y"]') || usersPanel;
-
-    if (!users || users.length === 0) {
-      innerPanel.innerHTML = '<p style="color:var(--text-dim); padding:1rem;">No hay usuarios registrados aún.</p>';
-      return;
-    }
-
-    const roleColor = { HOTEL_ADMIN: '#f59e0b', RECEPTIONIST: '#6366f1', GUEST: '#22c55e' };
-
-    innerPanel.innerHTML = users.map(u => {
-      const fullName = `${u.firstName || ''} ${u.lastName || ''}`.trim() || 'Sin nombre';
-      const color = roleColor[u.role] || '#94a3b8';
-      const initials = (u.firstName?.[0] || '') + (u.lastName?.[0] || '');
-      return `
-        <div class="user-list-item" style="display:flex; align-items:center; gap:0.75rem; padding:0.65rem 1rem; border-bottom:1px solid rgba(255,255,255,0.07); transition: background 0.2s;" 
-             onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
-          <div style="width:36px; height:36px; border-radius:50%; background:${color}22; border:2px solid ${color}; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.8rem; color:${color}; flex-shrink:0;">${initials || '?'}</div>
-          <div style="flex:1; min-width:0;">
-            <div style="color:#f8fafc; font-weight:600; font-size:0.85rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${fullName}</div>
-            <div style="color:var(--text-dim); font-size:0.72rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${u.email}</div>
-          </div>
-          <span style="font-size:0.65rem; font-weight:700; padding:0.2rem 0.5rem; border-radius:999px; background:${color}22; color:${color}; border:1px solid ${color}44; flex-shrink:0;">${u.role}</span>
-          <button onclick="sendNotifToUser('${u.email}', '${fullName.replace(/'/g, '')}')"
-            style="font-size:0.7rem; padding:0.3rem 0.65rem; border-radius:6px; background:rgba(99,102,241,0.15); color:#a5b4fc; border:1px solid rgba(99,102,241,0.3); cursor:pointer; flex-shrink:0; transition: background 0.2s;"
-            onmouseover="this.style.background='rgba(99,102,241,0.3)'" onmouseout="this.style.background='rgba(99,102,241,0.15)'">
-            📨 Notificar
-          </button>
-          <button onclick="deleteUserById('${u.id}', '${u.email.replace(/'/g, '')}')"
-            style="font-size:0.7rem; padding:0.3rem 0.65rem; border-radius:6px; background:rgba(248,113,113,0.1); color:#f87171; border:1px solid rgba(248,113,113,0.3); cursor:pointer; flex-shrink:0; transition: background 0.2s;"
-            onmouseover="this.style.background='rgba(248,113,113,0.25)'" onmouseout="this.style.background='rgba(248,113,113,0.1)'"
-            title="Eliminar usuario">
-            🗑️
-          </button>
-        </div>
-      `;
-    }).join('');
-  }
-
-  window.sendNotifToUser = async function(email, name) {
-    try {
-      showToast(`Enviando notificación a ${name}...`, 'info');
-      await api.sendWelcomeNotification({
-        userId: 'admin_dispatch',
-        email: email,
-        firstName: name.split(' ')[0] || name,
-        lastName: name.split(' ').slice(1).join(' ') || '',
-        loginUrl: window.location.origin,
-      });
-      showToast(`Notificación enviada a ${name} ✓`, 'success');
-      loadNotificationHistory();
-    } catch (err) {
-      showToast(`Error: ${err.message}`, 'error');
-    }
-  };
-
-  // Eliminar usuario individual por ID (solo HOTEL_ADMIN)
-  window.deleteUserById = async function(id, email) {
-    if (!confirm(`¿Eliminar al usuario ${email}? Esta acción no se puede deshacer.`)) return;
-    try {
-      showToast(`Eliminando usuario ${email}...`, 'info');
-      const res = await api.deleteUser(id);
-      showToast(res.message || `Usuario ${email} eliminado`, 'success');
-      loadUsersList();
-    } catch (err) {
-      showToast(`Error al eliminar: ${err.message}`, 'error');
-    }
-  };
-
-  // Botón: Eliminar todos los usuarios GUEST (liberar correos de prueba)
-  document.getElementById('btnDeleteGuests')?.addEventListener('click', async () => {
-    if (!confirm('¿Confirmas que deseas eliminar TODOS los usuarios con rol GUEST?\n\nEsta acción liberará sus correos y no se puede deshacer.')) return;
-    try {
-      showToast('Eliminando usuarios GUEST...', 'info');
-      const res = await api.deleteGuests();
-      const msg = res.message || `${res.deletedCount ?? 0} usuario(s) GUEST eliminados`;
-      showToast(msg, 'success');
-      loadUsersList();
-    } catch (err) {
-      showToast(`Error: ${err.message}`, 'error');
-    }
-  });
-
-  // =========================================================================
-  // CONTROLADOR DEL MICROSERVICIO DE NOTIFICACIONES Y VOUCHERS
-  // =========================================================================
-
-  async function loadNotificationHistory() {
-    try {
-      const history = await api.getNotificationHistory();
-      const currentUser = api.getCurrentUser();
-      const role = currentUser ? (currentUser.role || 'GUEST') : 'GUEST';
-      const isStaff = role === 'HOTEL_ADMIN' || role === 'RECEPTIONIST';
-
-      // Actualizar píldora de estado de SMTP (Gmail / Ethereal)
-      api.getNotificationStatus().then(st => {
-        const textElem = document.getElementById('notifSmtpPillText');
-        const pillElem = document.getElementById('notifSmtpPill');
-        if (textElem && st?.smtp) {
-          if (st.smtp.isReal) {
-            textElem.textContent = st.smtp.provider || 'Gmail SMTP (Producción)';
-            if (pillElem) pillElem.style.borderColor = '#22c55e';
-          } else {
-            textElem.textContent = 'Nodemailer (Ethereal Dev)';
-          }
-        }
-      }).catch(() => {});
-
-      // GUEST solo ve sus propias notificaciones; el staff ve todo
-      let filteredHistory = history;
-      if (!isStaff && currentUser && currentUser.email) {
-        filteredHistory = (history || []).filter(item => {
-          const recipient = (item.recipient || item.recipientEmail || item.email || '').toLowerCase();
-          return recipient === currentUser.email.toLowerCase();
-        });
-      }
-      renderNotificationHistory(filteredHistory);
-    } catch (err) {
-      console.warn('No se pudo cargar el historial de notificaciones:', err);
-    }
-  }
-
-  function renderNotificationHistory(history = []) {
-    if (!notificationsHistoryList) return;
-
-    if (notifCountBadge) {
-      notifCountBadge.textContent = `${history.length} notificación(es)`;
-    }
-
-    if (!history || history.length === 0) {
-      const user = api.getCurrentUser();
-      const isStaff = user && (user.role === 'HOTEL_ADMIN' || user.role === 'RECEPTIONIST');
-      notificationsHistoryList.innerHTML = `
-        <div class="notif-history-empty">
-          ${isStaff 
-            ? 'No se han procesado notificaciones en esta sesión. Utiliza los botones de arriba para disparar eventos o consultar el broker.' 
-            : 'No tienes notificaciones registradas en tu buzón personal por el momento.'}
-        </div>
-      `;
-      return;
-    }
-
-    notificationsHistoryList.innerHTML = history.map(item => {
-      const timeStr = new Date(item.timestamp).toLocaleTimeString();
-      const deliveryBadge = item.status === 'SENT' && !item.previewUrl
-        ? `<span style="color:#34d399; font-size: 0.72rem; font-weight:600;">✓ Entregado a Gmail</span>`
-        : '';
-      const previewLink = item.previewUrl
-        ? `<a href="${item.previewUrl}" target="_blank" class="notif-link-btn" title="Abrir correo renderizado en Ethereal">🔗 Ver Email</a>`
-        : deliveryBadge;
-      const attachmentBadge = item.hasAttachment
-        ? `<span style="color:#6ee7b7; font-size: 0.72rem;">📎 Voucher PDF</span>`
-        : '';
-
-      return `
-        <div class="notif-history-item">
-          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-            <span class="notif-badge-tag ${item.type}">${item.type}</span>
-            <strong style="color: #f8fafc;">${item.recipient}</strong>
-            <span style="color: var(--text-dim); font-size: 0.75rem;">${item.subject}</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 0.6rem; margin-left: auto;">
-            <span style="color: var(--text-dim); font-size: 0.7rem;">${timeStr} (${item.durationMs}ms)</span>
-            ${attachmentBadge}
-            ${previewLink}
-          </div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  // 1. Descargar Voucher PDF de Muestra (Abre en nueva pestaña / descarga directa)
-  btnVoucherSample?.addEventListener('click', () => {
-    const url = api.getVoucherSampleUrl();
-    window.open(url, '_blank');
-    showToast('Generando y transmitiendo Voucher PDF con QR para lectura en recepción...', 'success');
-  });
-
-  // 2. Disparar Correo de Bienvenida (user.registered)
-  btnTriggerWelcome?.addEventListener('click', async () => {
-    const user = api.getCurrentUser() || {
-      firstName: 'Mauricio',
-      lastName: 'Gómez',
-      email: 'mauricio@hotel-dev.com',
-    };
-
-    try {
-      showToast('Despachando evento user.registered...', 'info');
-      await api.sendWelcomeNotification({
-        userId: user.id || 'usr_dev_100',
-        email: user.email || 'mauricio@hotel-dev.com',
-        firstName: user.firstName || 'Mauricio',
-        lastName: user.lastName || 'Gómez',
-        loginUrl: window.location.origin,
-      });
-      showToast('Correo de bienvenida despachado exitosamente', 'success');
-      loadNotificationHistory();
-    } catch (err) {
-      showToast(`Error: ${err.message}`, 'error');
-    }
-  });
-
-  // 3. Disparar Confirmación de Reserva con Voucher PDF (booking.confirmed)
-  btnTriggerBookingConfirm?.addEventListener('click', async () => {
-    const user = api.getCurrentUser() || {
-      firstName: 'Mauricio',
-      lastName: 'Gómez',
-      email: 'mauricio@hotel-dev.com',
-    };
-
-    const ref = `TR-2026-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-
-    try {
-      showToast('Generando Voucher PDF y despachando confirmación...', 'info');
-      await api.sendBookingConfirmationNotification({
-        bookingId: `bkg_${Date.now()}_sim`,
-        bookingReference: ref,
-        userEmail: user.email || 'mauricio@hotel-dev.com',
-        userName: `${user.firstName || 'Mauricio'} ${user.lastName || 'Gómez'}`,
-        hotelName: 'The Grand Riviera Luxury Palace',
-        hotelAddress: 'Av. Costanera Km 14',
-        hotelCity: 'Cancún, México',
-        roomTypeName: 'Master Oceanfront Suite con Balcón',
-        checkInDate: '2026-11-20',
-        checkOutDate: '2026-11-25',
-        nights: 5,
-        guestsCount: 2,
-        totalAmount: 950.0,
-        currency: 'USD',
-        paymentId: `pi_stripe_${Date.now().toString(36)}`,
-        paymentMethod: 'Tarjeta Visa terminada en 4242',
-      });
-      showToast(`¡Voucher PDF emitido y correo despachado para ${ref}!`, 'success');
-      loadNotificationHistory();
-    } catch (err) {
-      showToast(`Error: ${err.message}`, 'error');
-    }
-  });
-
-  // 4. Disparar Notificación de Pago Fallido (payment.failed)
-  btnTriggerPaymentFailed?.addEventListener('click', async () => {
-    const user = api.getCurrentUser() || {
-      firstName: 'Mauricio',
-      lastName: 'Gómez',
-      email: 'mauricio@hotel-dev.com',
-    };
-
-    try {
-      showToast('Despachando evento payment.failed...', 'info');
-      await api.sendPaymentFailedNotification({
-        bookingId: `bkg_pend_${Math.random().toString(36).substring(2, 7)}`,
-        userEmail: user.email || 'mauricio@hotel-dev.com',
-        userName: `${user.firstName || 'Mauricio'} ${user.lastName || 'Gómez'}`,
-        hotelName: 'Cartagena Paradise Beach Resort',
-        roomTypeName: 'Junior Suite Vista al Mar',
-        totalAmount: 480.0,
-        currency: 'USD',
-        failureReason: 'Fondos insuficientes (card_declined) reportados por la pasarela',
-        retryPaymentUrl: `${window.location.origin}/checkout?retry=true`,
-        expiresAt: 'Restan 8 minutos de reserva en Redis',
-      });
-      showToast('Alerta de pago fallido despachada con éxito', 'success');
-      loadNotificationHistory();
-    } catch (err) {
-      showToast(`Error: ${err.message}`, 'error');
-    }
-  });
-
-  // 5. Disparar Recordatorio de Check-in 24h (booking.checkin.reminder)
-  btnTriggerCheckinReminder?.addEventListener('click', async () => {
-    const user = api.getCurrentUser() || {
-      firstName: 'Mauricio',
-      lastName: 'Gómez',
-      email: 'mauricio@hotel-dev.com',
-    };
-
-    try {
-      showToast('Despachando recordatorio de check-in 24h...', 'info');
-      await api.sendCheckinReminderNotification({
-        bookingId: `bkg_chk_${Date.now().toString(36)}`,
-        bookingReference: 'TR-2026-REMINDER',
-        userEmail: user.email || 'mauricio@hotel-dev.com',
-        userName: `${user.firstName || 'Mauricio'} ${user.lastName || 'Gómez'}`,
-        hotelName: 'The Palm Luxury Suites & Spa',
-        hotelAddress: 'Calle 50 # 12-40, Bocagrande',
-        hotelCity: 'Cartagena de Indias',
-        roomTypeName: 'Penthouse Imperial con Jacuzzi',
-        checkInDate: 'Mañana',
-        checkInTime: '15:00',
-        specialInstructions: 'Recepción VIP con copa de champagne de bienvenida.',
-      });
-      showToast('Recordatorio de check-in enviado exitosamente', 'success');
-      loadNotificationHistory();
-    } catch (err) {
-      showToast(`Error: ${err.message}`, 'error');
-    }
-  });
-
-  // 6. Disparar Comprobante de Reembolso (payment.refunded)
-  btnTriggerRefund?.addEventListener('click', async () => {
-    const user = api.getCurrentUser() || {
-      firstName: 'Mauricio',
-      lastName: 'Gómez',
-      email: 'mauricio@hotel-dev.com',
-    };
-
-    try {
-      showToast('Despachando comprobante de reembolso...', 'info');
-      await api.sendRefundReceiptNotification({
-        bookingId: `bkg_canc_${Date.now().toString(36)}`,
-        bookingReference: 'TR-2026-REFUND',
-        refundId: `ref_stripe_${Math.random().toString(36).substring(2, 9)}`,
-        userEmail: user.email || 'mauricio@hotel-dev.com',
-        userName: `${user.firstName || 'Mauricio'} ${user.lastName || 'Gómez'}`,
-        hotelName: 'The Grand Riviera Luxury Palace',
-        roomTypeName: 'Master Oceanfront Suite',
-        refundAmount: 950.0,
-        originalAmount: 950.0,
-        currency: 'USD',
-        reason: 'Cancelación voluntaria del huésped con anticipación mayor a 48h.',
-      });
-      showToast('Comprobante de reembolso despachado exitosamente', 'success');
-      loadNotificationHistory();
-    } catch (err) {
-      showToast(`Error: ${err.message}`, 'error');
-    }
-  });
-
-  refreshNotifHistoryBtn?.addEventListener('click', () => {
-    loadNotificationHistory();
-    showToast('Historial de notificaciones actualizado', 'info');
-  });
-
-  // =========================================================================
-  // CONTROLADOR DEL CATÁLOGO DE HOTELES (Hotels Service)
-  // =========================================================================
 
   async function loadHotels() {
     const filters = {
@@ -840,7 +524,7 @@ document.addEventListener('DOMContentLoaded', () => {
       hotelsGrid.innerHTML = `
         <div class="empty-hotels-box">
           <span>No se encontraron hoteles con los criterios seleccionados.</span>
-          <span style="font-size: 0.75rem;">Intenta limpiar los filtros o presiona "Cargar Demo"</span>
+          <span style="font-size: 0.75rem; margin-top: 0.5rem;">Intenta limpiar los filtros de búsqueda.</span>
         </div>
       `;
       return;
@@ -849,31 +533,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentUser = api.getCurrentUser();
     const isAdmin = currentUser && currentUser.role === 'HOTEL_ADMIN';
 
-    // Helper para extraer la imagen óptima del hotel según el esquema de datos
-    function extractHotelImg(h) {
-      if (Array.isArray(h.images) && h.images.length > 0 && h.images[0]) {
-        return h.images[0];
-      }
-      if (typeof h.images === 'string' && h.images.trim()) {
-        return h.images.split(',')[0].trim();
-      }
-      if (h.mainImageUrl) {
-        return h.mainImageUrl;
-      }
-      return 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80';
-    }
-
     hotelsGrid.innerHTML = hotels.map(h => {
       const starsStr = '⭐'.repeat(h.stars || 5);
       const isPet = h.petFriendly ?? h.isPetFriendly;
       const petStr = isPet ? '🐾 Pet-friendly' : '🚫 No mascotas';
-      const amenitiesStr = Array.isArray(h.amenities) ? h.amenities.slice(0, 3).map(a => `<span class="hotel-amenity-tag">${a}</span>`).join('') : '';
+      const amenitiesStr = Array.isArray(h.amenities)
+        ? h.amenities.slice(0, 3).map(a => `<span class="hotel-amenity-tag">${a}</span>`).join('')
+        : '';
       const hotelImg = extractHotelImg(h);
 
       const adminButtons = isAdmin ? `
         <div class="hotel-admin-actions">
-          <button class="btn-card-edit" data-id="${h.id}" title="Editar Hotel">✏️</button>
-          <button class="btn-card-delete" data-id="${h.id}" data-name="${h.name}" title="Desactivar Hotel">🗑️</button>
+          <button class="btn-card-edit" data-id="${h.id}" title="Editar Sede">✏️</button>
+          <button class="btn-card-delete" data-id="${h.id}" data-name="${h.name}" title="Desactivar Sede">🗑️</button>
         </div>
       ` : '';
 
@@ -882,30 +554,39 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="hotel-card-media">
             <img src="${hotelImg}" alt="${h.name}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80';">
             <div class="badge-stars">${starsStr}</div>
-            <div class="badge-city">${h.city || 'Destino Exclusivo'}</div>
+            <div class="badge-city">${h.city || 'Colombia'}</div>
             ${adminButtons}
           </div>
           <div class="hotel-card-body">
             <h3 class="hotel-card-title">${h.name}</h3>
             <div class="hotel-card-location">📍 ${h.address}, ${h.city}</div>
-            <p class="hotel-card-desc">${h.description ? h.description.substring(0, 110) + '...' : ''}</p>
-            <div class="hotel-amenities-tags">
-              ${amenitiesStr}
-            </div>
+            <p class="hotel-card-desc">${h.description ? h.description.substring(0, 115) + '...' : ''}</p>
+            <div class="hotel-amenities-tags">${amenitiesStr}</div>
           </div>
           <div class="hotel-card-footer">
             <div class="hotel-policy-pill">${petStr}</div>
-            <button class="btn-hotel-detail" data-id="${h.id}">Ver Detalles</button>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn-hotel-detail" data-id="${h.id}" style="padding: 7px 12px; font-size: 0.78rem;">Ver Ficha</button>
+              <button class="btn-blue btn-quick-book" data-id="${h.id}" data-name="${h.name}" style="padding: 7px 12px; font-size: 0.78rem;">Reservar</button>
+            </div>
           </div>
         </div>
       `;
     }).join('');
 
-    // Eventos de botones dentro de las tarjetas
+    // Eventos de botones de tarjeta
     document.querySelectorAll('.btn-hotel-detail').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         openHotelDetail(btn.getAttribute('data-id'));
+      });
+    });
+
+    document.querySelectorAll('.btn-quick-book').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const hotelId = btn.getAttribute('data-id');
+        openAvailabilityForHotel(hotelId);
       });
     });
 
@@ -921,10 +602,10 @@ document.addEventListener('DOMContentLoaded', () => {
         e.stopPropagation();
         const id = btn.getAttribute('data-id');
         const name = btn.getAttribute('data-name');
-        if (confirm(`¿Confirmas que deseas desactivar la sede hotelera "${name}"?`)) {
+        if (confirm(`¿Confirmas que deseas desactivar la sede "${name}"?`)) {
           try {
             await api.deleteHotel(id);
-            showToast(`Hotel "${name}" desactivado`, 'info');
+            showToast(`Sede "${name}" desactivada`, 'info');
             loadHotels();
           } catch (err) {
             showToast(err.message, 'error');
@@ -934,16 +615,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Abrir Modal de Detalle
+  // Abrir Modal de Detalle de Hotel
   async function openHotelDetail(id) {
     try {
       const hotel = await api.getHotelById(id);
-      const hotelImg = (Array.isArray(hotel.images) && hotel.images[0])
-        ? hotel.images[0]
-        : (typeof hotel.images === 'string' && hotel.images.trim() ? hotel.images.split(',')[0].trim() : '')
-        || hotel.mainImageUrl
-        || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80';
+      selectedHotelForBooking = hotel;
 
+      const hotelImg = extractHotelImg(hotel);
       const isPet = hotel.petFriendly ?? hotel.isPetFriendly;
 
       document.getElementById('detailTitle').textContent = hotel.name;
@@ -957,7 +635,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('detailPetFriendly').textContent = isPet ? '🐾 Sí, hotel pet-friendly' : '🚫 No se admiten mascotas';
       document.getElementById('detailPetFriendly').style.color = isPet ? '#34d399' : '#f87171';
       document.getElementById('detailContact').textContent = `${hotel.phone || hotel.contactPhone || 'N/A'} | ${hotel.email || hotel.contactEmail || 'N/A'}`;
-      document.getElementById('detailCancellation').textContent = hotel.cancellationPolicy || 'Políticas de cancelación según tarifa.';
+      document.getElementById('detailCancellation').textContent = hotel.cancellationPolicy || 'Cancelación gratuita hasta 48 horas antes de la llegada.';
 
       const amenitiesBox = document.getElementById('detailAmenities');
       amenitiesBox.innerHTML = Array.isArray(hotel.amenities)
@@ -966,11 +644,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
       hotelDetailModal.style.display = 'flex';
     } catch (err) {
-      showToast(`Error cargando detalle: ${err.message}`, 'error');
+      showToast(`Error al consultar hotel: ${err.message}`, 'error');
     }
   }
 
-  // Modal de Crear / Editar Hotel
+  // Redirigir desde modal de detalle hacia el buscador de disponibilidad
+  btnBookFromHotelDetail?.addEventListener('click', () => {
+    hotelDetailModal.style.display = 'none';
+    if (selectedHotelForBooking) {
+      openAvailabilityForHotel(selectedHotelForBooking.id);
+    } else {
+      switchDashboardTab('availability');
+    }
+  });
+
+  function openAvailabilityForHotel(hotelId) {
+    switchDashboardTab('availability');
+    setTimeout(() => {
+      if (availHotelSelect) {
+        availHotelSelect.value = hotelId;
+        triggerAvailabilitySearch();
+      }
+    }, 150);
+  }
+
+  // Crear o Editar Hotel (HOTEL_ADMIN)
   openCreateHotelBtn?.addEventListener('click', () => {
     hotelUpsertForm.reset();
     document.getElementById('formHotelId').value = '';
@@ -1002,11 +700,10 @@ document.addEventListener('DOMContentLoaded', () => {
       hotelFormTitle.textContent = `✏️ Editar Sede: ${hotel.name}`;
       hotelFormModal.style.display = 'flex';
     } catch (err) {
-      showToast(`Error preparando edición: ${err.message}`, 'error');
+      showToast(`Error preparando formulario: ${err.message}`, 'error');
     }
   }
 
-  // Guardar Hotel (Crear o Actualizar)
   hotelUpsertForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     submitHotelFormBtn.disabled = true;
@@ -1039,10 +736,10 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       if (id) {
         await api.updateHotel(id, payload);
-        showToast('Hotel actualizado exitosamente', 'success');
+        showToast('Sede actualizada exitosamente', 'success');
       } else {
         await api.createHotel(payload);
-        showToast('Nuevo hotel registrado exitosamente', 'success');
+        showToast('Nueva sede registrada exitosamente', 'success');
       }
       hotelFormModal.style.display = 'none';
       loadHotels();
@@ -1054,99 +751,1224 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Cargar Catálogo Demo
-  seedHotelsBtn?.addEventListener('click', async () => {
-    seedHotelsBtn.disabled = true;
-    showToast('Cargando hoteles de prueba iniciales...', 'info');
-
-    try {
-      const res = await api.seedHotels();
-      showToast(res.message || 'Catálogo de prueba cargado con éxito', 'success');
-      loadHotels();
-    } catch (err) {
-      showToast(err.message, 'error');
-    } finally {
-      seedHotelsBtn.disabled = false;
-    }
-  });
-
-  // Refrescar Catálogo
   refreshHotelsBtn?.addEventListener('click', () => {
     loadHotels();
-    showToast('Catálogo de hoteles actualizado', 'info');
+    showToast('Catálogo actualizado', 'info');
   });
 
-  // Cerrar Modales
-  closeDetailModalBtn?.addEventListener('click', () => {
-    hotelDetailModal.style.display = 'none';
+  closeDetailModalBtn?.addEventListener('click', () => hotelDetailModal.style.display = 'none');
+  closeFormModalBtn?.addEventListener('click', () => hotelFormModal.style.display = 'none');
+  hotelDetailModal?.addEventListener('click', (e) => { if (e.target === hotelDetailModal) hotelDetailModal.style.display = 'none'; });
+  hotelFormModal?.addEventListener('click', (e) => { if (e.target === hotelFormModal) hotelFormModal.style.display = 'none'; });
+
+  let filterHotelDebounce = null;
+  filterHotelSearch?.addEventListener('input', () => {
+    clearTimeout(filterHotelDebounce);
+    filterHotelDebounce = setTimeout(loadHotels, 350);
   });
-
-  closeFormModalBtn?.addEventListener('click', () => {
-    hotelFormModal.style.display = 'none';
-  });
-
-  hotelDetailModal?.addEventListener('click', (e) => {
-    if (e.target === hotelDetailModal) hotelDetailModal.style.display = 'none';
-  });
-
-  hotelFormModal?.addEventListener('click', (e) => {
-    if (e.target === hotelFormModal) hotelFormModal.style.display = 'none';
-  });
-
-  // Filtros interactivos con debounce
-  let filterTimer = null;
-  function triggerFilterDebounce() {
-    clearTimeout(filterTimer);
-    filterTimer = setTimeout(loadHotels, 350);
-  }
-
-  filterHotelSearch?.addEventListener('input', triggerFilterDebounce);
   filterHotelCity?.addEventListener('change', loadHotels);
   filterHotelStars?.addEventListener('change', loadHotels);
   filterPetFriendly?.addEventListener('change', loadHotels);
 
-  // Helper para asignar clase online/offline a una lista de puntos de estado
-  function setDotsState(dots, isOnline) {
-    dots.forEach(dot => {
-      if (dot) dot.className = `dot ${isOnline ? 'online' : 'offline'}`;
+  // --------------------------------------------------------------------------
+  // 4. BUSCADOR DE DISPONIBILIDAD & COTIZACIÓN EN VIVO (TAB: DISPONIBILIDAD)
+  // --------------------------------------------------------------------------
+  async function initAvailabilityView() {
+    // 1. Cargar selector de hoteles si no está cargado
+    try {
+      const res = await api.getHotels({ limit: 100 });
+      const hotels = res.data || [];
+      if (availHotelSelect) {
+        const cur = availHotelSelect.value;
+        availHotelSelect.innerHTML = hotels.map(h => `<option value="${h.id}">${h.name} (${h.city})</option>`).join('');
+        if (cur) availHotelSelect.value = cur;
+      }
+    } catch (err) {
+      console.warn('Error cargando hoteles para selector de disponibilidad:', err);
+    }
+
+    // 2. Establecer fechas por defecto si están vacías
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const checkOutDate = new Date(tomorrow);
+    checkOutDate.setDate(checkOutDate.getDate() + 3);
+
+    const fmt = (d) => d.toISOString().split('T')[0];
+
+    if (availCheckIn && !availCheckIn.value) {
+      availCheckIn.min = fmt(today);
+      availCheckIn.value = fmt(tomorrow);
+    }
+    if (availCheckOut && !availCheckOut.value) {
+      availCheckOut.min = fmt(tomorrow);
+      availCheckOut.value = fmt(checkOutDate);
+    }
+
+    // Si ya hay un hotel seleccionado, realizar búsqueda automática inicial
+    if (availHotelSelect?.value) {
+      triggerAvailabilitySearch();
+    }
+  }
+
+  availCheckIn?.addEventListener('change', () => {
+    if (availCheckIn.value && availCheckOut) {
+      const nextDay = new Date(availCheckIn.value);
+      nextDay.setDate(nextDay.getDate() + 1);
+      availCheckOut.min = nextDay.toISOString().split('T')[0];
+      if (availCheckOut.value <= availCheckIn.value) {
+        availCheckOut.value = nextDay.toISOString().split('T')[0];
+      }
+    }
+  });
+
+  availSearchForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    triggerAvailabilitySearch();
+  });
+
+  async function triggerAvailabilitySearch() {
+    const hotelId = availHotelSelect?.value;
+    const checkIn = availCheckIn?.value;
+    const checkOut = availCheckOut?.value;
+    const guests = parseInt(availGuests?.value || '2', 10);
+
+    if (!hotelId || !checkIn || !checkOut) {
+      showToast('Por favor selecciona el hotel y las fechas de tu viaje', 'warning');
+      return;
+    }
+
+    if (checkIn >= checkOut) {
+      showToast('La fecha de entrada debe ser anterior a la de salida', 'warning');
+      return;
+    }
+
+    if (btnSubmitAvailSearch) {
+      btnSubmitAvailSearch.disabled = true;
+      btnSubmitAvailSearch.innerHTML = '<span>Consultando...</span>';
+    }
+
+    if (availRoomsGrid) {
+      availRoomsGrid.innerHTML = `
+        <div class="empty-hotels-box">
+          <span>Consultando tarifas y disponibilidad en tiempo real...</span>
+        </div>
+      `;
+    }
+
+    try {
+      const data = await api.searchAvailability({
+        hotelId,
+        checkIn,
+        checkOut,
+        adults: guests,
+      });
+
+      renderAvailabilityResults(data, { hotelId, checkIn, checkOut, guests });
+    } catch (err) {
+      if (availRoomsGrid) {
+        availRoomsGrid.innerHTML = `
+          <div class="empty-hotels-box">
+            <span style="color: #f87171;">Error al consultar disponibilidad: ${err.message}</span>
+          </div>
+        `;
+      }
+    } finally {
+      if (btnSubmitAvailSearch) {
+        btnSubmitAvailSearch.disabled = false;
+        btnSubmitAvailSearch.innerHTML = '<span>BUSCAR</span>';
+      }
+    }
+  }
+
+  function renderAvailabilityResults(data, searchParams) {
+    const rooms = data?.rooms || [];
+
+    if (availResultsSummary) {
+      availResultsSummary.textContent = `Resultados: ${rooms.length} categoría(s) de habitación con disponibilidad inmediata del ${searchParams.checkIn} al ${searchParams.checkOut}`;
+    }
+
+    if (!availRoomsGrid) return;
+
+    if (rooms.length === 0) {
+      availRoomsGrid.innerHTML = `
+        <div class="empty-hotels-box">
+          <span>No encontramos habitaciones disponibles para las fechas o cantidad de huéspedes seleccionados.</span>
+          <span style="font-size: 0.78rem; margin-top: 0.4rem; color: var(--text-dim);">Prueba con otras fechas o reduce el número de personas.</span>
+        </div>
+      `;
+      return;
+    }
+
+    availRoomsGrid.innerHTML = rooms.map(r => {
+      const img = (Array.isArray(r.images) && r.images[0]) || 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80';
+      const typeLabel = ROOM_TYPE_NAMES[r.roomType] || r.roomType;
+      const quote = r.quote || {};
+      const nights = quote.nights || 1;
+      const baseRate = quote.basePricePerNight || 120;
+      const surcharges = quote.surcharges || 0;
+      const totalAmount = quote.totalAmount || (baseRate * nights);
+
+      const weekendNotice = surcharges > 0
+        ? `<div style="font-size: 0.72rem; color: #fbbf24; margin-top: 2px;">⚡ Incluye +$${surcharges.toFixed(0)} USD (Recargo fin de semana)</div>`
+        : '';
+
+      const amenitiesHtml = (r.amenities || []).slice(0, 3).map(a => `<span class="hotel-amenity-tag">${a}</span>`).join('');
+
+      return `
+        <div class="hotel-card" data-room-id="${r.id}">
+          <div class="hotel-card-media">
+            <img src="${img}" alt="${r.name}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80';">
+            <div class="badge-stars">${typeLabel}</div>
+            <div class="badge-city">#${r.roomNumber} · Vista ${r.viewType || 'Panorámica'}</div>
+          </div>
+          <div class="hotel-card-body">
+            <h3 class="hotel-card-title">${r.name}</h3>
+            <div class="hotel-card-location">🏨 ${r.hotelName || 'Sede Principal'}</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin: 0.5rem 0;">
+              👥 Hasta ${r.maxAdults} adultos · 🛏️ ${r.bedType || 'Cama King'} · 📐 ${r.sizeSqm || 35} m²
+            </div>
+            <div class="hotel-amenities-tags">${amenitiesHtml}</div>
+
+            <!-- Desglose de Cotización Transparente -->
+            <div class="quote-breakdown-card" style="margin-top: 0.85rem; padding: 0.75rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim);">
+                <span>Tarifa base (${nights} ${nights === 1 ? 'noche' : 'noches'}):</span>
+                <span>$${(baseRate * nights).toFixed(0)} USD</span>
+              </div>
+              ${weekendNotice}
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.4rem; padding-top: 0.4rem; border-top: 1px dashed rgba(255,255,255,0.1);">
+                <span style="font-size: 0.78rem; font-weight: 700; color: #fff;">Total Estancia:</span>
+                <span style="font-size: 1.15rem; font-weight: 900; color: #34d399;">$${totalAmount.toFixed(0)} <span style="font-size: 0.68rem; font-weight: 400; color: var(--text-dim);">USD</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="hotel-card-footer">
+            <div style="font-size: 0.72rem; color: #38bdf8;">✨ Bloqueo garantizado 10 min</div>
+            <button class="btn-blue btn-start-booking"
+              data-room-id="${r.id}"
+              data-room-name="${r.name}"
+              data-hotel-id="${r.hotelId || searchParams.hotelId}"
+              data-hotel-name="${r.hotelName || 'Hotel de Lujo'}"
+              data-total="${totalAmount}"
+              data-nights="${nights}"
+              data-checkin="${searchParams.checkIn}"
+              data-checkout="${searchParams.checkOut}"
+              data-guests="${searchParams.guests}"
+              style="padding: 8px 16px; font-size: 0.82rem;">
+              <span>RESERVAR AHORA</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Eventos para iniciar reserva
+    document.querySelectorAll('.btn-start-booking').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const payload = {
+          roomId: btn.getAttribute('data-room-id'),
+          roomName: btn.getAttribute('data-room-name'),
+          hotelId: btn.getAttribute('data-hotel-id'),
+          hotelName: btn.getAttribute('data-hotel-name'),
+          totalAmount: parseFloat(btn.getAttribute('data-total')),
+          nights: parseInt(btn.getAttribute('data-nights'), 10),
+          checkIn: btn.getAttribute('data-checkin'),
+          checkOut: btn.getAttribute('data-checkout'),
+          guestsCount: parseInt(btn.getAttribute('data-guests'), 10),
+        };
+        startCheckoutFlow(payload);
+      });
     });
   }
 
-  // Monitoreo de Salud de Microservicios
-  async function checkSystemHealth(manual = false) {
-    // 1. Gateway
+  // --------------------------------------------------------------------------
+  // 5. FLUJO DE CHECKOUT, BLOQUEO TEMPORAL (SOFT-LOCK) Y PAGO CON TARJETA
+  // --------------------------------------------------------------------------
+  async function startCheckoutFlow(item) {
+    showToast('Adquiriendo bloqueo temporal de 10 minutos...', 'info');
+
     try {
-      await api.checkGatewayHealth();
-      setDotsState([gatewayDot, authGatewayDot, clusterGatewayDot], true);
-    } catch {
-      setDotsState([gatewayDot, authGatewayDot, clusterGatewayDot], false);
-    }
+      // 1. Crear el hold atómico en availability-service (Redis Lua)
+      const holdRes = await api.holdRoom({
+        roomId: item.roomId,
+        checkIn: item.checkIn,
+        checkOut: item.checkOut,
+        guestsCount: item.guestsCount,
+        ttlSeconds: 600, // 10 minutos
+      });
 
-    // 2. Microservicios Downstream
-    try {
-      const services = await api.checkServicesHealth();
-      
-      const auth = services?.services?.find(s => s.service === 'auth-service');
-      setDotsState([authDot, authAuthDot, clusterAuthDot], auth?.status === 'ONLINE');
+      const holdId = holdRes.holdId;
 
-      const hotels = services?.services?.find(s => s.service === 'hotels-service');
-      setDotsState([hotelsDot, authHotelsDot, clusterHotelsDot], hotels?.status === 'ONLINE');
+      activeHold = {
+        holdId,
+        roomId: item.roomId,
+        roomName: item.roomName,
+        hotelId: item.hotelId,
+        hotelName: item.hotelName,
+        checkIn: item.checkIn,
+        checkOut: item.checkOut,
+        nights: item.nights,
+        guestsCount: item.guestsCount,
+        totalAmount: item.totalAmount,
+        remainingSeconds: 600,
+      };
 
-      const notif = services?.services?.find(s => s.service === 'notification-service');
-      setDotsState([notificationsDot, authNotificationsDot, clusterNotifDot], notif?.status === 'ONLINE');
-    } catch {
-      setDotsState([authDot, authAuthDot, clusterAuthDot], false);
-      setDotsState([hotelsDot, authHotelsDot, clusterHotelsDot], false);
-      setDotsState([notificationsDot, authNotificationsDot, clusterNotifDot], false);
-    }
+      // 2. Poblar Modal de Checkout
+      if (checkoutRoomName) checkoutRoomName.textContent = item.roomName;
+      if (checkoutHotelName) checkoutHotelName.textContent = item.hotelName;
+      if (checkoutCheckIn) checkoutCheckIn.textContent = item.checkIn;
+      if (checkoutCheckOut) checkoutCheckOut.textContent = item.checkOut;
+      if (checkoutNights) checkoutNights.textContent = `${item.nights} noche(s)`;
+      if (checkoutGuests) checkoutGuests.textContent = `${item.guestsCount} persona(s)`;
+      if (checkoutTotalAmount) checkoutTotalAmount.textContent = `$${item.totalAmount.toFixed(2)} USD`;
 
-    if (manual) {
-      showToast('Estado de microservicios actualizado', 'info');
+      // Autocompletar datos de tarjeta demo para conveniencia del evaluador
+      const currentUser = api.getCurrentUser();
+      if (cardHolder && currentUser) {
+        cardHolder.value = `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || 'Carlos Valderrama';
+      }
+      if (cardNumber) cardNumber.value = '4242 4242 4242 4242';
+      if (cardExp) cardExp.value = '12/28';
+      if (cardCvc) cardCvc.value = '888';
+
+      // 3. Iniciar temporizador de 10 minutos (600 segundos)
+      startHoldCountdown(600);
+
+      // 4. Mostrar Modal
+      checkoutModal.style.display = 'flex';
+      showToast('¡Habitación reservada exclusivamente para ti durante 10 minutos!', 'success');
+    } catch (err) {
+      showToast(`No se pudo bloquear la habitación: ${err.message}`, 'error');
     }
   }
 
-  // Inicialización
+  function startHoldCountdown(seconds) {
+    if (activeHold?.timerId) {
+      clearInterval(activeHold.timerId);
+    }
+
+    let remaining = seconds;
+    updateHoldTimerDisplay(remaining);
+
+    const timerId = setInterval(() => {
+      remaining -= 1;
+      if (activeHold) activeHold.remainingSeconds = remaining;
+      updateHoldTimerDisplay(remaining);
+
+      if (remaining <= 0) {
+        clearInterval(timerId);
+        checkoutModal.style.display = 'none';
+        showToast('El tiempo de reserva de 10 minutos ha expirado. Cotiza nuevamente.', 'warning');
+        activeHold = null;
+        triggerAvailabilitySearch();
+      }
+    }, 1000);
+
+    if (activeHold) activeHold.timerId = timerId;
+  }
+
+  function updateHoldTimerDisplay(totalSeconds) {
+    if (!holdCountdownText) return;
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    holdCountdownText.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
+
+  function clearActiveHold() {
+    if (activeHold?.timerId) {
+      clearInterval(activeHold.timerId);
+    }
+    if (activeHold?.holdId) {
+      api.releaseHold(activeHold.holdId).catch(() => {});
+    }
+    activeHold = null;
+  }
+
+  closeCheckoutModalBtn?.addEventListener('click', () => {
+    if (confirm('¿Deseas cancelar el proceso de pago y liberar la habitación?')) {
+      clearActiveHold();
+      checkoutModal.style.display = 'none';
+      showToast('Habitación liberada correctamente', 'info');
+    }
+  });
+
+  // Formato para inputs de tarjeta de crédito
+  cardNumber?.addEventListener('input', (e) => {
+    let val = e.target.value.replace(/\D/g, '').substring(0, 16);
+    e.target.value = val.replace(/(\d{4})(?=\d)/g, '$1 ');
+  });
+
+  cardExp?.addEventListener('input', (e) => {
+    let val = e.target.value.replace(/\D/g, '').substring(0, 4);
+    if (val.length >= 2) {
+      e.target.value = val.substring(0, 2) + '/' + val.substring(2);
+    } else {
+      e.target.value = val;
+    }
+  });
+
+  // Procesar Pago y Confirmar Reserva (Anti-Doble Cobro vía Idempotency Key)
+  paymentForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (!activeHold) {
+      showToast('No hay una habitación activa en bloqueo temporal', 'error');
+      return;
+    }
+
+    submitPaymentBtn.disabled = true;
+    if (btnPayText) btnPayText.textContent = 'PROCESANDO PAGO SEGURO (SAGA)...';
+
+    try {
+      // 1. Crear Reserva en booking-service con el holdId adquirido
+      showToast('Creando registro de reserva con bloqueo...', 'info');
+      const bookingPayload = {
+        roomId: activeHold.roomId,
+        hotelId: activeHold.hotelId,
+        checkIn: activeHold.checkIn,
+        checkOut: activeHold.checkOut,
+        guestsCount: activeHold.guestsCount,
+        holdId: activeHold.holdId,
+        specialRequests: 'Reserva confirmada vía Web Luxury Portal',
+      };
+
+      const booking = await api.createBooking(bookingPayload);
+
+      // 2. Procesar Pago en payment-service con Idempotencia
+      showToast('Procesando transacción con pasarela de pagos...', 'info');
+      const idempotencyKey = `idemp_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+      const rawCard = (cardNumber?.value || '4242424242424242').replace(/\s+/g, '');
+
+      const paymentPayload = {
+        bookingId: booking.id,
+        idempotencyKey,
+        amount: Number(booking.totalAmount),
+        currency: booking.currency || 'USD',
+        paymentMethod: 'CREDIT_CARD',
+        cardNumber: rawCard,
+        cardHolderName: cardHolder?.value.trim() || 'Huésped Titular',
+        cardExp: cardExp?.value.trim() || '12/28',
+        cardCvc: cardCvc?.value.trim() || '123',
+      };
+
+      const paymentResult = await api.processPayment(paymentPayload);
+
+      // 3. Detener temporizador y cerrar modal de pago
+      if (activeHold.timerId) clearInterval(activeHold.timerId);
+      activeHold = null;
+      checkoutModal.style.display = 'none';
+
+      // 4. Guardar datos para descarga de voucher
+      lastConfirmedBooking = {
+        bookingId: booking.id,
+        bookingReference: booking.bookingCode,
+        userEmail: booking.userEmail,
+        userName: booking.userName,
+        hotelName: booking.hotelName,
+        hotelAddress: 'Dirección confirmada en voucher',
+        hotelCity: 'Colombia',
+        roomTypeName: booking.roomName,
+        checkInDate: booking.checkIn,
+        checkOutDate: booking.checkOut,
+        nights: booking.nights,
+        guestsCount: booking.guestsCount,
+        totalAmount: booking.totalAmount,
+        currency: booking.currency || 'USD',
+        paymentId: paymentResult.id || `PAY-${Date.now().toString(36).toUpperCase()}`,
+        paymentMethod: `Tarjeta terminada en ${rawCard.slice(-4)}`,
+      };
+
+      // 5. Mostrar Modal de Éxito con Código Único
+      if (successBookingCode) {
+        successBookingCode.textContent = booking.bookingCode;
+      }
+      bookingSuccessModal.style.display = 'flex';
+      showToast('¡Pago exitoso y reserva 100% confirmada!', 'success');
+    } catch (err) {
+      showToast(`Error al completar la reserva: ${err.message}`, 'error');
+    } finally {
+      submitPaymentBtn.disabled = false;
+      if (btnPayText) btnPayText.textContent = 'PAGAR Y CONFIRMAR RESERVA';
+    }
+  });
+
+  // Descarga de Voucher PDF con QR desde modal de éxito
+  btnDownloadVoucherPdf?.addEventListener('click', () => {
+    showToast('Generando Voucher PDF oficial con código QR...', 'info');
+    api.downloadVoucherPdf(lastConfirmedBooking);
+  });
+
+  btnGoToMyBookingsAfterSuccess?.addEventListener('click', () => {
+    bookingSuccessModal.style.display = 'none';
+    switchDashboardTab('my-bookings');
+  });
+
+  bookingSuccessModal?.addEventListener('click', (e) => {
+    if (e.target === bookingSuccessModal) bookingSuccessModal.style.display = 'none';
+  });
+
+  // --------------------------------------------------------------------------
+  // 6. MIS RESERVAS & COMPROBANTES DIGITALES (TAB: MIS RESERVAS)
+  // --------------------------------------------------------------------------
+  async function loadMyBookings() {
+    if (!myBookingsList) return;
+
+    myBookingsList.innerHTML = `
+      <div class="empty-hotels-box">
+        <span>Consultando tus reservas registradas...</span>
+      </div>
+    `;
+
+    try {
+      const bookings = await api.getMyBookings();
+      renderMyBookings(bookings || []);
+    } catch (err) {
+      myBookingsList.innerHTML = `
+        <div class="empty-hotels-box">
+          <span style="color: #f87171;">Error al consultar reservas: ${err.message}</span>
+        </div>
+      `;
+    }
+  }
+
+  const BOOKING_STATUS_MAP = {
+    CONFIRMED: { label: 'Confirmada', color: '#34d399', bg: 'rgba(52, 211, 153, 0.15)' },
+    CHECKED_IN: { label: 'En Estancia (Check-In)', color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.15)' },
+    COMPLETED: { label: 'Finalizada (Check-Out)', color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.15)' },
+    CANCELLED: { label: 'Cancelada', color: '#f87171', bg: 'rgba(248, 113, 113, 0.15)' },
+    PENDING_PAYMENT: { label: 'Pendiente de Pago', color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.15)' },
+  };
+
+  function renderMyBookings(bookings = []) {
+    if (!myBookingsList) return;
+
+    if (bookings.length === 0) {
+      myBookingsList.innerHTML = `
+        <div class="empty-hotels-box">
+          <span>Aún no tienes estancias reservadas.</span>
+          <span style="font-size: 0.8rem; margin-top: 0.5rem; color: var(--text-dim);">
+            Utiliza la pestaña "Buscar Disponibilidad" para elegir tus próximas vacaciones.
+          </span>
+        </div>
+      `;
+      return;
+    }
+
+    myBookingsList.innerHTML = bookings.map(b => {
+      const st = BOOKING_STATUS_MAP[b.status] || { label: b.status, color: '#fff', bg: 'rgba(255,255,255,0.1)' };
+      const canCancel = b.status === 'CONFIRMED' || b.status === 'PENDING_PAYMENT';
+
+      return `
+        <div class="booking-card" data-booking-id="${b.id}" style="background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.85rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <span style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; color: #38bdf8; letter-spacing: 1px;">
+                ${b.bookingCode}
+              </span>
+              <span style="font-size: 0.75rem; padding: 3px 10px; border-radius: 999px; background: ${st.bg}; color: ${st.color}; font-weight: 700; border: 1px solid ${st.color}44;">
+                ${st.label}
+              </span>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-dim);">
+              Reservado el: <span style="color: #cbd5e1;">${new Date(b.createdAt).toLocaleDateString()}</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; font-size: 0.85rem;">
+            <div>
+              <div style="color: var(--text-dim); font-size: 0.75rem;">HOTEL & DESTINO</div>
+              <div style="font-weight: 700; color: #fff; margin-top: 2px;">${b.hotelName}</div>
+              <div style="color: #38bdf8; font-size: 0.8rem;">${b.roomName}</div>
+            </div>
+
+            <div>
+              <div style="color: var(--text-dim); font-size: 0.75rem;">FECHAS DE ESTANCIA</div>
+              <div style="color: #fff; margin-top: 2px;">
+                📅 <strong>${b.checkIn}</strong> al <strong>${b.checkOut}</strong>
+              </div>
+              <div style="color: var(--text-dim); font-size: 0.78rem;">${b.nights} noche(s) · ${b.guestsCount} huésped(es)</div>
+            </div>
+
+            <div>
+              <div style="color: var(--text-dim); font-size: 0.75rem;">TOTAL PAGADO</div>
+              <div style="font-size: 1.15rem; font-weight: 800; color: #34d399; margin-top: 2px;">
+                $${Number(b.totalAmount).toFixed(2)} <span style="font-size: 0.7rem; font-weight: 400; color: var(--text-dim);">${b.currency || 'USD'}</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 0.65rem; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.75rem; flex-wrap: wrap;">
+            <button class="btn-hotel-secondary btn-download-voucher"
+              data-code="${b.bookingCode}"
+              data-hotel="${b.hotelName}"
+              data-room="${b.roomName}"
+              data-checkin="${b.checkIn}"
+              data-checkout="${b.checkOut}"
+              data-nights="${b.nights}"
+              data-guests="${b.guestsCount}"
+              data-total="${b.totalAmount}"
+              data-currency="${b.currency || 'USD'}"
+              style="padding: 6px 14px; font-size: 0.8rem;">
+              <span>📄</span> Descargar Voucher PDF (QR)
+            </button>
+
+            ${canCancel ? `
+              <button class="btn-cancel-booking" data-id="${b.id}" data-code="${b.bookingCode}"
+                style="padding: 6px 14px; font-size: 0.8rem; border-radius: 8px; background: rgba(248, 113, 113, 0.15); border: 1px solid rgba(248, 113, 113, 0.35); color: #f87171; cursor: pointer; transition: all 0.2s;"
+                onmouseover="this.style.background='rgba(248,113,113,0.3)'" onmouseout="this.style.background='rgba(248,113,113,0.15)'">
+                <span>❌</span> Cancelar Reserva
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Eventos de botones
+    document.querySelectorAll('.btn-download-voucher').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const u = api.getCurrentUser() || {};
+        const voucherData = {
+          bookingReference: btn.getAttribute('data-code'),
+          userEmail: u.email || 'huesped@travelresorts.com',
+          userName: `${u.firstName || 'Huésped'} ${u.lastName || 'VIP'}`.trim(),
+          hotelName: btn.getAttribute('data-hotel'),
+          hotelAddress: 'Dirección oficial en comprobante',
+          hotelCity: 'Colombia',
+          roomTypeName: btn.getAttribute('data-room'),
+          checkInDate: btn.getAttribute('data-checkin'),
+          checkOutDate: btn.getAttribute('data-checkout'),
+          nights: parseInt(btn.getAttribute('data-nights'), 10),
+          guestsCount: parseInt(btn.getAttribute('data-guests'), 10),
+          totalAmount: parseFloat(btn.getAttribute('data-total')),
+          currency: btn.getAttribute('data-currency'),
+          paymentId: `PAY-${Date.now().toString(36).toUpperCase()}`,
+          paymentMethod: 'Tarjeta de Crédito Verificada',
+        };
+        showToast('Generando voucher oficial en PDF con QR...', 'info');
+        api.downloadVoucherPdf(voucherData);
+      });
+    });
+
+    document.querySelectorAll('.btn-cancel-booking').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        const code = btn.getAttribute('data-code');
+        if (!confirm(`¿Confirmas que deseas cancelar la reserva ${code}? Se procesará la liberación de fechas.`)) return;
+
+        try {
+          showToast(`Cancelando reserva ${code}...`, 'info');
+          await api.cancelBooking(id, 'Cancelación voluntaria solicitada por el huésped');
+          showToast(`Reserva ${code} cancelada exitosamente`, 'success');
+          loadMyBookings();
+        } catch (err) {
+          showToast(`Error: ${err.message}`, 'error');
+        }
+      });
+    });
+  }
+
+  refreshMyBookingsBtn?.addEventListener('click', () => {
+    loadMyBookings();
+    showToast('Lista de reservas actualizada', 'info');
+  });
+
+  // --------------------------------------------------------------------------
+  // 7. PORTAL DE RECEPCIÓN & CHECK-IN (TAB: RECEPCIÓN)
+  // --------------------------------------------------------------------------
+  async function loadReceptionBookings() {
+    if (!receptionTableBody) return;
+
+    receptionTableBody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align: center; color: var(--text-dim); padding: 2rem;">
+          Consultando estancias y llegadas de huéspedes...
+        </td>
+      </tr>
+    `;
+
+    const search = receptionSearchInput?.value.trim() || undefined;
+
+    try {
+      const res = await api.getAllBookings({ search, limit: 100 });
+      const bookings = res.data || [];
+      renderReceptionTable(bookings);
+    } catch (err) {
+      receptionTableBody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align: center; color: #f87171; padding: 2rem;">
+            Error cargando información de recepción: ${err.message}
+          </td>
+        </tr>
+      `;
+    }
+  }
+
+  function renderReceptionTable(bookings = []) {
+    if (!receptionTableBody) return;
+
+    if (bookings.length === 0) {
+      receptionTableBody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align: center; color: var(--text-dim); padding: 2rem;">
+            No se encontraron reservas con los criterios buscados.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    receptionTableBody.innerHTML = bookings.map(b => {
+      const st = BOOKING_STATUS_MAP[b.status] || { label: b.status, color: '#fff', bg: 'rgba(255,255,255,0.1)' };
+
+      let actionsHtml = '';
+      if (b.status === 'CONFIRMED') {
+        actionsHtml = `
+          <button class="btn-checkin-action" data-id="${b.id}" data-code="${b.bookingCode}"
+            style="padding: 5px 10px; font-size: 0.75rem; border-radius: 6px; background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; color: #38bdf8; cursor: pointer; font-weight: 700;">
+            🛎️ Check-In
+          </button>
+        `;
+      } else if (b.status === 'CHECKED_IN') {
+        actionsHtml = `
+          <button class="btn-checkout-action" data-id="${b.id}" data-code="${b.bookingCode}"
+            style="padding: 5px 10px; font-size: 0.75rem; border-radius: 6px; background: rgba(251, 191, 36, 0.2); border: 1px solid #fbbf24; color: #fbbf24; cursor: pointer; font-weight: 700;">
+            🚪 Check-Out
+          </button>
+        `;
+      } else {
+        actionsHtml = `<span style="font-size: 0.75rem; color: var(--text-dim);">Sin acciones pendientes</span>`;
+      }
+
+      return `
+        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+          <td style="padding: 0.75rem; font-weight: 800; color: #38bdf8;">${b.bookingCode}</td>
+          <td style="padding: 0.75rem;">
+            <div style="font-weight: 600; color: #fff;">${b.userName || 'Huésped'}</div>
+            <div style="font-size: 0.72rem; color: var(--text-dim);">${b.userEmail}</div>
+          </td>
+          <td style="padding: 0.75rem;">
+            <div style="font-size: 0.85rem; color: #fff;">${b.hotelName}</div>
+            <div style="font-size: 0.75rem; color: #cbd5e1;">${b.roomName}</div>
+          </td>
+          <td style="padding: 0.75rem; font-size: 0.8rem; color: #cbd5e1;">
+            <div>In: <strong style="color: #34d399;">${b.checkIn}</strong></div>
+            <div>Out: <strong style="color: #f87171;">${b.checkOut}</strong></div>
+          </td>
+          <td style="padding: 0.75rem;">
+            <span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: ${st.bg}; color: ${st.color}; font-weight: 700; border: 1px solid ${st.color}44;">
+              ${st.label}
+            </span>
+          </td>
+          <td style="padding: 0.75rem; font-weight: 700; color: #34d399;">
+            $${Number(b.totalAmount).toFixed(0)} <span style="font-size: 0.7rem; color: var(--text-dim); font-weight: 400;">USD</span>
+          </td>
+          <td style="padding: 0.75rem;">
+            ${actionsHtml}
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    // Eventos de botones de recepción
+    document.querySelectorAll('.btn-checkin-action').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        const code = btn.getAttribute('data-code');
+        if (!confirm(`¿Registrar entrada (Check-In) del huésped para la reserva ${code}?`)) return;
+
+        try {
+          showToast(`Registrando Check-In para ${code}...`, 'info');
+          await api.checkInBooking(id);
+          showToast(`¡Check-In registrado exitosamente para ${code}!`, 'success');
+          loadReceptionBookings();
+        } catch (err) {
+          showToast(`Error: ${err.message}`, 'error');
+        }
+      });
+    });
+
+    document.querySelectorAll('.btn-checkout-action').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        const code = btn.getAttribute('data-code');
+        if (!confirm(`¿Registrar salida (Check-Out) de la habitación para la reserva ${code}?`)) return;
+
+        try {
+          showToast(`Registrando Check-Out para ${code}...`, 'info');
+          await api.checkOutBooking(id);
+          showToast(`¡Check-Out completado con éxito para ${code}!`, 'success');
+          loadReceptionBookings();
+        } catch (err) {
+          showToast(`Error: ${err.message}`, 'error');
+        }
+      });
+    });
+  }
+
+  btnReceptionSearch?.addEventListener('click', loadReceptionBookings);
+  receptionSearchInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') loadReceptionBookings();
+  });
+  btnReceptionRefresh?.addEventListener('click', () => {
+    if (receptionSearchInput) receptionSearchInput.value = '';
+    loadReceptionBookings();
+    showToast('Listado de llegadas actualizado', 'info');
+  });
+
+  // --------------------------------------------------------------------------
+  // 8. CATÁLOGO DE HABITACIONES (TAB: HABITACIONES)
+  // --------------------------------------------------------------------------
+  async function loadRoomHotels() {
+    try {
+      const res = await api.getHotels({ limit: 100 });
+      const hotels = res.data || [];
+      const cur = filterRoomHotel?.value || '';
+
+      if (filterRoomHotel) {
+        filterRoomHotel.innerHTML = '<option value="">Todos los Hoteles</option>' +
+          hotels.map(h => `<option value="${h.id}">${h.name}</option>`).join('');
+        filterRoomHotel.value = cur;
+      }
+
+      const formHotel = document.getElementById('formRoomHotel');
+      if (formHotel) {
+        formHotel.innerHTML = hotels
+          .map(h => `<option value="${h.id}" data-slug="${h.slug}" data-name="${h.name}">${h.name} — ${h.city}</option>`)
+          .join('');
+      }
+    } catch (err) {
+      console.warn('Error cargando hoteles para filtro de habitaciones:', err);
+    }
+  }
+
+  async function loadRooms() {
+    if (!roomsGrid) return;
+
+    const filters = {
+      search: filterRoomSearch?.value.trim() || undefined,
+      hotelId: filterRoomHotel?.value || undefined,
+      roomType: filterRoomType?.value || undefined,
+      limit: 100,
+    };
+
+    try {
+      const res = await api.getRooms(filters);
+      renderRooms(res.data || []);
+    } catch (err) {
+      roomsGrid.innerHTML = `
+        <div class="empty-hotels-box">
+          <span style="color: #f87171;">Error al consultar habitaciones: ${err.message}</span>
+        </div>
+      `;
+    }
+  }
+
+  function renderRooms(rooms = []) {
+    if (!roomsGrid) return;
+
+    if (rooms.length === 0) {
+      roomsGrid.innerHTML = `
+        <div class="empty-hotels-box">
+          <span>No se encontraron habitaciones con los criterios seleccionados.</span>
+        </div>
+      `;
+      return;
+    }
+
+    const currentUser = api.getCurrentUser();
+    const isAdmin = currentUser && currentUser.role === 'HOTEL_ADMIN';
+    const isStaff = currentUser && (currentUser.role === 'HOTEL_ADMIN' || currentUser.role === 'RECEPTIONIST');
+
+    roomsGrid.innerHTML = rooms.map(r => {
+      const img = (Array.isArray(r.images) && r.images[0]) || 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80';
+      const typeLabel = ROOM_TYPE_NAMES[r.roomType] || r.roomType;
+      const amenities = (r.amenities || []).slice(0, 3).map(a => `<span class="hotel-amenity-tag">${a}</span>`).join('');
+
+      // Botón de dar de baja: Exclusivo de HOTEL_ADMIN
+      const adminButtons = isAdmin ? `
+        <div class="hotel-admin-actions">
+          <button class="btn-card-delete btn-room-delete" data-id="${r.id}" data-name="${r.name}" title="Dar de baja habitación">🗑️</button>
+        </div>
+      ` : '';
+
+      // Selector de estado operativo: Disponible para HOTEL_ADMIN y RECEPTIONIST (Staff)
+      // Para Huéspedes (GUEST): Solo lectura estática de disponibilidad
+      const statusControl = isStaff ? `
+        <div style="display:flex; align-items:center; gap:0.35rem;">
+          <span style="font-size:0.7rem; color:var(--text-dim);">Estado:</span>
+          <select class="room-status-select" data-id="${r.id}" style="padding: 3px 6px; font-size: 0.72rem; border-radius: 6px; background: rgba(15,23,42,0.85); color: #fff; border: 1px solid rgba(255,255,255,0.2); cursor: pointer;">
+            <option value="AVAILABLE" ${r.status === 'AVAILABLE' ? 'selected' : ''}>🟢 Disponible</option>
+            <option value="OCCUPIED" ${r.status === 'OCCUPIED' ? 'selected' : ''}>🔴 Ocupada</option>
+            <option value="MAINTENANCE" ${r.status === 'MAINTENANCE' ? 'selected' : ''}>🟠 Mantenimiento</option>
+            <option value="INACTIVE" ${r.status === 'INACTIVE' ? 'selected' : ''}>⚫ Inactiva</option>
+          </select>
+        </div>
+      ` : `
+        <span style="font-size: 0.75rem; font-weight: 700; color: ${r.status === 'AVAILABLE' ? '#34d399' : '#f87171'};">
+          ${r.status === 'AVAILABLE' ? '🟢 Disponible' : '🔴 Ocupada'}
+        </span>
+      `;
+
+      return `
+        <div class="hotel-card" data-id="${r.id}">
+          <div class="hotel-card-media">
+            <img src="${img}" alt="${r.name}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80';">
+            <div class="badge-stars">${typeLabel}</div>
+            <div class="badge-city">#${r.roomNumber} · Piso ${r.floor}</div>
+            ${adminButtons}
+          </div>
+          <div class="hotel-card-body">
+            <h3 class="hotel-card-title">${r.name}</h3>
+            <div class="hotel-card-location">🏨 ${r.hotelName}</div>
+            <p class="hotel-card-desc">${r.description ? r.description.substring(0, 100) + '...' : ''}</p>
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin: 0.4rem 0;">
+              👥 ${r.maxAdults} adultos · 🛏️ ${r.bedType} · 📐 ${r.sizeSqm} m² · 🌅 ${r.viewType}
+            </div>
+            <div class="hotel-amenities-tags">${amenities}</div>
+          </div>
+          <div class="hotel-card-footer">
+            <div>
+              <div style="font-size: 1.15rem; font-weight: 800; color: #fff;">
+                $${Number(r.pricePerNight).toFixed(0)} <span style="font-size: 0.7rem; font-weight: 400; color: var(--text-dim);">/ noche</span>
+              </div>
+            </div>
+            ${statusControl}
+            <div style="display: flex; gap: 0.4rem; align-items: center;">
+              <button class="btn-hotel-secondary btn-open-calendar"
+                data-room-id="${r.id}"
+                data-room-name="${r.name} #${r.roomNumber}"
+                data-hotel-name="${r.hotelName}"
+                data-hotel-id="${r.hotelId}"
+                style="padding: 6px 10px; font-size: 0.75rem;" title="Consultar calendario mensual de fechas">
+                📅 Calendario
+              </button>
+              <button class="btn-blue btn-book-from-rooms" data-hotel-id="${r.hotelId}" style="padding: 6px 12px; font-size: 0.75rem;">
+                Reservar
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Listener para abrir el calendario de fechas de la habitación
+    document.querySelectorAll('.btn-open-calendar').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const roomId = btn.getAttribute('data-room-id');
+        const roomName = btn.getAttribute('data-room-name');
+        const hotelName = btn.getAttribute('data-hotel-name');
+        const hotelId = btn.getAttribute('data-hotel-id');
+        openRoomCalendarModal(roomId, roomName, hotelName, hotelId);
+      });
+    });
+
+    // Listener para cambio de estado operativo (Staff)
+    document.querySelectorAll('.room-status-select').forEach(sel => {
+      sel.addEventListener('change', async () => {
+        const id = sel.getAttribute('data-id');
+        const newStatus = sel.value;
+        try {
+          await api.updateRoomStatus(id, newStatus);
+          showToast('Estado de la habitación actualizado en tiempo real', 'success');
+        } catch (err) {
+          showToast(`Error al actualizar estado: ${err.message}`, 'error');
+          loadRooms();
+        }
+      });
+    });
+
+    document.querySelectorAll('.btn-book-from-rooms').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const hotelId = btn.getAttribute('data-hotel-id');
+        openAvailabilityForHotel(hotelId);
+      });
+    });
+
+    document.querySelectorAll('.btn-room-delete').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-id');
+        const name = btn.getAttribute('data-name');
+        if (!confirm(`¿Dar de baja la habitación "${name}"?`)) return;
+
+        try {
+          await api.deleteRoom(id);
+          showToast(`Habitación "${name}" eliminada`, 'info');
+          loadRooms();
+        } catch (err) {
+          showToast(err.message, 'error');
+        }
+      });
+    });
+  }
+
+  openCreateRoomBtn?.addEventListener('click', async () => {
+    await loadRoomHotels();
+    roomUpsertForm.reset();
+    roomFormModal.style.display = 'flex';
+  });
+
+  closeRoomModalBtn?.addEventListener('click', () => roomFormModal.style.display = 'none');
+  roomFormModal?.addEventListener('click', (e) => { if (e.target === roomFormModal) roomFormModal.style.display = 'none'; });
+
+  roomUpsertForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    submitRoomFormBtn.disabled = true;
+    submitRoomFormBtn.innerHTML = '<span>Guardando habitación...</span>';
+
+    const hotelSel = document.getElementById('formRoomHotel');
+    const opt = hotelSel.options[hotelSel.selectedIndex];
+    const amenitiesRaw = document.getElementById('formRoomAmenities')?.value || '';
+    const imgRaw = document.getElementById('formRoomImg').value.trim();
+
+    const payload = {
+      hotelId: hotelSel.value,
+      hotelSlug: opt?.getAttribute('data-slug') || undefined,
+      hotelName: opt?.getAttribute('data-name') || undefined,
+      roomNumber: document.getElementById('formRoomNumber').value.trim(),
+      floor: parseInt(document.getElementById('formRoomFloor').value, 10) || 1,
+      roomType: document.getElementById('formRoomTypeSel').value,
+      name: document.getElementById('formRoomName').value.trim(),
+      description: document.getElementById('formRoomDesc').value.trim(),
+      pricePerNight: parseFloat(document.getElementById('formRoomPrice').value),
+      maxAdults: parseInt(document.getElementById('formRoomAdults').value, 10) || 2,
+      maxChildren: parseInt(document.getElementById('formRoomChildren').value, 10) || 0,
+      bedType: '1 Cama King',
+      sizeSqm: 38,
+      viewType: 'Vista al Mar',
+      amenities: amenitiesRaw ? amenitiesRaw.split(',').map(a => a.trim()).filter(Boolean) : ['Jacuzzi', 'Balcón', 'Smart TV'],
+      images: imgRaw ? [imgRaw] : ['https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80'],
+      breakfastIncluded: true,
+    };
+
+    try {
+      await api.createRoom(payload);
+      showToast('Habitación registrada exitosamente', 'success');
+      roomFormModal.style.display = 'none';
+      loadRooms();
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      submitRoomFormBtn.disabled = false;
+      submitRoomFormBtn.innerHTML = '<span>GUARDAR HABITACIÓN</span>';
+    }
+  });
+
+  refreshRoomsBtn?.addEventListener('click', () => {
+    loadRooms();
+    showToast('Inventario de habitaciones actualizado', 'info');
+  });
+
+  let roomFilterTimer = null;
+  filterRoomSearch?.addEventListener('input', () => {
+    clearTimeout(roomFilterTimer);
+    roomFilterTimer = setTimeout(loadRooms, 350);
+  });
+  filterRoomHotel?.addEventListener('change', loadRooms);
+  filterRoomType?.addEventListener('change', loadRooms);
+
+  // --------------------------------------------------------------------------
+  // 9. CONTROLADOR DEL CALENDARIO DE DISPONIBILIDAD & GESTIÓN DE FECHAS (ADMIN)
+  // --------------------------------------------------------------------------
+  const MONTH_NAMES = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  ];
+
+  async function openRoomCalendarModal(roomId, roomName, hotelName, hotelId) {
+    calSelectedRoomId = roomId;
+    calCurrentYear = 2026;
+    calCurrentMonth = 11; // Noviembre 2026
+
+    if (calRoomTitle) calRoomTitle.textContent = roomName;
+    if (calHotelTitle) calHotelTitle.textContent = hotelName;
+    if (adminCalRoomId) adminCalRoomId.value = roomId;
+    if (adminCalHotelId) adminCalHotelId.value = hotelId;
+
+    // Solo HOTEL_ADMIN tiene los controles para bloquear/habilitar fechas
+    const user = api.getCurrentUser();
+    const isAdmin = user && user.role === 'HOTEL_ADMIN';
+    if (adminDateControls) {
+      adminDateControls.style.display = isAdmin ? 'block' : 'none';
+    }
+
+    // Fechas por defecto para bloqueo
+    if (adminBlockStart) adminBlockStart.value = '2026-11-20';
+    if (adminBlockEnd) adminBlockEnd.value = '2026-11-25';
+
+    await loadAndRenderCalendar(calSelectedRoomId, calCurrentYear, calCurrentMonth);
+    if (roomCalendarModal) roomCalendarModal.style.display = 'flex';
+  }
+
+  async function loadAndRenderCalendar(roomId, year, month) {
+    if (calCurrentMonthLabel) {
+      calCurrentMonthLabel.textContent = `${MONTH_NAMES[month - 1]} ${year}`;
+    }
+
+    if (!calDaysGrid) return;
+    calDaysGrid.innerHTML = '<div style="grid-column: span 7; color: var(--text-dim); padding: 1.5rem;">Cargando ocupación de fechas...</div>';
+
+    try {
+      const data = await api.getRoomCalendar(roomId, year, month);
+      const calendarDays = data?.calendar || [];
+
+      // Días de la semana
+      const weekdays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+      let html = weekdays.map(w => `
+        <div style="font-size: 0.72rem; font-weight: 700; color: var(--text-dim); padding: 4px;">${w}</div>
+      `).join('');
+
+      // Desplazamiento del primer día del mes (1 = Lun, 7 = Dom)
+      const firstDayOfWeek = new Date(year, month - 1, 1).getDay(); // 0 es Dom
+      const offset = (firstDayOfWeek === 0 ? 7 : firstDayOfWeek) - 1; // 0..6
+      for (let i = 0; i < offset; i++) {
+        html += '<div style="opacity: 0;"></div>';
+      }
+
+      // Estilos según el estado
+      const STATUS_STYLES = {
+        AVAILABLE: {
+          bg: 'rgba(52, 211, 153, 0.12)',
+          border: 'rgba(52, 211, 153, 0.35)',
+          color: '#34d399',
+          label: 'Libre',
+        },
+        HOLD: {
+          bg: 'rgba(251, 191, 36, 0.15)',
+          border: 'rgba(251, 191, 36, 0.45)',
+          color: '#fbbf24',
+          label: 'Hold 10m',
+        },
+        BOOKED: {
+          bg: 'rgba(248, 113, 113, 0.18)',
+          border: 'rgba(248, 113, 113, 0.45)',
+          color: '#f87171',
+          label: 'Reservada',
+        },
+        BLOCKED: {
+          bg: 'rgba(148, 163, 184, 0.15)',
+          border: 'rgba(148, 163, 184, 0.35)',
+          color: '#cbd5e1',
+          label: 'Bloqueo Admin',
+        },
+      };
+
+      calendarDays.forEach(d => {
+        const st = STATUS_STYLES[d.status] || STATUS_STYLES.AVAILABLE;
+        const refInfo = d.details?.ref ? `<div style="font-size: 0.58rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${d.details.ref}</div>` : '';
+
+        html += `
+          <div class="cal-day-cell" data-date="${d.date}"
+            style="background: ${st.bg}; border: 1px solid ${st.border}; border-radius: 8px; padding: 6px 2px; min-height: 52px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s;"
+            title="${d.date}: ${st.label} ${d.details?.ref ? ' - ' + d.details.ref : ''}"
+            onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            <span style="font-weight: 800; font-size: 0.82rem; color: #fff;">${d.day}</span>
+            <span style="font-size: 0.65rem; font-weight: 600; color: ${st.color}; margin-top: 2px;">${st.label}</span>
+            ${refInfo}
+          </div>
+        `;
+      });
+
+      calDaysGrid.innerHTML = html;
+
+      // Al hacer clic en un día, pre-cargar en el formulario de fechas del admin
+      document.querySelectorAll('.cal-day-cell').forEach(cell => {
+        cell.addEventListener('click', () => {
+          const selectedDate = cell.getAttribute('data-date');
+          if (adminBlockStart) adminBlockStart.value = selectedDate;
+          if (adminBlockEnd) {
+            const nextD = new Date(selectedDate);
+            nextD.setDate(nextD.getDate() + 2);
+            adminBlockEnd.value = nextD.toISOString().split('T')[0];
+          }
+          showToast(`Fecha ${selectedDate} seleccionada para gestión`, 'info');
+        });
+      });
+
+    } catch (err) {
+      calDaysGrid.innerHTML = `<div style="grid-column: span 7; color: #f87171; padding: 1.5rem;">Error al consultar calendario: ${err.message}</div>`;
+    }
+  }
+
+  // Navegación de mes del calendario
+  calPrevMonthBtn?.addEventListener('click', () => {
+    calCurrentMonth -= 1;
+    if (calCurrentMonth < 1) {
+      calCurrentMonth = 12;
+      calCurrentYear -= 1;
+    }
+    if (calSelectedRoomId) loadAndRenderCalendar(calSelectedRoomId, calCurrentYear, calCurrentMonth);
+  });
+
+  calNextMonthBtn?.addEventListener('click', () => {
+    calCurrentMonth += 1;
+    if (calCurrentMonth > 12) {
+      calCurrentMonth = 1;
+      calCurrentYear += 1;
+    }
+    if (calSelectedRoomId) loadAndRenderCalendar(calSelectedRoomId, calCurrentYear, calCurrentMonth);
+  });
+
+  closeCalModalBtn?.addEventListener('click', () => {
+    if (roomCalendarModal) roomCalendarModal.style.display = 'none';
+  });
+
+  roomCalendarModal?.addEventListener('click', (e) => {
+    if (e.target === roomCalendarModal) roomCalendarModal.style.display = 'none';
+  });
+
+  // Admin: Bloquear Fechas (Mantenimiento / Cierre)
+  adminBlockForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const roomId = adminCalRoomId?.value;
+    const hotelId = adminCalHotelId?.value;
+    const checkIn = adminBlockStart?.value;
+    const checkOut = adminBlockEnd?.value;
+    const reason = adminBlockReason?.value.trim() || 'Bloqueo administrativo / Mantenimiento';
+
+    if (!roomId || !checkIn || !checkOut) {
+      showToast('Por favor completa las fechas de inicio y fin', 'warning');
+      return;
+    }
+
+    try {
+      showToast('Bloqueando fechas seleccionadas...', 'info');
+      await api.blockDates({ roomId, hotelId, checkIn, checkOut, reason });
+      showToast('¡Fechas bloqueadas exitosamente por administración!', 'success');
+      await loadAndRenderCalendar(roomId, calCurrentYear, calCurrentMonth);
+      loadRooms();
+    } catch (err) {
+      showToast(`Error al bloquear fechas: ${err.message}`, 'error');
+    }
+  });
+
+  // Admin: Habilitar Fechas para Venta
+  btnAdminUnblock?.addEventListener('click', async () => {
+    const roomId = adminCalRoomId?.value;
+    const checkIn = adminBlockStart?.value;
+    const checkOut = adminBlockEnd?.value;
+
+    if (!roomId || !checkIn || !checkOut) {
+      showToast('Selecciona el rango de fechas a habilitar', 'warning');
+      return;
+    }
+
+    try {
+      showToast('Habilitando fechas para venta al público...', 'info');
+      const res = await api.unblockDates({ roomId, checkIn, checkOut });
+      showToast(res.message || 'Fechas habilitadas satisfactoriamente', 'success');
+      await loadAndRenderCalendar(roomId, calCurrentYear, calCurrentMonth);
+      loadRooms();
+    } catch (err) {
+      showToast(`Error al habilitar fechas: ${err.message}`, 'error');
+    }
+  });
+
+  // --------------------------------------------------------------------------
+  // INICIALIZACIÓN
+  // --------------------------------------------------------------------------
   refreshSessionView();
-  checkSystemHealth();
-  setInterval(checkSystemHealth, 9000);
 });

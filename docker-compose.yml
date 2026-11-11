@@ -62,6 +62,8 @@ services:
     depends_on:
       auth-db:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     environment:
       NODE_ENV: development
       PORT: 3001
@@ -72,6 +74,8 @@ services:
       DB_DATABASE: ${AUTH_DB_NAME:-hotel_auth_db}
       JWT_SECRET: ${JWT_SECRET:-super_secret_jwt_key_hotel_2026_dev}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-24h}
+      RABBITMQ_URL: ${RABBITMQ_URL:-amqp://guest:guest@rabbitmq:5672}
+      RABBITMQ_QUEUE: ${RABBITMQ_QUEUE:-hotel_notifications_queue}
     ports:
       - "3001:3001"
     volumes:
@@ -128,6 +132,247 @@ services:
     networks:
       - hotel-network
 
+  # Base de datos PostgreSQL para Rooms Service
+  rooms-db:
+    image: postgres:16-alpine
+    container_name: hotel_rooms_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${ROOMS_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${ROOMS_DB_PASSWORD:-postgres123}
+      POSTGRES_DB: ${ROOMS_DB_NAME:-hotel_rooms_db}
+    ports:
+      - "${ROOMS_DB_PORT:-5434}:5432"
+    volumes:
+      - rooms_db_data:/var/lib/postgresql/data
+    networks:
+      - hotel-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${ROOMS_DB_USER:-postgres} -d ${ROOMS_DB_NAME:-hotel_rooms_db}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Microservicio de Habitaciones e Inventario
+  rooms-service:
+    build:
+      context: ./services/rooms-service
+      dockerfile: Dockerfile
+    container_name: hotel_rooms_service
+    restart: always
+    depends_on:
+      rooms-db:
+        condition: service_healthy
+      hotels-service:
+        condition: service_started
+    environment:
+      NODE_ENV: development
+      PORT: 3003
+      DB_HOST: rooms-db
+      DB_PORT: 5432
+      DB_USERNAME: ${ROOMS_DB_USER:-postgres}
+      DB_PASSWORD: ${ROOMS_DB_PASSWORD:-postgres123}
+      DB_DATABASE: ${ROOMS_DB_NAME:-hotel_rooms_db}
+      HOTELS_SERVICE_URL: http://hotels-service:3002
+      JWT_SECRET: ${JWT_SECRET:-super_secret_jwt_key_hotel_2026_dev}
+    ports:
+      - "${ROOMS_PORT:-3003}:3003"
+    volumes:
+      # Sincronización en vivo para desarrollo
+      - ./services/rooms-service/src:/app/src
+    networks:
+      - hotel-network
+
+  # Redis para Bloqueos Distribuidos (Redlock) y Soft-Locks de Disponibilidad
+  redis:
+    image: redis:7-alpine
+    container_name: hotel_redis
+    restart: always
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - hotel-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Base de datos PostgreSQL para Availability Service
+  availability-db:
+    image: postgres:16-alpine
+    container_name: hotel_availability_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${AVAILABILITY_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${AVAILABILITY_DB_PASSWORD:-postgres123}
+      POSTGRES_DB: ${AVAILABILITY_DB_NAME:-hotel_availability_db}
+    ports:
+      - "${AVAILABILITY_DB_PORT:-5435}:5432"
+    volumes:
+      - availability_db_data:/var/lib/postgresql/data
+    networks:
+      - hotel-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${AVAILABILITY_DB_USER:-postgres} -d ${AVAILABILITY_DB_NAME:-hotel_availability_db}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Microservicio de Disponibilidad y Bloqueos (Redis Holds)
+  availability-service:
+    build:
+      context: ./services/availability-service
+      dockerfile: Dockerfile
+    container_name: hotel_availability_service
+    restart: always
+    depends_on:
+      availability-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rooms-service:
+        condition: service_started
+    environment:
+      NODE_ENV: development
+      PORT: 3004
+      DB_HOST: availability-db
+      DB_PORT: 5432
+      DB_USERNAME: ${AVAILABILITY_DB_USER:-postgres}
+      DB_PASSWORD: ${AVAILABILITY_DB_PASSWORD:-postgres123}
+      DB_DATABASE: ${AVAILABILITY_DB_NAME:-hotel_availability_db}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      RABBITMQ_URL: ${RABBITMQ_URL:-amqp://guest:guest@rabbitmq:5672}
+      RABBITMQ_QUEUE: ${RABBITMQ_QUEUE:-hotel_notifications_queue}
+      ROOMS_SERVICE_URL: http://rooms-service:3003
+      JWT_SECRET: ${JWT_SECRET:-super_secret_jwt_key_hotel_2026_dev}
+    ports:
+      - "${AVAILABILITY_PORT:-3004}:3004"
+    volumes:
+      # Sincronización en vivo para desarrollo
+      - ./services/availability-service/src:/app/src
+    networks:
+      - hotel-network
+
+  # Base de datos PostgreSQL para Booking Service
+  booking-db:
+    image: postgres:16-alpine
+    container_name: hotel_booking_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${BOOKINGS_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${BOOKINGS_DB_PASSWORD:-postgres123}
+      POSTGRES_DB: ${BOOKINGS_DB_NAME:-hotel_booking_db}
+    ports:
+      - "${BOOKINGS_DB_PORT:-5436}:5432"
+    volumes:
+      - booking_db_data:/var/lib/postgresql/data
+    networks:
+      - hotel-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${BOOKINGS_DB_USER:-postgres} -d ${BOOKINGS_DB_NAME:-hotel_booking_db}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Microservicio de Reservas y Orquestación (Booking Service)
+  booking-service:
+    build:
+      context: ./services/booking-service
+      dockerfile: Dockerfile
+    container_name: hotel_booking_service
+    restart: always
+    depends_on:
+      booking-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rooms-service:
+        condition: service_started
+      availability-service:
+        condition: service_started
+    environment:
+      NODE_ENV: development
+      PORT: 3005
+      DB_HOST: booking-db
+      DB_PORT: 5432
+      DB_USERNAME: ${BOOKINGS_DB_USER:-postgres}
+      DB_PASSWORD: ${BOOKINGS_DB_PASSWORD:-postgres123}
+      DB_DATABASE: ${BOOKINGS_DB_NAME:-hotel_booking_db}
+      RABBITMQ_URL: ${RABBITMQ_URL:-amqp://guest:guest@rabbitmq:5672}
+      RABBITMQ_QUEUE: ${RABBITMQ_QUEUE:-hotel_notifications_queue}
+      ROOMS_SERVICE_URL: http://rooms-service:3003
+      AVAILABILITY_SERVICE_URL: http://availability-service:3004
+      HOTELS_SERVICE_URL: http://hotels-service:3002
+      JWT_SECRET: ${JWT_SECRET:-super_secret_jwt_key_hotel_2026_dev}
+    ports:
+      - "${BOOKINGS_PORT:-3005}:3005"
+    volumes:
+      # Sincronización en vivo para desarrollo
+      - ./services/booking-service/src:/app/src
+    networks:
+      - hotel-network
+
+  # Base de datos PostgreSQL para Payment Service
+  payment-db:
+    image: postgres:16-alpine
+    container_name: hotel_payment_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${PAYMENTS_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${PAYMENTS_DB_PASSWORD:-postgres123}
+      POSTGRES_DB: ${PAYMENTS_DB_NAME:-hotel_payment_db}
+    ports:
+      - "${PAYMENTS_DB_PORT:-5437}:5432"
+    volumes:
+      - payment_db_data:/var/lib/postgresql/data
+    networks:
+      - hotel-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${PAYMENTS_DB_USER:-postgres} -d ${PAYMENTS_DB_NAME:-hotel_payment_db}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Microservicio de Pagos y Transacciones Financieras (Payment Service)
+  payment-service:
+    build:
+      context: ./services/payment-service
+      dockerfile: Dockerfile
+    container_name: hotel_payment_service
+    restart: always
+    depends_on:
+      payment-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      booking-service:
+        condition: service_started
+    environment:
+      NODE_ENV: development
+      PORT: 3006
+      DB_HOST: payment-db
+      DB_PORT: 5432
+      DB_USERNAME: ${PAYMENTS_DB_USER:-postgres}
+      DB_PASSWORD: ${PAYMENTS_DB_PASSWORD:-postgres123}
+      DB_DATABASE: ${PAYMENTS_DB_NAME:-hotel_payment_db}
+      RABBITMQ_URL: ${RABBITMQ_URL:-amqp://guest:guest@rabbitmq:5672}
+      RABBITMQ_QUEUE: ${RABBITMQ_QUEUE:-hotel_notifications_queue}
+      BOOKINGS_SERVICE_URL: http://booking-service:3005
+      JWT_SECRET: ${JWT_SECRET:-super_secret_jwt_key_hotel_2026_dev}
+    ports:
+      - "${PAYMENTS_PORT:-3006}:3006"
+    volumes:
+      # Sincronización en vivo para desarrollo
+      - ./services/payment-service/src:/app/src
+    networks:
+      - hotel-network
+
   # Microservicio de Notificaciones y Vouchers PDF (Worker RabbitMQ)
   notification-service:
     build:
@@ -170,6 +415,10 @@ services:
     depends_on:
       - auth-service
       - hotels-service
+      - rooms-service
+      - availability-service
+      - booking-service
+      - payment-service
       - notification-service
     environment:
       NODE_ENV: development
@@ -212,6 +461,16 @@ volumes:
   auth_db_data:
     driver: local
   hotels_db_data:
+    driver: local
+  rooms_db_data:
+    driver: local
+  availability_db_data:
+    driver: local
+  booking_db_data:
+    driver: local
+  payment_db_data:
+    driver: local
+  redis_data:
     driver: local
   rabbitmq_data:
     driver: local

@@ -233,15 +233,22 @@ export class HotelsController {
     return await this.hotelsService.remove(id, isForce, user);
   }
 
+  @UseGuards(RolesGuard)
+  @Roles(Role.HOTEL_ADMIN)
   @Post('seed')
+  @ApiBearerAuth('JWT-auth')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Poblar catálogo con hoteles iniciales de demostración',
+    summary: 'Poblar catálogo con hoteles iniciales de demostración (Solo HOTEL_ADMIN)',
     description: 'Inserta sedes hoteleras con fotos, amenidades y datos realistas.',
   })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Semilla ejecutada con éxito',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Acceso denegado: Se requiere rol HOTEL_ADMIN',
   })
   async seed(@CurrentUser() user: RequestUser) {
     return await this.hotelsService.seed(user?.id);

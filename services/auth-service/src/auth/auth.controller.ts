@@ -176,9 +176,14 @@ export class AuthController {
   }
 
   @Delete('users/guests')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.HOTEL_ADMIN)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Eliminar todos los usuarios con rol GUEST para pruebas y liberar correos',
+    summary: 'Eliminar todos los usuarios con rol GUEST para pruebas y liberar correos (Solo HOTEL_ADMIN)',
   })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Usuarios GUEST eliminados exitosamente' })
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Acceso denegado: requiere rol HOTEL_ADMIN' })
   async deleteGuests() {
     return await this.usersService.deleteGuests();
   }

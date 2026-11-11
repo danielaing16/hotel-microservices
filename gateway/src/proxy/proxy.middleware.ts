@@ -91,6 +91,21 @@ export class ReverseProxyMiddleware implements NestMiddleware {
   }
 
   use(req: Request, res: Response, next: NextFunction) {
+    // SEGURIDAD: nunca confiar en cabeceras de identidad enviadas por el cliente.
+    // Los microservicios downstream confían en x-user-* porque solo el Gateway las inyecta
+    // a partir de un JWT verificado, así que se eliminan antes de procesar la petición.
+    for (const header of [
+      'x-user-id',
+      'x-userid',
+      'x-user-role',
+      'x-userrole',
+      'x-user-email',
+      'x-useremail',
+    ]) {
+      delete req.headers[header];
+    }
+    delete (req as any).user;
+
     // Si viene cabecera Authorization: Bearer <token>, intentar validarla y decodificarla
     const authHeader = req.headers['authorization'];
     if (authHeader && authHeader.startsWith('Bearer ')) {

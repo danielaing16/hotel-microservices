@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Travel & Resorts - Explora Horizontes</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.7">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✈️</text></svg>">
+  <title>Travel & Resorts - Hoteles de Lujo & Experiencias Exclusivas</title>
+  <link rel="stylesheet" href="css/styles.css?v=4.0">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏨</text></svg>">
 </head>
 <body>
 
@@ -13,44 +13,33 @@
   <div class="ambient-bg"></div>
   <div class="ambient-overlay"></div>
 
-  <!-- Vista Principal de Autenticación (Canvas de Entrada) -->
+  <!-- =====================================================================
+       1. VISTA DE BIENVENIDA Y AUTENTICACIÓN (LANDING / LOGIN)
+       ===================================================================== -->
   <div class="master-canvas" id="authCanvas">
     <div class="canvas-scenery-overlay"></div>
 
-    <!-- Barra Superior del Canvas -->
+    <!-- Barra Superior -->
     <div class="canvas-header">
-      <button class="circle-nav-btn" id="homeCircleBtn" title="Volver al inicio">
-        ←
-      </button>
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <span style="font-size: 1.5rem;">🏨</span>
+        <span style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 800; letter-spacing: 1px; color: #fff;">TRAVEL & RESORTS</span>
+      </div>
 
-      <div class="header-status-pills">
-        <div class="status-badge" title="API Gateway puerto 3000">
-          <span class="dot" id="authGatewayDot"></span>
-          <span>Gateway: 3000</span>
-        </div>
-        <div class="status-badge" title="Auth Service puerto 3001">
-          <span class="dot" id="authAuthDot"></span>
-          <span>Auth: 3001</span>
-        </div>
-        <div class="status-badge" title="Hotels Service puerto 3002">
-          <span class="dot" id="authHotelsDot"></span>
-          <span>Hotels: 3002</span>
-        </div>
-        <div class="status-badge" title="Notifications Service puerto 3008">
-          <span class="dot" id="authNotificationsDot"></span>
-          <span>Notif: 3008</span>
-        </div>
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <button type="button" class="bottom-pill-btn" id="exploreAsGuestBtn" style="padding: 6px 16px; font-size: 0.82rem;">
+          <span>🌴</span> Explorar Destinos
+        </button>
       </div>
     </div>
 
-    <!-- Cuerpo del Canvas: Izquierda (Texto Hero) | Derecha (Tarjeta Glassmorphism) -->
+    <!-- Cuerpo Principal: Hero y Tarjeta de Acceso -->
     <div class="canvas-body">
-      
-      <!-- Columna Izquierda: Identidad y Tipografía de Alto Impacto -->
+      <!-- Columna Izquierda: Texto de Marca -->
       <div class="hero-content">
         <div class="hero-brand">
-          <span class="hero-brand-logo">✈️</span>
-          <span class="hero-brand-name">TRAVEL</span>
+          <span class="hero-brand-logo">✨</span>
+          <span class="hero-brand-name">HOSPITALIDAD DE LUJO</span>
         </div>
         <h1 class="hero-display-title">
           EXPLORA<br>HORIZONTES
@@ -59,24 +48,23 @@
           Donde los destinos de tus sueños se hacen realidad.
         </p>
         <p class="hero-description">
-          Embárcate en un viaje donde cada rincón del mundo está a tu alcance con tecnología cloud-native y reservas en tiempo real.
+          Vive estancias inolvidables en los hoteles más exclusivos de Colombia. Reservas en tiempo real, confirmación inmediata y vouchers digitales oficiales con código QR.
         </p>
       </div>
 
-      <!-- Columna Derecha: Tarjeta de Acceso y Formularios (Login / Registro) -->
+      <!-- Columna Derecha: Tarjeta de Acceso -->
       <div class="auth-card-wrapper">
-        
-        <!-- Vista 1: Formulario de Login -->
+        <!-- Formulario de Inicio de Sesión -->
         <div class="auth-card" id="loginFormView">
           <div class="auth-card-header">
             <h2 class="auth-card-title">Iniciar Sesión</h2>
-            <p class="auth-card-subtitle">Accede a tus reservas y beneficios exclusivos</p>
+            <p class="auth-card-subtitle">Accede a tus reservas y tarifas preferenciales</p>
           </div>
 
           <form id="loginForm">
             <div class="field-group">
               <label class="input-label" for="loginEmail">Correo Electrónico</label>
-              <input type="email" id="loginEmail" class="input-pill" placeholder="correo@ejemplo.com" required>
+              <input type="email" id="loginEmail" class="input-pill" placeholder="tu.correo@ejemplo.com" required>
             </div>
 
             <div class="field-group">
@@ -92,6 +80,24 @@
             </button>
           </form>
 
+          <!-- Acceso Rápido por Rol (Demostración de Permisos RBAC) -->
+          <div style="margin-top: 1rem; border-top: 1px dashed rgba(255,255,255,0.12); padding-top: 0.85rem;">
+            <div style="font-size: 0.72rem; color: var(--text-dim); text-align: center; margin-bottom: 0.5rem; letter-spacing: 0.5px;">
+              DEMOSTRAR DIFERENCIA DE ROLES (1 CLIC):
+            </div>
+            <div style="display: flex; gap: 0.4rem; justify-content: center; flex-wrap: wrap;">
+              <button type="button" class="role-pill-btn" id="btnQuickGuest" title="Huésped: Solo puede cotizar, reservar y ver sus propios vouchers">
+                <span>🌴</span> Huésped
+              </button>
+              <button type="button" class="role-pill-btn" id="btnQuickReception" title="Recepción: Puede hacer Check-In / Check-Out y cambiar estado de habitaciones">
+                <span>🛎️</span> Recepción
+              </button>
+              <button type="button" class="role-pill-btn" id="btnQuickAdmin" title="Administrador: Control total de Sedes Hoteleras e Inventario de Habitaciones">
+                <span>👑</span> Admin
+              </button>
+            </div>
+          </div>
+
           <div class="auth-divider">
             <span>o continúa con</span>
           </div>
@@ -103,7 +109,7 @@
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
             </svg>
-            <span>Iniciar con Google</span>
+            <span>Continuar con Google</span>
           </button>
 
           <div class="card-switch-footer">
@@ -111,41 +117,41 @@
           </div>
         </div>
 
-        <!-- Vista 2: Formulario de Registro -->
+        <!-- Formulario de Registro -->
         <div class="auth-card" id="registerFormView" style="display: none;">
           <div class="auth-card-header">
             <h2 class="auth-card-title">Crear Cuenta</h2>
-            <p class="auth-card-subtitle">Únete a nuestra plataforma de hospitalidad</p>
+            <p class="auth-card-subtitle">Únete a nuestra membresía de huéspedes</p>
           </div>
 
           <form id="registerForm">
             <div style="display: flex; gap: 0.75rem;">
               <div class="field-group" style="flex: 1;">
                 <label class="input-label" for="regFirstName">Nombre</label>
-                <input type="text" id="regFirstName" class="input-pill" placeholder="Mauricio" required>
+                <input type="text" id="regFirstName" class="input-pill" placeholder="Carlos" required>
               </div>
               <div class="field-group" style="flex: 1;">
                 <label class="input-label" for="regLastName">Apellido</label>
-                <input type="text" id="regLastName" class="input-pill" placeholder="Gómez" required>
+                <input type="text" id="regLastName" class="input-pill" placeholder="Valderrama" required>
               </div>
             </div>
 
             <div class="field-group">
               <label class="input-label" for="regEmail">Correo Electrónico</label>
-              <input type="email" id="regEmail" class="input-pill" placeholder="tu@correo.com" required>
+              <input type="email" id="regEmail" class="input-pill" placeholder="tu.correo@ejemplo.com" required>
             </div>
 
             <div style="display: flex; gap: 0.75rem;">
               <div class="field-group" style="flex: 1;">
-                <label class="input-label" for="regPhone">Teléfono (Opcional)</label>
+                <label class="input-label" for="regPhone">Teléfono</label>
                 <input type="tel" id="regPhone" class="input-pill" placeholder="+57 300 000 0000">
               </div>
               <div class="field-group" style="flex: 1;">
-                <label class="input-label" for="regRole">Rol de Cuenta</label>
+                <label class="input-label" for="regRole">Tipo de Cuenta</label>
                 <select id="regRole" class="input-pill" style="cursor: pointer;">
-                  <option value="GUEST" style="color: #000;">Huésped (Cliente)</option>
-                  <option value="HOTEL_ADMIN" style="color: #000;">Administrador Hotel</option>
-                  <option value="RECEPTIONIST" style="color: #000;">Recepcionista</option>
+                  <option value="GUEST" style="color: #000;">Huésped / Viajero</option>
+                  <option value="RECEPTIONIST" style="color: #000;">Personal de Recepción</option>
+                  <option value="HOTEL_ADMIN" style="color: #000;">Administración Hotelera</option>
                 </select>
               </div>
             </div>
@@ -164,105 +170,86 @@
             ¿Ya tienes cuenta? <a id="goToLoginLink">Inicia Sesión</a>
           </div>
         </div>
-
       </div>
     </div>
 
-    <!-- Barra Inferior del Canvas (Botones flotantes de la referencia) -->
+    <!-- Barra Inferior -->
     <div class="canvas-bottom-bar">
-      <a href="http://localhost:3000/docs" target="_blank" class="bottom-pill-btn">
-        <span>↗</span> Visitar Swagger API
-      </a>
-
-      <button type="button" class="bottom-pill-btn" id="pingStatusBtn">
-        <span>Buscar estado</span> <span>🔄</span>
-      </button>
+      <div style="font-size: 0.8rem; color: var(--text-dim);">
+        © 2026 Travel & Resorts. Todos los derechos reservados.
+      </div>
+      <div style="display: flex; gap: 1rem;">
+        <span style="font-size: 0.8rem; color: #38bdf8;">🔒 Reservas Seguras</span>
+        <span style="font-size: 0.8rem; color: #34d399;">✨ Confirmación Inmediata</span>
+      </div>
     </div>
   </div>
 
-  <!-- Vista del Dashboard (Con Barra Lateral Organizacional) -->
+  <!-- =====================================================================
+       2. VISTA PRINCIPAL DEL PORTAL (DASHBOARD & RESERVAS)
+       ===================================================================== -->
   <div class="dashboard-canvas" id="dashboardCanvas">
     <div class="dash-layout">
-      
-      <!-- ===================================================================
-           BARRA LATERAL (SIDEBAR DE NAVEGACIÓN Y ROLES)
-           =================================================================== -->
+
+      <!-- =================================================================
+           BARRA LATERAL DE NAVEGACIÓN
+           ================================================================= -->
       <aside class="dash-sidebar">
-        <!-- Marca / Logo de la suite hotelera -->
+        <!-- Marca / Logo -->
         <div class="sidebar-brand">
-          <div class="sidebar-brand-icon">✈️</div>
+          <div class="sidebar-brand-icon">🏨</div>
           <div class="sidebar-brand-text">
-            <span class="sidebar-brand-title">TRAVEL SUITE</span>
-            <span class="sidebar-brand-sub">CLOUD ARCHITECTURE</span>
+            <span class="sidebar-brand-title">TRAVEL & RESORTS</span>
+            <span class="sidebar-brand-sub">LUXURY COLLECTION</span>
           </div>
         </div>
 
-        <!-- Tarjeta Compacta de Usuario Activo -->
+        <!-- Perfil del Usuario Activo -->
         <div class="sidebar-user-card">
           <div class="sidebar-avatar" id="dashAvatar">👤</div>
           <div class="sidebar-user-info">
-            <div class="sidebar-user-name" id="dashUserName">Usuario</div>
-            <div class="sidebar-user-email" id="dashUserEmail">correo@hotel.com</div>
-            <span id="dashRoleBadge" class="dash-badge guest">GUEST</span>
+            <div class="sidebar-user-name" id="dashUserName">Huésped VIP</div>
+            <div class="sidebar-user-email" id="dashUserEmail">huesped@hotel.com</div>
+            <span id="dashRoleBadge" class="dash-badge guest">HUÉSPED</span>
           </div>
         </div>
 
-        <!-- Menú de Navegación Organizado por Microservicios -->
+        <!-- Menú de Navegación -->
         <nav class="sidebar-menu">
-          <div class="sidebar-group-title">MICROSERVICIOS ACTIVOS</div>
+          <div class="sidebar-group-title">EXPERIENCIA & RESERVAS</div>
 
           <button type="button" class="dash-nav-item active" data-tab="hotels">
-            <span class="dash-nav-icon">🏨</span>
+            <span class="dash-nav-icon">🌴</span>
             <span class="dash-nav-label">Hoteles & Sedes</span>
-            <span class="dash-nav-badge active-badge">3002</span>
           </button>
 
-          <button type="button" class="dash-nav-item" data-tab="notifications">
-            <span class="dash-nav-icon">📨</span>
-            <span class="dash-nav-label">Notif. & Vouchers</span>
-            <span class="dash-nav-badge notif-badge">3008</span>
-          </button>
-
-          <button type="button" class="dash-nav-item" data-tab="auth">
-            <span class="dash-nav-icon">🔐</span>
-            <span class="dash-nav-label">Identidad & JWT</span>
-            <span class="dash-nav-badge auth-badge">3001</span>
-          </button>
-
-          <button type="button" class="dash-nav-item" data-tab="gateway">
-            <span class="dash-nav-icon">📡</span>
-            <span class="dash-nav-label">Tráfico & Gateway</span>
-            <span class="dash-nav-badge gateway-badge">3000</span>
-          </button>
-
-          <div class="sidebar-group-title">ROADMAP ARQUITECTURA</div>
-
-          <div class="dash-nav-item disabled" title="Microservicio 3 en desarrollo (Rooms Service)">
-            <span class="dash-nav-icon">🛏️</span>
-            <span class="dash-nav-label">Habitaciones</span>
-            <span class="dash-nav-badge soon-badge">3003</span>
-          </div>
-
-          <div class="dash-nav-item disabled" title="Microservicio 4 en desarrollo (Availability Service con Redis Locks)">
+          <button type="button" class="dash-nav-item" data-tab="availability">
             <span class="dash-nav-icon">📅</span>
-            <span class="dash-nav-label">Disponibilidad</span>
-            <span class="dash-nav-badge soon-badge">3004</span>
-          </div>
+            <span class="dash-nav-label">Buscar Disponibilidad</span>
+          </button>
 
-          <div class="dash-nav-item disabled" title="Microservicio 5 en desarrollo (Booking Service - Orquestador Saga)">
-            <span class="dash-nav-icon">📝</span>
-            <span class="dash-nav-label">Reservas (Saga)</span>
-            <span class="dash-nav-badge soon-badge">3005</span>
-          </div>
+          <button type="button" class="dash-nav-item" data-tab="rooms">
+            <span class="dash-nav-icon">🛏️</span>
+            <span class="dash-nav-label">Nuestras Habitaciones</span>
+          </button>
 
-          <div class="dash-nav-item disabled" title="Microservicio 6 en desarrollo (Payment Service con Stripe Webhooks)">
-            <span class="dash-nav-icon">💳</span>
-            <span class="dash-nav-label">Pagos & Cobros</span>
-            <span class="dash-nav-badge soon-badge">3006</span>
+          <button type="button" class="dash-nav-item" data-tab="my-bookings">
+            <span class="dash-nav-icon">💼</span>
+            <span class="dash-nav-label">Mis Reservas</span>
+          </button>
+
+          <!-- SECCIÓN EXCLUSIVA DE PERSONAL DEL HOTEL -->
+          <div id="staffSidebarGroup" style="display: none;">
+            <div class="sidebar-group-title">GESTIÓN DE RECEPCIÓN</div>
+
+            <button type="button" class="dash-nav-item" data-tab="reception">
+              <span class="dash-nav-icon">🛎️</span>
+              <span class="dash-nav-label">Recepción & Check-In</span>
+            </button>
           </div>
         </nav>
 
-        <!-- Pie de la Barra Lateral -->
+        <!-- Pie de Barra Lateral -->
         <div class="sidebar-footer">
           <button id="logoutBtn" class="sidebar-logout-btn" title="Cerrar sesión activa">
             <span>🚪</span>
@@ -271,45 +258,37 @@
         </div>
       </aside>
 
-      <!-- ===================================================================
-           CONTENIDO PRINCIPAL (MAIN WORKSPACE CON TABS)
-           =================================================================== -->
+      <!-- =================================================================
+           CONTENIDO PRINCIPAL
+           ================================================================= -->
       <main class="dash-main">
-        <!-- Encabezado Dinámico de la Sección -->
+        <!-- Encabezado de la Sección -->
         <header class="dash-header">
           <div class="dash-header-title-box">
-            <h2 id="dashViewTitle">Catálogo Central de Hoteles</h2>
-            <p id="dashViewDesc">Gestión comercial y operativa de sedes provista por hotels-service:3002 vía API Gateway.</p>
+            <h2 id="dashViewTitle">Catálogo de Hoteles & Destinos</h2>
+            <p id="dashViewDesc">Descubre nuestras exclusivas propiedades en los destinos más emblemáticos.</p>
           </div>
 
           <div class="dash-header-status-pills">
-            <div class="status-badge" title="API Gateway puerto 3000">
-              <span class="dot" id="gatewayDot"></span>
-              <span>Gateway: 3000</span>
+            <div class="status-badge" style="background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.35); color: #34d399;">
+              <span class="dot" style="background: #34d399; box-shadow: 0 0 8px #34d399;"></span>
+              <span>Disponibilidad 24/7 en Línea</span>
             </div>
-            <div class="status-badge" title="Auth Service puerto 3001">
-              <span class="dot" id="authDot"></span>
-              <span>Auth: 3001</span>
-            </div>
-            <div class="status-badge" title="Hotels Service puerto 3002">
-              <span class="dot" id="hotelsDot"></span>
-              <span>Hotels: 3002</span>
-            </div>
-            <div class="status-badge" title="Notifications Service puerto 3008">
-              <span class="dot" id="notificationsDot"></span>
-              <span>Notif: 3008</span>
+            <div class="status-badge" style="background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.35); color: #38bdf8;">
+              <span>🔒 Pago Seguro Garantizado</span>
             </div>
           </div>
         </header>
 
-        <!-- PESTAÑA 1: CATÁLOGO CENTRAL DE HOTELES (hotels-service:3002) -->
+        <!-- ===============================================================
+             PESTAÑA 1: CATÁLOGO DE HOTELES & DESTINOS
+             =============================================================== -->
         <section class="dash-tab-content active" id="view-hotels">
           <div class="hotels-section" style="margin-top: 0;">
-            <!-- Barra Superior Unificada: Filtros y Acciones -->
             <div class="hotels-toolbar">
               <div class="hotels-filter-bar">
                 <div class="filter-input-wrap">
-                  <input type="text" id="filterHotelSearch" class="filter-input" placeholder="🔍 Buscar por nombre o descripción...">
+                  <input type="text" id="filterHotelSearch" class="filter-input" placeholder="🔍 Buscar por nombre o ciudad...">
                 </div>
                 <select id="filterHotelCity" class="filter-select">
                   <option value="">Todas las Ciudades</option>
@@ -317,13 +296,13 @@
                   <option value="Medellín">Medellín</option>
                   <option value="Bogotá">Bogotá</option>
                   <option value="Santa Marta">Santa Marta</option>
-                  <option value="Cancún">Cancún</option>
+                  <option value="Armenia">Eje Cafetero</option>
+                  <option value="San Andrés">San Andrés</option>
                 </select>
                 <select id="filterHotelStars" class="filter-select">
                   <option value="">Cualquier Categoría</option>
                   <option value="5">⭐⭐⭐⭐⭐ (5 Estrellas)</option>
                   <option value="4">⭐⭐⭐⭐ (4 Estrellas)</option>
-                  <option value="3">⭐⭐⭐ (3 Estrellas)</option>
                 </select>
                 <label class="filter-checkbox-wrap">
                   <input type="checkbox" id="filterPetFriendly">
@@ -333,216 +312,163 @@
 
               <div class="hotels-actions-row">
                 <button id="openCreateHotelBtn" class="btn-hotel-action" style="display: none;">
-                  <span>➕</span> Registrar Nuevo Hotel
+                  <span>➕</span> Registrar Hotel
                 </button>
-                <button id="seedHotelsBtn" class="btn-hotel-secondary" title="Poblar catálogo de prueba">
-                  <span>🌱</span> Cargar Demo
-                </button>
-                <button id="refreshHotelsBtn" class="btn-hotel-secondary" title="Recargar catálogo">
-                  <span>🔄</span> Refrescar
+                <button id="refreshHotelsBtn" class="btn-hotel-secondary">
+                  <span>🔄</span> Actualizar
                 </button>
               </div>
             </div>
 
-            <!-- Cuadrícula Dinámica de Hoteles -->
+            <!-- Grilla de Hoteles -->
             <div class="hotels-grid" id="hotelsGrid">
-              <div class="empty-hotels-box">
-                <span>Consultando catálogo hotelero...</span>
-              </div>
+              <div class="empty-hotels-box"><span>Cargando catálogo hotelero...</span></div>
             </div>
           </div>
         </section>
 
-        <!-- PESTAÑA 2: NOTIFICACIONES & VOUCHERS PDF (notification-service:3008) -->
-        <section class="dash-tab-content" id="view-notifications">
-          <div class="notif-section" style="margin-top: 0;">
-            <div class="notif-header-row">
-              <div class="notif-meta-pills">
-                <span class="notif-pill rmq" title="Broker RabbitMQ">
-                  <span>🐇</span> AMQP: hotel_notifications_queue
-                </span>
-                <span class="notif-pill pdf" title="Motor PDFKit">
-                  <span>📄</span> PDFKit + QRCode
-                </span>
-                <span class="notif-pill mail" id="notifSmtpPill" title="Proveedor de Entrega SMTP">
-                  <span>✉️</span> <span id="notifSmtpPillText">Nodemailer (Gmail / SMTP)</span>
-                </span>
+        <!-- ===============================================================
+             PESTAÑA 2: BUSCADOR DE DISPONIBILIDAD & COTIZACIÓN EN VIVO
+             =============================================================== -->
+        <section class="dash-tab-content" id="view-availability">
+          <div class="avail-search-box">
+            <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem; color: #fff;">
+              🔍 Encuentra tu Habitación Ideal con Tarifa en Tiempo Real
+            </h3>
+            
+            <form id="availSearchForm" class="avail-search-grid">
+              <div class="field-group" style="margin-bottom: 0;">
+                <label class="input-label" for="availHotelSelect">Destino / Hotel</label>
+                <select id="availHotelSelect" class="input-pill" required></select>
               </div>
 
-              <button id="refreshNotifHistoryBtn" class="btn-hotel-secondary" style="padding: 6px 14px; font-size: 0.8rem;" title="Recargar historial">
-                <span>🔄</span> Refrescar Historial
+              <div class="field-group" style="margin-bottom: 0;">
+                <label class="input-label" for="availCheckIn">Fecha de Entrada</label>
+                <input type="date" id="availCheckIn" class="input-pill" required>
+              </div>
+
+              <div class="field-group" style="margin-bottom: 0;">
+                <label class="input-label" for="availCheckOut">Fecha de Salida</label>
+                <input type="date" id="availCheckOut" class="input-pill" required>
+              </div>
+
+              <div class="field-group" style="margin-bottom: 0;">
+                <label class="input-label" for="availGuests">Huéspedes</label>
+                <input type="number" id="availGuests" class="input-pill" min="1" max="6" value="2" required>
+              </div>
+
+              <button type="submit" class="btn-blue" id="btnSubmitAvailSearch" style="height: 44px; padding: 0 1.5rem;">
+                <span>BUSCAR</span>
               </button>
+            </form>
+          </div>
+
+          <!-- Resultados de Disponibilidad -->
+          <div id="availResultsSummary" style="font-size: 0.88rem; color: #38bdf8; margin-bottom: 1rem; font-weight: 600;"></div>
+          <div class="hotels-grid" id="availRoomsGrid">
+            <div class="empty-hotels-box">
+              <span>Selecciona un hotel y las fechas de tu viaje para ver las habitaciones disponibles.</span>
             </div>
+          </div>
+        </section>
 
-            <!-- SECCIÓN EXCLUSIVA DE PERSONAL (Solo visible para HOTEL_ADMIN y RECEPTIONIST) -->
-            <div id="staffSection" style="display: none;">
-              <!-- Cuadrícula de Acciones y Disparadores de Eventos -->
-              <div class="notif-triggers-grid" id="staffNotifTriggers">
-                <button id="btnVoucherSample" class="btn-notif-action btn-notif-voucher" title="Descargar o abrir en pestaña el Voucher PDF oficial de muestra">
-                  <span>📄</span> <strong>Descargar Voucher PDF (QR)</strong>
-                </button>
-
-                <button id="btnTriggerWelcome" class="btn-notif-action" title="Disparar evento user.registered">
-                  <span>🎉</span> Bienvenida (user.registered)
-                </button>
-
-                <button id="btnTriggerBookingConfirm" class="btn-notif-action" title="Disparar evento booking.confirmed con generación de PDF">
-                  <span>🏨</span> Confirmar Reserva + PDF (QR)
-                </button>
-
-                <button id="btnTriggerPaymentFailed" class="btn-notif-action" title="Disparar evento payment.failed">
-                  <span>⚠️</span> Pago Fallido & Expiración
-                </button>
-
-                <button id="btnTriggerCheckinReminder" class="btn-notif-action" title="Disparar evento booking.checkin.reminder">
-                  <span>⏰</span> Recordatorio Check-in 24h
-                </button>
-
-                <button id="btnTriggerRefund" class="btn-notif-action" title="Disparar evento payment.refunded">
-                  <span>🧾</span> Comprobante Reembolso
-                </button>
+        <!-- ===============================================================
+             PESTAÑA 3: INVENTARIO DE HABITACIONES
+             =============================================================== -->
+        <section class="dash-tab-content" id="view-rooms">
+          <div class="hotels-section" style="margin-top: 0;">
+            <div class="hotels-toolbar">
+              <div class="hotels-filter-bar">
+                <div class="filter-input-wrap">
+                  <input type="text" id="filterRoomSearch" class="filter-input" placeholder="🔍 Buscar habitación, tipo o vista...">
+                </div>
+                <select id="filterRoomHotel" class="filter-select">
+                  <option value="">Todos los Hoteles</option>
+                </select>
+                <select id="filterRoomType" class="filter-select">
+                  <option value="">Todos los Tipos</option>
+                  <option value="STANDARD">Standard</option>
+                  <option value="DELUXE">Deluxe</option>
+                  <option value="JUNIOR_SUITE">Junior Suite</option>
+                  <option value="PRESIDENTIAL_SUITE">Presidential Suite</option>
+                </select>
               </div>
 
-              <!-- Panel de Listado de Usuarios Registrados -->
-              <div id="usersListPanel" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; margin-top: 0.75rem; margin-bottom: 0.5rem;">
-                <div style="display: flex; align-items: center; gap: 0.6rem; padding: 0.7rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.08); background: rgba(99,102,241,0.08);">
-                  <span style="font-size: 1rem;">👥</span>
-                  <span style="font-size: 0.82rem; font-weight: 700; color: #c7d2fe; text-transform: uppercase; letter-spacing: 0.5px;">Usuarios Registrados</span>
-                  <div style="margin-left: auto; display: flex; align-items: center; gap: 0.5rem;">
-                    <button type="button" id="btnDeleteGuests" class="btn-hotel-secondary" style="font-size: 0.72rem; padding: 3px 8px; color: #f87171; border-color: rgba(248,113,113,0.3);" title="Elimina todos los usuarios GUEST para liberar correos de prueba">
-                      🗑️ Limpiar Huéspedes Demo
-                    </button>
-                  </div>
-                </div>
-                <div style="max-height: 220px; overflow-y: auto;">
-                  <p style="color: var(--text-dim); padding: 1rem; font-size: 0.82rem;">Cargando usuarios...</p>
-                </div>
+              <div class="hotels-actions-row">
+                <button id="openCreateRoomBtn" class="btn-hotel-action" style="display: none;">
+                  <span>➕</span> Registrar Habitación
+                </button>
+                <button id="refreshRoomsBtn" class="btn-hotel-secondary">
+                  <span>🔄</span> Actualizar
+                </button>
               </div>
             </div>
 
-            <!-- Buzón Personal del Huésped (Solo lectura y descarga de su Voucher) -->
-            <div class="notif-guest-card" id="guestNotifBanner" style="display: none;">
-              <div class="guest-notif-info">
-                <span class="guest-notif-icon">📬</span>
-                <div>
-                  <h4>Buzón Personal de Notificaciones</h4>
-                  <p>Aquí recibes tus confirmaciones de reserva, comprobantes en PDF con código QR y avisos de check-in en tiempo real.</p>
-                </div>
-              </div>
-              <button id="btnGuestVoucherSample" class="btn-notif-action btn-notif-voucher" title="Descargar o visualizar tu Voucher PDF oficial">
-                <span>📄</span> <strong>Descargar Mi Voucher PDF (QR)</strong>
-              </button>
+            <div class="hotels-grid" id="roomsGrid">
+              <div class="empty-hotels-box"><span>Cargando habitaciones...</span></div>
             </div>
+          </div>
+        </section>
 
-            <!-- Feed / Historial de Notificaciones Procesadas -->
+        <!-- ===============================================================
+             PESTAÑA 4: MIS RESERVAS & VOUCHERS OFICIALES
+             =============================================================== -->
+        <section class="dash-tab-content" id="view-my-bookings">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
             <div>
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                <span id="notifAuditTitle" style="font-size: 0.8rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.5px;">
-                  📜 Registro de Auditoría de Envíos en Tiempo Real (Últimos 50 Eventos)
-                </span>
-                <span id="notifCountBadge" style="font-size: 0.72rem; color: var(--text-dim); font-family: monospace;">0 notificaciones</span>
-              </div>
-              <div class="notif-history-box" id="notificationsHistoryList">
-                <div class="notif-history-empty">
-                  No se han procesado notificaciones en esta sesión. Utiliza los botones de arriba para disparar eventos o consultar el broker.
-                </div>
-              </div>
+              <h3 style="font-family: var(--font-heading); font-size: 1.2rem; font-weight: 800; color: #fff;">
+                💼 Tus Estancias Reservadas
+              </h3>
+              <p style="font-size: 0.85rem; color: var(--text-dim);">
+                Consulta tus comprobantes oficiales, descarga vouchers en PDF con código QR o cancela tus estancias.
+              </p>
             </div>
+            <button id="refreshMyBookingsBtn" class="btn-hotel-secondary">
+              <span>🔄</span> Actualizar Reservas
+            </button>
+          </div>
+
+          <div id="myBookingsList">
+            <div class="empty-hotels-box"><span>Consultando tus reservas...</span></div>
           </div>
         </section>
 
-        <!-- PESTAÑA 3: IDENTIDAD, JWT & SEGURIDAD RBAC (auth-service:3001) -->
-        <section class="dash-tab-content" id="view-auth">
-          <div class="dash-grid" style="margin-bottom: 0;">
-            <!-- Tarjeta 1: Token JWT & Sesión -->
-            <div class="dash-card">
-              <div class="dash-card-title">
-                <span>🔐</span> Token de Acceso JWT (Bearer)
+        <!-- ===============================================================
+             PESTAÑA 5: PORTAL DE RECEPCIÓN & CHECK-IN (SOLO PERSONAL)
+             =============================================================== -->
+        <section class="dash-tab-content" id="view-reception">
+          <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
+            <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 250px;">
+                <label class="input-label" for="receptionSearchInput">Buscar Huésped o Código de Reserva</label>
+                <input type="text" id="receptionSearchInput" class="input-pill" placeholder="Ej. TR-2026- o correo del huésped...">
               </div>
-              <div class="dash-card-desc">
-                Emitido por <strong>Auth Service</strong> vía <strong>API Gateway</strong> con firma criptográfica.
-              </div>
-              <div style="margin-bottom: 0.5rem; font-size: 0.78rem; color: var(--text-dim);">
-                ID de Usuario (UUID): <span id="dashUserId" style="color: #38bdf8; font-family: monospace;"></span>
-              </div>
-              <div class="token-box" id="dashJwtToken">...</div>
-            </div>
-
-            <!-- Tarjeta 2: Demostración de Roles (RBAC) -->
-            <div class="dash-card">
-              <div class="dash-card-title">
-                <span>🛡️</span> Demostración de Permisos RBAC
-              </div>
-              <div class="dash-card-desc">
-                El endpoint <code>GET /api/auth/admin-only</code> verifica que el token firmado posea el rol <code>HOTEL_ADMIN</code>.
-              </div>
-              
-              <button id="testRbacBtn" class="btn-blue" style="margin-bottom: 1rem; width: 100%;">
-                Probar Endpoint de Administrador
+              <button type="button" class="btn-blue" id="btnReceptionSearch" style="height: 44px; padding: 0 1.5rem;">
+                <span>BUSCAR</span>
               </button>
-
-              <div id="rbacFeedback" class="token-box" style="display: none; min-height: 80px;"></div>
-            </div>
-          </div>
-        </section>
-
-        <!-- PESTAÑA 4: MONITOREO & CONSOLA GATEWAY (api-gateway:3000) -->
-        <section class="dash-tab-content" id="view-gateway">
-          <!-- Tarjetas de Cluster de Servicios -->
-          <div class="gateway-cluster-grid">
-            <div class="cluster-card">
-              <div class="cluster-card-top">
-                <span class="cluster-card-title">🚪 API Gateway</span>
-                <span class="dot online" id="clusterGatewayDot"></span>
-              </div>
-              <div class="cluster-card-metric">Proxy inverso, Rate Limit & Filtro JWT</div>
-              <div class="cluster-card-port">Puerto 3000 &bull; Express</div>
-            </div>
-
-            <div class="cluster-card">
-              <div class="cluster-card-top">
-                <span class="cluster-card-title">🔐 Auth Service</span>
-                <span class="dot online" id="clusterAuthDot"></span>
-              </div>
-              <div class="cluster-card-metric">PostgreSQL (5432) &bull; BCrypt &bull; RBAC</div>
-              <div class="cluster-card-port">Puerto 3001 &bull; TypeORM</div>
-            </div>
-
-            <div class="cluster-card">
-              <div class="cluster-card-top">
-                <span class="cluster-card-title">🏨 Hotels Service</span>
-                <span class="dot online" id="clusterHotelsDot"></span>
-              </div>
-              <div class="cluster-card-metric">PostgreSQL (5433) &bull; Sedes &bull; Filtros</div>
-              <div class="cluster-card-port">Puerto 3002 &bull; TypeORM</div>
-            </div>
-
-            <div class="cluster-card">
-              <div class="cluster-card-top">
-                <span class="cluster-card-title">📨 Notification Service</span>
-                <span class="dot online" id="clusterNotifDot"></span>
-              </div>
-              <div class="cluster-card-metric">RabbitMQ AMQP &bull; PDFKit (QR) &bull; Nodemailer</div>
-              <div class="cluster-card-port">Puerto 3008 &bull; Worker</div>
+              <button type="button" class="btn-hotel-secondary" id="btnReceptionRefresh" style="height: 44px; padding: 0 1.2rem;">
+                <span>🔄</span> Todas las Llegadas
+              </button>
             </div>
           </div>
 
-          <!-- Consola de Tráfico HTTP en Vivo -->
-          <div class="live-console-box" style="margin-top: 0; max-width: 100%;">
-            <div class="console-title-row">
-              <div class="console-title">
-                <span>📡</span> Registro de Solicitudes HTTP en Vivo (API Gateway)
-              </div>
-              <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button type="button" class="btn-hotel-secondary" id="clearConsoleBtn" style="padding: 4px 10px; font-size: 0.72rem;">Limpiar</button>
-                <button type="button" class="btn-hotel-secondary" id="pingGatewayBtn" style="padding: 4px 10px; font-size: 0.72rem;">Verificar Salud 🔄</button>
-              </div>
-            </div>
-            <div class="console-list" id="consoleLogs" style="max-height: 280px;">
-              <div class="console-entry info">
-                [SYS] Consola de observabilidad conectada al API Gateway (http://localhost:3000)
-              </div>
-            </div>
+          <div class="reception-table-wrap">
+            <table class="reception-table">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Huésped</th>
+                  <th>Hotel & Habitación</th>
+                  <th>Entrada / Salida</th>
+                  <th>Estado</th>
+                  <th>Total</th>
+                  <th>Acciones de Recepción</th>
+                </tr>
+              </thead>
+              <tbody id="receptionTableBody">
+                <tr><td colspan="7" style="text-align: center; color: var(--text-dim); padding: 2rem;">Cargando lista de huéspedes...</td></tr>
+              </tbody>
+            </table>
           </div>
         </section>
 
@@ -550,7 +476,11 @@
     </div>
   </div>
 
-  <!-- Modal: Detalle de Hotel -->
+  <!-- =====================================================================
+       3. MODALES DE INTERACCIÓN HOTELERA
+       ===================================================================== -->
+
+  <!-- Modal 1: Detalle Completo de Hotel -->
   <div class="modal-overlay" id="hotelDetailModal" style="display: none;">
     <div class="modal-dialog">
       <button class="modal-close-btn" id="closeDetailModalBtn">&times;</button>
@@ -575,17 +505,17 @@
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-md); font-size: 0.82rem;">
         <div>
-          <div style="color: var(--text-dim);">Políticas de Horario</div>
+          <div style="color: var(--text-dim);">Horarios</div>
           <div style="color: #fff; font-weight: 600; margin-top: 0.2rem;">
-            Check-in: <span id="detailCheckIn" style="color: #34d399;"></span> | Check-out: <span id="detailCheckOut" style="color: #f87171;"></span>
+            Check-in: <span id="detailCheckIn" style="color: #34d399;">15:00</span> | Check-out: <span id="detailCheckOut" style="color: #f87171;">12:00</span>
           </div>
         </div>
         <div>
-          <div style="color: var(--text-dim);">Admisión de Mascotas</div>
+          <div style="color: var(--text-dim);">Mascotas</div>
           <div id="detailPetFriendly" style="font-weight: 600; margin-top: 0.2rem;"></div>
         </div>
         <div>
-          <div style="color: var(--text-dim);">Contacto Directo</div>
+          <div style="color: var(--text-dim);">Contacto</div>
           <div id="detailContact" style="color: #cbd5e1; margin-top: 0.2rem;"></div>
         </div>
       </div>
@@ -594,108 +524,270 @@
         <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-dim); margin-bottom: 0.3rem;">Política de Cancelación</div>
         <div id="detailCancellation" style="font-size: 0.8rem; color: #cbd5e1; font-style: italic;"></div>
       </div>
+
+      <button type="button" class="btn-blue" id="btnBookFromHotelDetail" style="margin-top: 0.5rem;">
+        <span>VER DISPONIBILIDAD DE ESTE HOTEL</span>
+      </button>
     </div>
   </div>
 
-  <!-- Modal: Crear / Editar Hotel (Solo HOTEL_ADMIN) -->
-  <div class="modal-overlay" id="hotelFormModal" style="display: none;">
-    <div class="modal-dialog">
-      <button class="modal-close-btn" id="closeFormModalBtn">&times;</button>
-      
+  <!-- Modal 2: CHECKOUT & PAGO CON TARJETA DE CRÉDITO -->
+  <div class="modal-overlay" id="checkoutModal" style="display: none;">
+    <div class="modal-dialog" style="max-width: 540px;">
+      <button class="modal-close-btn" id="closeCheckoutModalBtn">&times;</button>
+
       <div>
-        <h2 id="hotelFormTitle" style="font-family: var(--font-heading); font-size: 1.35rem; font-weight: 800; color: #fff;">
-          🏢 Registrar Nueva Sede Hotelera
+        <h2 style="font-family: var(--font-heading); font-size: 1.35rem; font-weight: 800; color: #fff;">
+          💳 Confirmar Estancia y Pago
         </h2>
         <p style="font-size: 0.82rem; color: var(--text-dim);">
-          Los datos ingresados se persistirán en <code>hotels-db</code> mediante validaciones estrictas y control RBAC.
+          Revisa el desglose de tu reserva y completa tu pago seguro.
         </p>
       </div>
 
-      <form id="hotelUpsertForm" style="display: flex; flex-direction: column; gap: 0.85rem;">
-        <input type="hidden" id="formHotelId">
+      <!-- Alerta de Bloqueo Temporal (Soft-Lock 10 min) -->
+      <div class="hold-timer-banner">
+        <span style="font-size: 1.75rem;">⏳</span>
+        <div>
+          <div style="font-size: 0.82rem; color: #fbbf24; font-weight: 700;">HABITACIÓN BLOQUEADA TEMPORALMENTE</div>
+          <div style="font-size: 0.78rem; color: #cbd5e1;">Tu habitación está reservada exclusivamente para ti durante los próximos:</div>
+        </div>
+        <div class="hold-timer-digit" id="holdCountdownText">10:00</div>
+      </div>
 
+      <!-- Resumen de la Estancia -->
+      <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 1rem; font-size: 0.85rem;">
+        <div style="font-weight: 700; color: #fff; font-size: 1rem; margin-bottom: 0.25rem;" id="checkoutRoomName">Habitación Deluxe</div>
+        <div style="color: #38bdf8; margin-bottom: 0.75rem;" id="checkoutHotelName">Cartagena Luxury Beach & Spa Resort</div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem; color: #cbd5e1; font-size: 0.82rem;">
+          <div>Check-in: <strong id="checkoutCheckIn" style="color: #fff;">--</strong></div>
+          <div>Check-out: <strong id="checkoutCheckOut" style="color: #fff;">--</strong></div>
+          <div>Noches: <strong id="checkoutNights" style="color: #fff;">--</strong></div>
+          <div>Huéspedes: <strong id="checkoutGuests" style="color: #fff;">--</strong></div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: baseline; border-top: 1px dashed rgba(255,255,255,0.15); padding-top: 0.5rem; margin-top: 0.5rem;">
+          <span style="font-weight: 700; color: #fff;">Total a Pagar:</span>
+          <span style="font-size: 1.25rem; font-weight: 900; color: #34d399;" id="checkoutTotalAmount">$0.00 USD</span>
+        </div>
+      </div>
+
+      <!-- Formulario de Tarjeta de Crédito (Simulación Segura) -->
+      <form id="paymentForm" style="display: flex; flex-direction: column; gap: 0.85rem; margin-top: 0.5rem;">
         <div class="field-group">
-          <label class="input-label" for="formHotelName">Nombre del Hotel *</label>
-          <input type="text" id="formHotelName" class="input-pill" placeholder="Ej. Cartagena Paradise Beach Resort" required>
+          <label class="input-label" for="cardHolder">Nombre del Titular de la Tarjeta</label>
+          <input type="text" id="cardHolder" class="input-pill" placeholder="Como aparece en la tarjeta" required>
         </div>
 
         <div class="field-group">
-          <label class="input-label" for="formHotelDesc">Descripción Detallada *</label>
-          <textarea id="formHotelDesc" class="input-pill" rows="3" placeholder="Descripción de las instalaciones y vista panorámica..." required style="resize: vertical; min-height: 70px; border-radius: var(--radius-md);"></textarea>
+          <label class="input-label" for="cardNumber">Número de Tarjeta</label>
+          <input type="text" id="cardNumber" class="input-pill" placeholder="4242 •••• •••• 4242" maxlength="19" required>
         </div>
 
         <div style="display: flex; gap: 0.75rem;">
           <div class="field-group" style="flex: 1;">
-            <label class="input-label" for="formHotelAddress">Dirección Física *</label>
-            <input type="text" id="formHotelAddress" class="input-pill" placeholder="Bocagrande Carrera 1" required>
+            <label class="input-label" for="cardExp">Vencimiento (MM/AA)</label>
+            <input type="text" id="cardExp" class="input-pill" placeholder="12/28" maxlength="5" required>
           </div>
           <div class="field-group" style="flex: 1;">
-            <label class="input-label" for="formHotelCity">Ciudad / Destino *</label>
-            <input type="text" id="formHotelCity" class="input-pill" placeholder="Cartagena" required>
+            <label class="input-label" for="cardCvc">Código CVC</label>
+            <input type="password" id="cardCvc" class="input-pill" placeholder="123" maxlength="4" required>
           </div>
         </div>
 
+        <div style="font-size: 0.75rem; color: var(--text-dim); display: flex; align-items: center; gap: 0.5rem;">
+          <span>🔒</span> Encriptación bancaria SSL de 256 bits. Se procesa con control de anti-doble cobro.
+        </div>
+
+        <button type="submit" class="btn-blue" id="submitPaymentBtn" style="padding: 12px; margin-top: 0.25rem;">
+          <span id="btnPayText">PAGAR Y CONFIRMAR RESERVA</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: RESERVA CONFIRMADA EXITOSAMENTE -->
+  <div class="modal-overlay" id="bookingSuccessModal" style="display: none;">
+    <div class="modal-dialog" style="max-width: 480px; text-align: center;">
+      <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">🎉</div>
+      <h2 style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 800; color: #fff;">
+        ¡Reserva Confirmada!
+      </h2>
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 0.25rem;">
+        Tu pago ha sido procesado exitosamente y tus fechas han quedado aseguradas en el hotel.
+      </p>
+
+      <div style="background: rgba(255, 255, 255, 0.05); border: 1px dashed rgba(56, 189, 248, 0.4); border-radius: 12px; padding: 1.25rem; margin: 1.25rem 0;">
+        <div style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px;">CÓDIGO DE RESERVA OFICIAL</div>
+        <div style="font-family: var(--font-heading); font-size: 1.6rem; font-weight: 900; color: #38bdf8; letter-spacing: 2px; margin-top: 0.25rem;" id="successBookingCode">
+          TR-2026-XXXXX
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+        <button type="button" class="btn-blue" id="btnDownloadVoucherPdf">
+          <span>📄</span> DESCARGAR VOUCHER PDF OFICIAL (CON QR)
+        </button>
+        <button type="button" class="btn-hotel-secondary" id="btnGoToMyBookingsAfterSuccess">
+          <span>💼</span> Ver Mis Reservas
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Registro / Edición de Hotel (Admin) -->
+  <div class="modal-overlay" id="hotelFormModal" style="display: none;">
+    <div class="modal-dialog">
+      <button class="modal-close-btn" id="closeFormModalBtn">&times;</button>
+      <div>
+        <h2 id="hotelFormTitle" style="font-family: var(--font-heading); font-size: 1.35rem; font-weight: 800; color: #fff;">
+          🏢 Registrar Nueva Sede Hotelera
+        </h2>
+        <p style="font-size: 0.82rem; color: var(--text-dim);">Ingresa los detalles para publicar el hotel en la plataforma.</p>
+      </div>
+
+      <form id="hotelUpsertForm" style="display: flex; flex-direction: column; gap: 0.85rem;">
+        <input type="hidden" id="formHotelId">
+        <div class="field-group">
+          <label class="input-label" for="formHotelName">Nombre del Hotel *</label>
+          <input type="text" id="formHotelName" class="input-pill" placeholder="Ej. Cartagena Paradise Beach Resort" required>
+        </div>
+        <div class="field-group">
+          <label class="input-label" for="formHotelDesc">Descripción *</label>
+          <textarea id="formHotelDesc" class="input-pill" rows="3" required style="resize: vertical; min-height: 70px; border-radius: var(--radius-md);"></textarea>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+          <div class="field-group" style="flex: 1;">
+            <label class="input-label" for="formHotelAddress">Dirección *</label>
+            <input type="text" id="formHotelAddress" class="input-pill" placeholder="Bocagrande Carrera 1" required>
+          </div>
+          <div class="field-group" style="flex: 1;">
+            <label class="input-label" for="formHotelCity">Ciudad *</label>
+            <input type="text" id="formHotelCity" class="input-pill" placeholder="Cartagena" required>
+          </div>
+        </div>
         <div style="display: flex; gap: 0.75rem;">
           <div class="field-group" style="flex: 1;">
             <label class="input-label" for="formHotelStars">Estrellas (1 - 5) *</label>
             <input type="number" id="formHotelStars" class="input-pill" min="1" max="5" value="5" required>
           </div>
           <div class="field-group" style="flex: 1;">
-            <label class="input-label" for="formHotelPhone">Teléfono de Recepción</label>
+            <label class="input-label" for="formHotelPhone">Teléfono</label>
             <input type="text" id="formHotelPhone" class="input-pill" placeholder="+57 605 1234567">
           </div>
         </div>
-
         <div class="field-group">
           <label class="input-label" for="formHotelEmail">Correo de Contacto</label>
           <input type="email" id="formHotelEmail" class="input-pill" placeholder="recepcion@hotel.com">
         </div>
-
         <div class="field-group">
-          <label class="input-label" for="formHotelImg">URL de Imagen Principal (Unsplash)</label>
+          <label class="input-label" for="formHotelImg">URL de Foto Principal</label>
           <input type="url" id="formHotelImg" class="input-pill" placeholder="https://images.unsplash.com/...">
         </div>
-
         <div class="field-group">
-          <label class="input-label" for="formHotelAmenities">Amenidades (Separadas por comas)</label>
-          <input type="text" id="formHotelAmenities" class="input-pill" placeholder="Piscina Infinita, Spa & Wellness, Wi-Fi 6, Playa Privada">
+          <label class="input-label" for="formHotelAmenities">Amenidades (separadas por comas)</label>
+          <input type="text" id="formHotelAmenities" class="input-pill" placeholder="Piscina Infinita, Spa, Wi-Fi 6, Playa Privada">
         </div>
-
         <div style="display: flex; gap: 0.75rem;">
           <div class="field-group" style="flex: 1;">
-            <label class="input-label" for="formHotelCheckIn">Hora Check-in *</label>
+            <label class="input-label" for="formHotelCheckIn">Hora Check-in</label>
             <input type="text" id="formHotelCheckIn" class="input-pill" value="15:00">
           </div>
           <div class="field-group" style="flex: 1;">
-            <label class="input-label" for="formHotelCheckOut">Hora Check-out *</label>
-            <input type="text" id="formHotelCheckOut" class="input-pill" value="11:00">
+            <label class="input-label" for="formHotelCheckOut">Hora Check-out</label>
+            <input type="text" id="formHotelCheckOut" class="input-pill" value="12:00">
           </div>
         </div>
-
         <div class="field-group">
-          <label class="input-label" for="formHotelCancel">Política de Cancelación *</label>
-          <input type="text" id="formHotelCancel" class="input-pill" value="Cancelación gratuita hasta 48 horas antes de la llegada." required>
+          <label class="input-label" for="formHotelCancel">Política de Cancelación</label>
+          <input type="text" id="formHotelCancel" class="input-pill" value="Cancelación gratuita hasta 48 horas antes de la llegada.">
         </div>
-
-        <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
           <input type="checkbox" id="formHotelPetFriendly" style="cursor: pointer; width: 18px; height: 18px;">
-          <label for="formHotelPetFriendly" style="font-size: 0.85rem; color: #fff; cursor: pointer;">¿Admite Mascotas? (Pet-friendly)</label>
+          <label for="formHotelPetFriendly" style="font-size: 0.85rem; color: #fff; cursor: pointer;">Admite Mascotas (Pet-friendly)</label>
         </div>
-
-        <button type="submit" class="btn-blue" id="submitHotelFormBtn" style="margin-top: 0.75rem;">
+        <button type="submit" class="btn-blue" id="submitHotelFormBtn" style="margin-top: 0.5rem;">
           <span>GUARDAR HOTEL</span>
         </button>
       </form>
     </div>
   </div>
 
-  <!-- Contenedor de Notificaciones Toast -->
-  
-  <!-- Modal Interactivo de Inicio de Sesión con Google -->
+  <!-- Modal 5: Registro / Edición de Habitación (Admin) -->
+  <div class="modal-overlay" id="roomFormModal" style="display: none;">
+    <div class="modal-dialog">
+      <button class="modal-close-btn" id="closeRoomModalBtn">&times;</button>
+      <div>
+        <h2 style="font-family: var(--font-heading); font-size: 1.35rem; font-weight: 800; color: #fff;">🛏️ Registrar Nueva Habitación</h2>
+        <p style="font-size: 0.82rem; color: var(--text-dim);">Asigna la habitación a un hotel del catálogo.</p>
+      </div>
+
+      <form id="roomUpsertForm" style="display: flex; flex-direction: column; gap: 0.85rem;">
+        <div class="field-group">
+          <label class="input-label" for="formRoomHotel">Hotel *</label>
+          <select id="formRoomHotel" class="input-pill" required></select>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+          <div class="field-group" style="flex: 1;">
+            <label class="input-label" for="formRoomNumber">Número *</label>
+            <input type="text" id="formRoomNumber" class="input-pill" placeholder="304" required>
+          </div>
+          <div class="field-group" style="flex: 1;">
+            <label class="input-label" for="formRoomFloor">Piso</label>
+            <input type="number" id="formRoomFloor" class="input-pill" min="0" value="1">
+          </div>
+          <div class="field-group" style="flex: 1;">
+            <label class="input-label" for="formRoomTypeSel">Tipo *</label>
+            <select id="formRoomTypeSel" class="input-pill">
+              <option value="STANDARD">Standard</option>
+              <option value="DELUXE">Deluxe</option>
+              <option value="JUNIOR_SUITE">Junior Suite</option>
+              <option value="PRESIDENTIAL_SUITE">Presidential Suite</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="input-label" for="formRoomName">Nombre Comercial *</label>
+          <input type="text" id="formRoomName" class="input-pill" placeholder="Junior Suite con Balcón Frente al Mar" required>
+        </div>
+        <div class="field-group">
+          <label class="input-label" for="formRoomDesc">Descripción *</label>
+          <textarea id="formRoomDesc" class="input-pill" rows="3" required style="resize: vertical; min-height: 70px; border-radius: var(--radius-md);"></textarea>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+          <div class="field-group" style="flex: 1;">
+            <label class="input-label" for="formRoomPrice">Precio por Noche USD *</label>
+            <input type="number" id="formRoomPrice" class="input-pill" min="1" step="0.01" value="150" required>
+          </div>
+          <div class="field-group" style="flex: 1;">
+            <label class="input-label" for="formRoomAdults">Adultos Máx.</label>
+            <input type="number" id="formRoomAdults" class="input-pill" min="1" value="2">
+          </div>
+          <div class="field-group" style="flex: 1;">
+            <label class="input-label" for="formRoomChildren">Niños Máx.</label>
+            <input type="number" id="formRoomChildren" class="input-pill" min="0" value="1">
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="input-label" for="formRoomAmenities">Amenidades (separadas por comas)</label>
+          <input type="text" id="formRoomAmenities" class="input-pill" placeholder="Jacuzzi, Balcón, Smart TV, Caja Fuerte">
+        </div>
+        <div class="field-group">
+          <label class="input-label" for="formRoomImg">URL de Imagen</label>
+          <input type="url" id="formRoomImg" class="input-pill" placeholder="https://images.unsplash.com/...">
+        </div>
+        <button type="submit" class="btn-blue" id="submitRoomFormBtn" style="margin-top: 0.5rem;">
+          <span>GUARDAR HABITACIÓN</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 6: Login con Google Mockup -->
   <div class="modal-overlay" id="googleAuthModal" style="display: none;">
     <div class="modal-dialog google-modal-dialog">
       <button class="modal-close-btn" id="closeGoogleModalBtn">✕</button>
-      
       <div class="google-modal-header">
         <svg class="google-icon-large" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -704,7 +796,7 @@
           <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
         </svg>
         <h3 class="google-modal-title">Iniciar sesión con Google</h3>
-        <p class="google-modal-sub">Regístrate o inicia sesión con tu cuenta de Gmail</p>
+        <p class="google-modal-sub">Accede con tu cuenta de correo de Gmail</p>
       </div>
 
       <div class="google-account-list">
@@ -720,7 +812,7 @@
             </div>
             <div style="flex: 1;">
               <label class="input-label" for="googleCustomLast" style="color: #cbd5e1;">Apellido</label>
-              <input type="text" id="googleCustomLast" class="input-pill" placeholder="Mendoza" required style="padding: 10px 14px;">
+              <input type="text" id="googleCustomLast" class="input-pill" placeholder="Valderrama" required style="padding: 10px 14px;">
             </div>
           </div>
           <button type="submit" class="btn-blue" id="submitGoogleCustomBtn" style="padding: 10px;">
@@ -731,10 +823,91 @@
     </div>
   </div>
 
+  <!-- Modal 7: CALENDARIO DE DISPONIBILIDAD & GESTIÓN DE FECHAS (ADMIN & STAFF) -->
+  <div class="modal-overlay" id="roomCalendarModal" style="display: none;">
+    <div class="modal-dialog" style="max-width: 620px;">
+      <button class="modal-close-btn" id="closeCalModalBtn">&times;</button>
+      
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.75rem;">
+        <div>
+          <h2 style="font-family: var(--font-heading); font-size: 1.35rem; font-weight: 800; color: #fff;">
+            📅 Calendario & Ocupación de Fechas
+          </h2>
+          <div style="font-size: 0.85rem; color: #38bdf8;" id="calRoomTitle">Habitación Deluxe 304</div>
+          <div style="font-size: 0.75rem; color: var(--text-dim);" id="calHotelTitle">Cartagena Paradise Beach Resort</div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <button type="button" class="btn-hotel-secondary" id="calPrevMonthBtn" style="padding: 4px 10px; font-size: 0.75rem;">◀ Mes</button>
+          <span style="font-weight: 700; color: #fff; font-size: 0.85rem;" id="calCurrentMonthLabel">Noviembre 2026</span>
+          <button type="button" class="btn-hotel-secondary" id="calNextMonthBtn" style="padding: 4px 10px; font-size: 0.75rem;">Mes ▶</button>
+        </div>
+      </div>
+
+      <!-- Leyenda de Estados del Calendario -->
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; font-size: 0.72rem; margin: 0.5rem 0;">
+        <span style="display: flex; align-items: center; gap: 0.3rem; color: #34d399;">
+          <span style="width: 10px; height: 10px; border-radius: 50%; background: #34d399;"></span> Disponible
+        </span>
+        <span style="display: flex; align-items: center; gap: 0.3rem; color: #fbbf24;">
+          <span style="width: 10px; height: 10px; border-radius: 50%; background: #fbbf24;"></span> Bloqueo Temporal (Hold 10m)
+        </span>
+        <span style="display: flex; align-items: center; gap: 0.3rem; color: #f87171;">
+          <span style="width: 10px; height: 10px; border-radius: 50%; background: #f87171;"></span> Reservada / Agotada (Cliente)
+        </span>
+        <span style="display: flex; align-items: center; gap: 0.3rem; color: #cbd5e1;">
+          <span style="width: 10px; height: 10px; border-radius: 50%; background: #94a3b8;"></span> Bloqueo Admin
+        </span>
+      </div>
+
+      <!-- Cuadrícula de Días del Mes -->
+      <div id="calDaysGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 0.75rem 0; text-align: center;"></div>
+
+      <!-- Sección Exclusiva de Administración: Bloquear / Habilitar Fechas -->
+      <div id="adminDateControls" style="display: none; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 1rem; margin-top: 0.5rem;">
+        <div style="font-size: 0.8rem; font-weight: 700; color: #f59e0b; margin-bottom: 0.5rem;">
+          ⚙️ GESTIÓN ADMINISTRATIVA DE FECHAS (HOTEL_ADMIN)
+        </div>
+        <p style="font-size: 0.72rem; color: var(--text-dim); margin-bottom: 0.75rem;">
+          Puedes inhabilitar fechas por remodelación/mantenimiento o rehabilitarlas para venta a los clientes.
+        </p>
+
+        <form id="adminBlockForm" style="display: flex; flex-direction: column; gap: 0.65rem;">
+          <input type="hidden" id="adminCalRoomId">
+          <input type="hidden" id="adminCalHotelId">
+          <div style="display: flex; gap: 0.5rem;">
+            <div style="flex: 1;">
+              <label class="input-label" for="adminBlockStart" style="font-size: 0.72rem;">Fecha Desde</label>
+              <input type="date" id="adminBlockStart" class="input-pill" style="padding: 6px 10px; font-size: 0.75rem;" required>
+            </div>
+            <div style="flex: 1;">
+              <label class="input-label" for="adminBlockEnd" style="font-size: 0.72rem;">Fecha Hasta</label>
+              <input type="date" id="adminBlockEnd" class="input-pill" style="padding: 6px 10px; font-size: 0.75rem;" required>
+            </div>
+          </div>
+          <div>
+            <label class="input-label" for="adminBlockReason" style="font-size: 0.72rem;">Motivo del Bloqueo</label>
+            <input type="text" id="adminBlockReason" class="input-pill" placeholder="Mantenimiento preventivo / Remodelación" style="padding: 6px 10px; font-size: 0.75rem;">
+          </div>
+          <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
+            <button type="button" class="btn-hotel-secondary" id="btnAdminUnblock" style="flex: 1; padding: 8px; font-size: 0.75rem; border-color: #34d399; color: #34d399;">
+              ✅ Habilitar Fechas (Abrir Venta)
+            </button>
+            <button type="submit" class="btn-blue" id="btnAdminBlock" style="flex: 1; padding: 8px; font-size: 0.75rem; background: #dc2626;">
+              🚫 Bloquear Fechas (Cerrar Venta)
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Contenedor Toast -->
   <div class="toast-shelf" id="toastShelf"></div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=3.7"></script>
-  <script src="js/app.js?v=3.7"></script>
+  <script src="js/api.js?v=4.0"></script>
+  <script src="js/app.js?v=4.0"></script>
 </body>
 </html>

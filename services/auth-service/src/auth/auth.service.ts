@@ -1,6 +1,7 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, Inject, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { ClientProxy } from '@nestjs/microservices';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
@@ -11,11 +12,31 @@ import { Role } from './enums/role.enum';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    @Inject('NOTIFICATIONS_SERVICE')
+    private readonly notificationClient: ClientProxy,
   ) {}
+
+  private emitUserRegistered(user: { id: string; email: string; firstName: string; lastName: string; role?: string }) {
+    try {
+      this.notificationClient.emit('user.registered', {
+        userId: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        loginUrl: 'http://localhost',
+        role: user.role || 'GUEST',
+      });
+      this.logger.log(`🐇 Evento 'user.registered' emitido a RabbitMQ para ${user.email}`);
+    } catch (err) {
+      this.logger.warn(`No se pudo emitir evento 'user.registered' a RabbitMQ: ${err.message}`);
+    }
+  }
 
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
     const saltRounds = 10;
@@ -26,6 +47,8 @@ export class AuthService {
       password: hashedPassword,
       role: registerDto.role || Role.GUEST,
     });
+
+    this.emitUserRegistered(createdUser);
 
     return this.buildAuthResponse(createdUser);
   }
@@ -66,6 +89,8 @@ export class AuthService {
         password: randomPassword,
         role: Role.GUEST,
       });
+
+      this.emitUserRegistered(user);
     }
 
     if (!user.isActive) {

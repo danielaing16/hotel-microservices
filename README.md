@@ -542,10 +542,10 @@ hotel-reservation-system/
     │       ├── auth/                 # Controladores y servicios de login/registro
     │       └── users/                # Entidad de usuario y repositorios
     ├── hotels-service/               # [IMPLEMENTADO] Catálogo de hoteles y sedes
-    ├── rooms-service/                # [A DESARROLLAR] Habitaciones y tipos
-    ├── availability-service/         # [A DESARROLLAR] Redis locks y motor de fechas
-    ├── booking-service/              # [A DESARROLLAR] Orquestador Saga de reservas
-    ├── payment-service/              # [A DESARROLLAR] Pagos y webhooks Stripe
+    ├── rooms-service/                # [IMPLEMENTADO] Habitaciones, tipos, tarifas e inventario
+    ├── availability-service/         # [IMPLEMENTADO] Motor de disponibilidad y soft-locks atómicos Redis Redlock
+    ├── booking-service/              # [IMPLEMENTADO] Orquestador Saga de reservas, códigos de reserva y check-in/out
+    ├── payment-service/              # [IMPLEMENTADO] Pagos transaccionales con idempotencia, Stripe Sandbox y reembolsos
     └── notification-service/         # [IMPLEMENTADO] Worker asíncrono RabbitMQ + PDFKit + Nodemailer
 ```
 
@@ -605,6 +605,7 @@ Deberás ver los contenedores en estado `healthy` / `running`:
 - **API Gateway Health Check:** [http://localhost:3000/health](http://localhost:3000/health)
 - **Endpoints de Autenticación:** [http://localhost:3000/api/auth/profile](http://localhost:3000/api/auth/profile)
 - **Endpoints de Catálogo de Hoteles:** [http://localhost:3000/api/hotels](http://localhost:3000/api/hotels)
+- **Endpoints de Habitaciones:** [http://localhost:3000/api/rooms](http://localhost:3000/api/rooms) (Swagger: [http://localhost:3003/api/docs](http://localhost:3003/api/docs))
 - **Microservicio de Notificaciones & Swagger:** [http://localhost:3008/api/docs](http://localhost:3008/api/docs)
 - **Panel RabbitMQ Management:** [http://localhost:15672](http://localhost:15672) (Usuario: `guest` / `guest`)
 
@@ -623,8 +624,9 @@ Deberás ver los contenedores en estado `healthy` / `running`:
    - Microservicio `notification-service` worker asíncrono consumidor de RabbitMQ.
    - Generación de Vouchers oficiales de confirmación en PDF con código QR dinámico (PDFKit + QRCode).
    - Motor transaccional de correos con Nodemailer y 5 plantillas responsive para eventos de ciclo de vida hotelero.
-4. 🔄 **Habitaciones y Tipos:**
-   - Crear `rooms-service` (inventario de tipos de habitaciones, amenidades y fotos).
+4. ✅ **Habitaciones y Tipos (Completado):**
+   - Microservicio `rooms-service` (puerto `3003`) con TypeORM, PostgreSQL (`hotel_rooms_db`), tipos de habitación, tarifas, capacidades y estados operativos con RBAC.
+   - Pestaña "Habitaciones" en el Frontend con filtros, registro (HOTEL_ADMIN) y cambio de estado (HOTEL_ADMIN / RECEPTIONIST).
 5. 🔄 **Motor de Disponibilidad y Bloqueos:**
    - Implementar `availability-service` con Redis para el candado temporal (*hold* de 10 min) y filtros por fecha.
 6. 🔄 **Reservas y Transacciones (Saga Pattern):**
