@@ -22,6 +22,9 @@ ENV PORT=3003
 
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
+# El tsbuildinfo rancio del builder hace que tsc incremental no emita los .js
+# al arrancar (nest start --watch). Se elimina para forzar compilación fresca.
+RUN find /app/dist -name '*.tsbuildinfo' -delete || true
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/tsconfig*.json ./
