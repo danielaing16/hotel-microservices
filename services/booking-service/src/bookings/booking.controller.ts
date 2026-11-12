@@ -20,6 +20,7 @@ import { EventPattern, Payload } from '@nestjs/microservices';
 import { BookingService } from './booking.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { CancelBookingDto } from './dto/cancel-booking.dto';
+import { ModifyBookingDto } from './dto/modify-booking.dto';
 import { QueryBookingsDto } from './dto/query-bookings.dto';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -115,6 +116,19 @@ export class BookingController {
     @CurrentUser() user: RequestUser,
   ) {
     return await this.bookingService.findOne(idOrCode, user);
+  }
+
+  @Patch(':idOrCode/modify')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Modificar datos o solicitudes especiales de la reserva',
+  })
+  async modify(
+    @Param('idOrCode') idOrCode: string,
+    @Body() modifyDto: ModifyBookingDto,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return await this.bookingService.modifyBooking(idOrCode, modifyDto, user);
   }
 
   @Patch(':idOrCode/cancel')

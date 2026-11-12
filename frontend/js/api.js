@@ -415,6 +415,13 @@ class HotelApiClient {
     });
   }
 
+  async modifyBooking(idOrCode, data) {
+    return await this.request(`/api/bookings/${idOrCode}/modify`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
   async checkInBooking(idOrCode) {
     return await this.request(`/api/bookings/${idOrCode}/checkin`, {
       method: 'PATCH',

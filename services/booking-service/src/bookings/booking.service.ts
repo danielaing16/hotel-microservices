@@ -15,6 +15,7 @@ import { ClientProxy } from '@nestjs/microservices';
 import { Booking } from './entities/booking.entity';
 import { BookingStatus } from '../common/enums/booking-status.enum';
 import { CreateBookingDto } from './dto/create-booking.dto';
+import { ModifyBookingDto } from './dto/modify-booking.dto';
 import { QueryBookingsDto } from './dto/query-bookings.dto';
 import { RequestUser } from '../common/decorators/current-user.decorator';
 import { INITIAL_BOOKING_SEED } from './seed/booking.seed';
@@ -358,6 +359,28 @@ export class BookingService implements OnModuleInit {
       message: `Reserva ${updated.bookingCode} cancelada correctamente. Las fechas han sido liberadas en inventario.`,
       booking: updated,
     };
+  }
+
+  /**
+   * Modifica detalles de la reserva (Huésped o Admin)
+   */
+  async modifyBooking(idOrCode: string, dto: ModifyBookingDto, user?: RequestUser) {
+    const booking = await this.findOne(idOrCode, user);
+
+    if (booking.status === BookingStatus.CANCELLED) {
+      throw new BadRequestException('No se puede modificar una reserva cancelada');
+    }
+    if (booking.status === BookingStatus.COMPLETED) {
+      throw new BadRequestException('No se puede modificar una estancia finalizada');
+    }
+
+    if (dto.userName) booking.userName = dto.userName.trim();
+    if (dto.guestsCount !== undefined) booking.guestsCount = Number(dto.guestsCount);
+    if (dto.specialRequests !== undefined) booking.specialRequests = dto.specialRequests.trim();
+
+    const updated = await this.bookingRepository.save(booking);
+    this.logger.log(`Reserva ${updated.bookingCode} modificada por ${user?.email || 'admin'}`);
+    return updated;
   }
 
   /**

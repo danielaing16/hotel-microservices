@@ -1487,6 +1487,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }).join('');
 
     // Eventos de botones
+    document.querySelectorAll('.btn-open-modify-booking').forEach(btn => {
+      btn.addEventListener('click', () => {
+        openModifyBookingModal({
+          bookingCode: btn.getAttribute('data-code'),
+          userName: btn.getAttribute('data-name'),
+          guestsCount: btn.getAttribute('data-guests'),
+          specialRequests: btn.getAttribute('data-requests'),
+        });
+      });
+    });
+
     document.querySelectorAll('.btn-download-voucher').forEach(btn => {
       btn.addEventListener('click', () => {
         const u = api.getCurrentUser() || {};
