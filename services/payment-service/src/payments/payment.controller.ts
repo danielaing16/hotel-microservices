@@ -1,4 +1,4 @@
-import {
+﻿import {
   Controller,
   Get,
   Post,
@@ -38,9 +38,9 @@ export class PaymentController {
   @Post('process')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Procesar pago de reserva con idempotencia (Huésped / Checkout)',
+    summary: 'Procesar pago de reserva con idempotencia (HuÃ©sped / Checkout)',
     description:
-      'Valida la reserva contra Booking Service, verifica anti-doble cobro mediante idempotencyKey, procesa la transacción y emite payment.succeeded en RabbitMQ.',
+      'Valida la reserva contra Booking Service, verifica anti-doble cobro mediante idempotencyKey, procesa la transacciÃ³n y emite payment.succeeded en RabbitMQ.',
   })
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -56,17 +56,17 @@ export class PaymentController {
   @Get('my-payments')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Historial de pagos y recibos del usuario en sesión',
+    summary: 'Historial de pagos y recibos del usuario en sesiÃ³n',
   })
   async findMyPayments(@CurrentUser() user: RequestUser) {
     return await this.paymentService.findMyPayments(user.id);
   }
 
   @Get()
-  @Roles(Role.HOTEL_ADMIN, Role.ADMIN, Role.HOTEL_MANAGER)
+  @Roles(Role.HOTEL_ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Listado administrativo de pagos y conciliación financiera (Staff)',
+    summary: 'Listado administrativo de pagos y conciliaciÃ³n financiera (Staff)',
   })
   async findAll(@Query() query: QueryPaymentsDto) {
     return await this.paymentService.findAll(query);
@@ -75,7 +75,7 @@ export class PaymentController {
   @Get(':idOrRef')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Comprobante y detalle de transacción por ID o referencia',
+    summary: 'Comprobante y detalle de transacciÃ³n por ID o referencia',
   })
   async findOne(
     @Param('idOrRef') idOrRef: string,
@@ -85,12 +85,12 @@ export class PaymentController {
   }
 
   @Post(':idOrRef/refund')
-  @Roles(Role.HOTEL_ADMIN, Role.ADMIN)
+  @Roles(Role.HOTEL_ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Procesar reembolso financiero total (Solo Administradores)',
     description:
-      'Reversa el cobro a estado REFUNDED y emite el evento payment.refunded a través de RabbitMQ.',
+      'Reversa el cobro a estado REFUNDED y emite el evento payment.refunded a travÃ©s de RabbitMQ.',
   })
   async refund(
     @Param('idOrRef') idOrRef: string,
@@ -101,10 +101,10 @@ export class PaymentController {
   }
 
   @Post('seed')
-  @Roles(Role.HOTEL_ADMIN, Role.ADMIN)
+  @Roles(Role.HOTEL_ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Sembrar datos de demostración de pagos (Solo Administrador)',
+    summary: 'Sembrar datos de demostraciÃ³n de pagos (Solo Administrador)',
   })
   async seed() {
     await this.paymentService.seed();

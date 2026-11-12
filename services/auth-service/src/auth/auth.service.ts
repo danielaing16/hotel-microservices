@@ -7,6 +7,7 @@ import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { GoogleLoginDto } from './dto/google-login.dto';
+import { CreateStaffDto } from '../users/dto/create-staff.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { Role } from './enums/role.enum';
 
@@ -42,13 +43,37 @@ export class AuthService {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(registerDto.password, saltRounds);
 
+    // RBAC: el registro público SOLO puede crear clientes (GUEST).
+    // La creación de cuentas de personal (RECEPTIONIST / HOTEL_ADMIN) se hace
+    // desde el panel del administrador (POST /api/auth/users).
     const createdUser = await this.usersService.create({
       ...registerDto,
       password: hashedPassword,
-      role: registerDto.role || Role.GUEST,
+      role: Role.GUEST,
     });
 
     this.emitUserRegistered(createdUser);
+
+    return this.buildAuthResponse(createdUser);
+  }
+
+  /**
+   * RBAC: creación de cuentas de personal (Recepcionista / Administrador).
+   * Exclusiva del panel de administración; no envía correo de bienvenida
+   * de cliente ni eventos de registro.
+   */
+  async createStaff(staffDto: CreateStaffDto): Promise<AuthResponseDto> {
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(staffDto.password, saltRounds);
+
+    const createdUser = await this.usersService.create({
+      ...staffDto,
+      password: hashedPassword,
+    });
+
+    this.logger.log(
+      `👤 Cuenta de personal ${createdUser.email} (${createdUser.role}) creada por el administrador`,
+    );
 
     return this.buildAuthResponse(createdUser);
   }

@@ -3,6 +3,7 @@ import {
   Post,
   Get,
   Delete,
+  Patch,
   Param,
   Body,
   UseGuards,
@@ -11,6 +12,7 @@ import {
   Headers,
   UnauthorizedException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -24,6 +26,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { GoogleLoginDto } from './dto/google-login.dto';
 import { AuthResponseDto, UserProfileDto } from './dto/auth-response.dto';
+import { CreateStaffDto } from '../users/dto/create-staff.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { Roles } from './decorators/roles.decorator';
@@ -40,8 +43,9 @@ export class AuthController {
 
   @Post('register')
   @ApiOperation({
-    summary: 'Registrar un nuevo usuario (Huésped o Administrador)',
-    description: 'Crea un usuario nuevo con contraseña encriptada (bcrypt) y retorna token JWT inmediato.',
+    summary: 'Registrar un nuevo cliente (Huésped)',
+    description:
+      'Registro público: crea SIEMPRE un usuario GUEST. Las cuentas de personal se crean desde el panel de administración.',
   })
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -58,6 +62,23 @@ export class AuthController {
   })
   async register(@Body() registerDto: RegisterDto): Promise<AuthResponseDto> {
     return await this.authService.register(registerDto);
+  }
+
+  @Post('users')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.HOTEL_ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Crear cuenta de personal (Recepcionista o Administrador) — Solo HOTEL_ADMIN',
+    description:
+      'Flujo oficial para crear cuentas operativas. El registro público (/register) solo crea clientes GUEST.',
+  })
+  @ApiResponse({ status: HttpStatus.CREATED, description: 'Cuenta de personal creada exitosamente' })
+  @ApiResponse({ status: HttpStatus.CONFLICT, description: 'El correo ya se encuentra registrado' })
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Acceso denegado: requiere rol HOTEL_ADMIN' })
+  async createStaff(@Body() staffDto: CreateStaffDto) {
+    return await this.authService.createStaff(staffDto);
   }
 
   @Post('login')
@@ -197,5 +218,23 @@ export class AuthController {
   })
   async deleteUser(@Param('id') id: string) {
     return await this.usersService.deleteById(id);
+  }
+
+  @Patch('users/:id/status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.HOTEL_ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Activar / desactivar una cuenta (Solo HOTEL_ADMIN)',
+    description: 'Desactiva el acceso (bloqueo de login) sin eliminar el historial del usuario.',
+  })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Estado de la cuenta actualizado' })
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Acceso denegado: requiere rol HOTEL_ADMIN' })
+  async setUserStatus(@Param('id') id: string, @Body() body: { isActive: boolean }) {
+    const isActive = body?.isActive === true;
+    if (typeof body?.isActive !== 'boolean') {
+      throw new BadRequestException('El campo isActive debe ser un booleano');
+    }
+    return await this.usersService.setStatus(id, isActive);
   }
 }

@@ -5,12 +5,15 @@ import {
   Body,
   Param,
   Query,
+  Headers,
   UseGuards,
   HttpStatus,
   HttpCode,
   UnauthorizedException,
+  ForbiddenException,
   Logger,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { EventPattern, Payload } from '@nestjs/microservices';
 import {
   ApiTags,
@@ -36,7 +39,10 @@ import { Public } from '../common/decorators/public.decorator';
 export class AvailabilityController {
   private readonly logger = new Logger(AvailabilityController.name);
 
-  constructor(private readonly availabilityService: AvailabilityService) {}
+  constructor(
+    private readonly availabilityService: AvailabilityService,
+    private readonly configService: ConfigService,
+  ) {}
 
   // =========================================================================
   // CONSUMIDORES DE EVENTOS ASÍNCRONOS RABBITMQ (AMQP)
@@ -78,7 +84,17 @@ export class AvailabilityController {
 
   @Public()
   @Post('confirm-hold')
-  async confirmHoldDirect(@Body() body: any) {
+  async confirmHoldDirect(
+    @Body() body: any,
+    @Headers('x-internal-token') internalToken: string,
+  ) {
+    // Protección de llamada interna: solo booking-service conoce el JWT_SECRET
+    // compartido y lo envía como x-internal-token. Un externo no autorizado
+    // no puede confirmar holds directamente contra availability.
+    const expected = this.configService.get<string>('JWT_SECRET');
+    if (!internalToken || internalToken !== expected) {
+      throw new ForbiddenException('Llamada interna no autorizada');
+    }
     return await this.availabilityService.handleBookingConfirmed(body);
   }
 
@@ -141,8 +157,11 @@ export class AvailabilityController {
     @Body() releaseDto: ReleaseHoldDto,
     @CurrentUser() user: RequestUser,
   ) {
-    const isAdmin = user?.role === Role.HOTEL_ADMIN;
-    return await this.availabilityService.releaseHold(releaseDto.holdId, user?.id, isAdmin);
+    // RBAC: el personal (RECEPTIONIST / HOTEL_ADMIN) puede liberar cualquier hold
+    // atascado; un cliente solo puede liberar sus propios bloqueos.
+    const isStaff =
+      user?.role === Role.HOTEL_ADMIN || user?.role === Role.RECEPTIONIST;
+    return await this.availabilityService.releaseHold(releaseDto.holdId, user?.id, isStaff);
   }
 
   @Public()

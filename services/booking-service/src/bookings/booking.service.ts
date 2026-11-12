@@ -441,7 +441,11 @@ export class BookingService implements OnModuleInit {
     try {
       await fetch(`${availabilityUrl}/api/availability/confirm-hold`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          // Token de llamada interna compartido entre microservicios (JWT_SECRET)
+          'x-internal-token': this.configService.get<string>('JWT_SECRET') || '',
+        },
         body: JSON.stringify({
           holdId: confirmed.holdId,
           bookingCode: confirmed.bookingCode,

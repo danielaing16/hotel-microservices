@@ -141,19 +141,13 @@
               <input type="email" id="regEmail" class="input-pill" placeholder="tu.correo@ejemplo.com" required>
             </div>
 
-            <div style="display: flex; gap: 0.75rem;">
-              <div class="field-group" style="flex: 1;">
-                <label class="input-label" for="regPhone">Teléfono</label>
-                <input type="tel" id="regPhone" class="input-pill" placeholder="+57 300 000 0000">
-              </div>
-              <div class="field-group" style="flex: 1;">
-                <label class="input-label" for="regRole">Tipo de Cuenta</label>
-                <select id="regRole" class="input-pill" style="cursor: pointer;">
-                  <option value="GUEST" style="color: #000;">Huésped / Viajero</option>
-                  <option value="RECEPTIONIST" style="color: #000;">Personal de Recepción</option>
-                  <option value="HOTEL_ADMIN" style="color: #000;">Administración Hotelera</option>
-                </select>
-              </div>
+            <div class="field-group">
+              <label class="input-label" for="regPhone">Teléfono</label>
+              <input type="tel" id="regPhone" class="input-pill" placeholder="+57 300 000 0000">
+            </div>
+
+            <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 0.6rem 0.9rem; font-size: 0.75rem; color: #7dd3fc;">
+              ℹ️ El registro público crea cuentas de <strong>Cliente (Huésped)</strong>. Las cuentas de Recepción y Administración las crea el Administrador desde su panel.
             </div>
 
             <div class="field-group">
@@ -245,6 +239,21 @@
             <button type="button" class="dash-nav-item" data-tab="reception">
               <span class="dash-nav-icon">🛎️</span>
               <span class="dash-nav-label">Recepción & Check-In</span>
+            </button>
+          </div>
+
+          <!-- SECCIÓN EXCLUSIVA DEL ADMINISTRADOR -->
+          <div id="adminSidebarGroup" style="display: none;">
+            <div class="sidebar-group-title">ADMINISTRACIÓN GENERAL</div>
+
+            <button type="button" class="dash-nav-item" data-tab="usuarios">
+              <span class="dash-nav-icon">👥</span>
+              <span class="dash-nav-label">Gestión de Cuentas</span>
+            </button>
+
+            <button type="button" class="dash-nav-item" data-tab="pagos">
+              <span class="dash-nav-icon">💳</span>
+              <span class="dash-nav-label">Pagos & Reembolsos</span>
             </button>
           </div>
         </nav>
@@ -467,6 +476,113 @@
               </thead>
               <tbody id="receptionTableBody">
                 <tr><td colspan="7" style="text-align: center; color: var(--text-dim); padding: 2rem;">Cargando lista de huéspedes...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ===============================================================
+             PESTAÑA 6: GESTIÓN DE CUENTAS (SOLO ADMINISTRADOR)
+             =============================================================== -->
+        <section class="dash-tab-content" id="view-usuarios">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <h3 style="font-family: var(--font-heading); font-size: 1.2rem; font-weight: 800; color: #fff;">
+                👥 Gestión de Cuentas & Personal
+              </h3>
+              <p style="font-size: 0.85rem; color: var(--text-dim);">
+                Crea cuentas de recepción/administración, activa o desactiva accesos y administra huéspedes.
+              </p>
+            </div>
+            <button id="refreshUsersBtn" class="btn-hotel-secondary">
+              <span>🔄</span> Actualizar Listado
+            </button>
+          </div>
+
+          <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
+            <h4 style="font-size: 0.9rem; font-weight: 800; color: #38bdf8; margin-bottom: 1rem;">🛠️ Crear Cuenta de Personal</h4>
+            <form id="createStaffForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; align-items: end;">
+              <div class="field-group">
+                <label class="input-label" for="staffFirstName">Nombre</label>
+                <input type="text" id="staffFirstName" class="input-pill" placeholder="Laura" required>
+              </div>
+              <div class="field-group">
+                <label class="input-label" for="staffLastName">Apellido</label>
+                <input type="text" id="staffLastName" class="input-pill" placeholder="Gómez" required>
+              </div>
+              <div class="field-group">
+                <label class="input-label" for="staffEmail">Correo Corporativo</label>
+                <input type="email" id="staffEmail" class="input-pill" placeholder="recepcion@travelresorts.com" required>
+              </div>
+              <div class="field-group">
+                <label class="input-label" for="staffPassword">Contraseña Temporal</label>
+                <input type="text" id="staffPassword" class="input-pill" placeholder="Mínimo 6 caracteres" minlength="6" required>
+              </div>
+              <div class="field-group">
+                <label class="input-label" for="staffRole">Rol Operativo</label>
+                <select id="staffRole" class="input-pill" style="cursor: pointer;">
+                  <option value="RECEPTIONIST" style="color: #000;">Personal de Recepción</option>
+                  <option value="HOTEL_ADMIN" style="color: #000;">Administración Hotelera</option>
+                </select>
+              </div>
+              <button type="submit" id="submitStaffBtn" class="btn-blue" style="height: 44px;">
+                <span>CREAR CUENTA</span>
+              </button>
+            </form>
+          </div>
+
+          <div class="reception-table-wrap">
+            <table class="reception-table">
+              <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Correo</th>
+                  <th>Rol</th>
+                  <th>Estado</th>
+                  <th>Registro</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody">
+                <tr><td colspan="6" style="text-align: center; color: var(--text-dim); padding: 2rem;">Cargando usuarios...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ===============================================================
+             PESTAÑA 7: PAGOS & REEMBOLSOS (SOLO ADMINISTRADOR)
+             =============================================================== -->
+        <section class="dash-tab-content" id="view-pagos">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <h3 style="font-family: var(--font-heading); font-size: 1.2rem; font-weight: 800; color: #fff;">
+                💳 Conciliación de Pagos & Reembolsos
+              </h3>
+              <p style="font-size: 0.85rem; color: var(--text-dim);">
+                Visión financiera completa de las transacciones de la plataforma y gestión de reembolsos.
+              </p>
+            </div>
+            <button id="refreshPaymentsBtn" class="btn-hotel-secondary">
+              <span>🔄</span> Actualizar Transacciones
+            </button>
+          </div>
+
+          <div class="reception-table-wrap">
+            <table class="reception-table">
+              <thead>
+                <tr>
+                  <th>Referencia</th>
+                  <th>Reserva</th>
+                  <th>Método</th>
+                  <th>Monto</th>
+                  <th>Estado</th>
+                  <th>Fecha</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="paymentsTableBody">
+                <tr><td colspan="7" style="text-align: center; color: var(--text-dim); padding: 2rem;">Cargando transacciones...</td></tr>
               </tbody>
             </table>
           </div>

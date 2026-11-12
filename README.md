@@ -471,6 +471,42 @@ sequenceDiagram
 
 ---
 
+## 👥 Roles y Permisos (RBAC)
+
+El sistema maneja exactamente **3 roles**, definidos en el enum canónico de `auth-service` y replicado fielmente en cada microservicio:
+
+| Rol | Valor JWT | Descripción |
+|---|---|---|
+| Cliente / Huésped | `GUEST` | Viajero que explora, reserva y paga |
+| Recepcionista | `RECEPTIONIST` | Personal operativo de recepción |
+| Administrador | `HOTEL_ADMIN` | Gestión general de la plataforma |
+
+> ⚠️ El registro público (`POST /api/auth/register`) crea **siempre** cuentas `GUEST`. Las cuentas de personal se crean desde el panel del Administrador (`POST /api/auth/users`, admin-only).
+
+### Matriz de Permisos
+
+| Acción | Cliente | Recepcionista | Administrador |
+|---|:---:|:---:|:---:|
+| Catálogo de hoteles, búsqueda de disponibilidad, calendarios | ✅ | ✅ | ✅ |
+| Retener habitación (hold), reservar, pagar, ver sus reservas, cancelar las suyas | ✅ | ✅ | ✅ |
+| Estado del sistema de notificaciones (`/status`) | ✅ | ✅ | ✅ |
+| Listado general de reservas, Check-In, Check-Out | ❌ | ✅ | ✅ |
+| Cambiar estado operativo de habitación (limpieza / mantenimiento) | ❌ | ✅ | ✅ |
+| Liberar holds atascados de terceros | ❌ | ✅ | ✅ |
+| Crear / editar / eliminar hoteles | ❌ | ❌ | ✅ |
+| Crear / eliminar habitaciones | ❌ | ❌ | ✅ |
+| Bloquear / desbloquear fechas de una habitación | ❌ | ❌ | ✅ |
+| Conciliación de pagos y reembolsos | ❌ | ❌ | ✅ |
+| Listar usuarios, crear cuentas de personal, activar/desactivar, eliminar | ❌ | ❌ | ✅ |
+| Historial de notificaciones, vouchers de prueba, triggers de eventos | ❌ | ❌ | ✅ |
+
+### Propagación de Identidad (Zero-Trust en el Gateway)
+
+1. El cliente envía su JWT al Gateway.
+2. El Gateway **elimina** cualquier cabecera `x-user-*` que venga del cliente (anti-spoofing), verifica la firma del JWT con la secret compartida e **inyecta** `x-user-id`, `x-user-email` y `x-user-role`.
+3. Cada microservicio valida el rol con su `RolesGuard` (decoradores `@Roles()`).
+4. Las llamadas servicio-a-servicio sin contexto de usuario (p. ej. `confirm-hold` desde booking-service) se autentican con un token interno derivado de `JWT_SECRET` (cabecera `x-internal-token`).
+
 ## 🛡 Estrategia Técnica Anti-Overbooking
 
 El desafío más crítico en un sistema de reservas es garantizar que **dos personas no puedan reservar la misma habitación en fechas solapadas simultáneamente**.

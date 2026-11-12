@@ -4,11 +4,12 @@ import {
   Post,
   Body,
   Res,
+  UseGuards,
   HttpStatus,
   Logger,
 } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
-import { ApiTags, ApiOperation, ApiResponse, ApiProduces } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiProduces, ApiBearerAuth } from '@nestjs/swagger';
 import { Response } from 'express';
 import { NotificationsService } from './notifications.service';
 import { UserRegisteredEventDto } from './dto/user-registered-event.dto';
@@ -19,6 +20,9 @@ import { RefundEventDto } from './dto/refund-event.dto';
 import { DispatchTestEventDto } from './dto/test-event.dto';
 import { NotificationLogEntryDto } from './dto/notification-history.dto';
 import { NotificationType } from '../common/enums/notification-type.enum';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
+import { Role } from '../common/enums/role.enum';
 
 @ApiTags('Microservicio de Notificaciones & Vouchers PDF (Worker RabbitMQ)')
 @Controller('api/notifications')
@@ -112,9 +116,12 @@ export class NotificationsController {
   }
 
   @Get('history')
+  @UseGuards(RolesGuard)
+  @Roles(Role.HOTEL_ADMIN)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Historial de Notificaciones Procesadas',
-    description: 'Retorna las últimas 50 notificaciones despachadas con sus enlaces de previsualización Ethereal.',
+    summary: 'Historial de Notificaciones Procesadas (Solo HOTEL_ADMIN)',
+    description: 'Retorna las últimas 50 notificaciones despachadas. Exclusivo del administrador.',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -126,8 +133,11 @@ export class NotificationsController {
   }
 
   @Get('voucher/sample')
+  @UseGuards(RolesGuard)
+  @Roles(Role.HOTEL_ADMIN)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Descargar o Previsualizar Voucher PDF de Muestra',
+    summary: 'Descargar o Previsualizar Voucher PDF de Muestra (Solo HOTEL_ADMIN)',
     description: 'Genera en tiempo real un Voucher de Confirmación elegante en PDF con código QR y lo transmite.',
   })
   @ApiProduces('application/pdf')
@@ -148,8 +158,11 @@ export class NotificationsController {
   }
 
   @Post('voucher/preview')
+  @UseGuards(RolesGuard)
+  @Roles(Role.HOTEL_ADMIN)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Generar Voucher PDF Personalizado',
+    summary: 'Generar Voucher PDF Personalizado (Solo HOTEL_ADMIN)',
     description: 'Recibe datos de una reserva y devuelve directamente el PDF generado con QR para verificación.',
   })
   @ApiProduces('application/pdf')
@@ -166,18 +179,24 @@ export class NotificationsController {
   }
 
   @Post('send-welcome')
+  @UseGuards(RolesGuard)
+  @Roles(Role.HOTEL_ADMIN)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Probar Correo de Bienvenida (REST Trigger)',
-    description: 'Despacha un correo de bienvenida tras registro simulado.',
+    summary: 'Probar Correo de Bienvenida (Solo HOTEL_ADMIN)',
+    description: 'Despacha un correo de bienvenida tras registro simulado. Uso administrativo.',
   })
   async sendWelcome(@Body() dto: UserRegisteredEventDto) {
     return await this.notificationsService.handleUserRegistered(dto);
   }
 
   @Post('send-booking-confirmation')
+  @UseGuards(RolesGuard)
+  @Roles(Role.HOTEL_ADMIN)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Probar Confirmación de Reserva con Voucher PDF (REST Trigger)',
-    description: 'Genera el PDF con QR y despacha el correo transaccional de confirmación.',
+    summary: 'Probar Confirmación de Reserva con Voucher PDF (Solo HOTEL_ADMIN)',
+    description: 'Genera el PDF con QR y despacha el correo transaccional de confirmación. Uso administrativo.',
   })
   async sendBookingConfirmation(@Body() dto: BookingConfirmedEventDto) {
     const result = await this.notificationsService.handleBookingConfirmed(dto);
@@ -189,36 +208,48 @@ export class NotificationsController {
   }
 
   @Post('send-payment-failed')
+  @UseGuards(RolesGuard)
+  @Roles(Role.HOTEL_ADMIN)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Probar Notificación de Pago Fallido (REST Trigger)',
-    description: 'Despacha la alerta de fallo y recordatorio de expiración de reserva.',
+    summary: 'Probar Notificación de Pago Fallido (Solo HOTEL_ADMIN)',
+    description: 'Despacha la alerta de fallo y recordatorio de expiración de reserva. Uso administrativo.',
   })
   async sendPaymentFailed(@Body() dto: PaymentFailedEventDto) {
     return await this.notificationsService.handlePaymentFailed(dto);
   }
 
   @Post('send-checkin-reminder')
+  @UseGuards(RolesGuard)
+  @Roles(Role.HOTEL_ADMIN)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Probar Recordatorio de Check-in 24h (REST Trigger)',
-    description: 'Despacha el correo de recordatorio pre-llegada.',
+    summary: 'Probar Recordatorio de Check-in 24h (Solo HOTEL_ADMIN)',
+    description: 'Despacha el correo de recordatorio pre-llegada. Uso administrativo.',
   })
   async sendCheckinReminder(@Body() dto: CheckinReminderEventDto) {
     return await this.notificationsService.handleCheckinReminder(dto);
   }
 
   @Post('send-refund-receipt')
+  @UseGuards(RolesGuard)
+  @Roles(Role.HOTEL_ADMIN)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Probar Comprobante de Reembolso (REST Trigger)',
-    description: 'Despacha el comprobante oficial de reintegro financiero tras cancelación.',
+    summary: 'Probar Comprobante de Reembolso (Solo HOTEL_ADMIN)',
+    description: 'Despacha el comprobante oficial de reintegro financiero tras cancelación. Uso administrativo.',
   })
   async sendRefundReceipt(@Body() dto: RefundEventDto) {
     return await this.notificationsService.handleRefund(dto);
   }
 
   @Post('test-event')
+  @UseGuards(RolesGuard)
+  @Roles(Role.HOTEL_ADMIN)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Disparador Universal de Eventos de Prueba',
-    description: 'Permite simular cualquier evento del broker RabbitMQ enviando su tipo y payload.',
+    summary: 'Disparador Universal de Eventos de Prueba (Solo HOTEL_ADMIN)',
+    description: 'Permite simular cualquier evento del broker RabbitMQ. Uso exclusivo de administración.',
   })
   async dispatchTestEvent(@Body() dto: DispatchTestEventDto) {
     switch (dto.type) {

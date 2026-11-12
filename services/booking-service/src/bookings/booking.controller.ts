@@ -1,4 +1,4 @@
-import {
+﻿import {
   Controller,
   Get,
   Post,
@@ -38,18 +38,18 @@ export class BookingController {
   constructor(private readonly bookingService: BookingService) {}
 
   // =========================================================================
-  // CONSUMIDORES DE EVENTOS ASÍNCRONOS (RABBITMQ EDA)
+  // CONSUMIDORES DE EVENTOS ASÃNCRONOS (RABBITMQ EDA)
   // =========================================================================
 
   @EventPattern('payment.succeeded')
   async handlePaymentSucceededRmq(@Payload() data: any) {
-    this.logger.log(`📥 [RabbitMQ] Evento 'payment.succeeded' recibido en Booking Service`);
+    this.logger.log(`ðŸ“¥ [RabbitMQ] Evento 'payment.succeeded' recibido en Booking Service`);
     return await this.bookingService.handlePaymentSucceeded(data);
   }
 
   @EventPattern('payment.failed')
   async handlePaymentFailedRmq(@Payload() data: any) {
-    this.logger.log(`📥 [RabbitMQ] Evento 'payment.failed' recibido en Booking Service`);
+    this.logger.log(`ðŸ“¥ [RabbitMQ] Evento 'payment.failed' recibido en Booking Service`);
     return await this.bookingService.handlePaymentFailed(data);
   }
 
@@ -60,7 +60,7 @@ export class BookingController {
   @Post()
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Crear una nueva reserva de hotel (Huésped / Cliente)',
+    summary: 'Crear una nueva reserva de hotel (HuÃ©sped / Cliente)',
     description:
       'Inicia el ciclo de vida de la reserva, bloquea inventario con Availability Service y emite el evento booking.created para checkout.',
   })
@@ -78,9 +78,9 @@ export class BookingController {
   @Get('my-bookings')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Historial de reservas del usuario en sesión',
+    summary: 'Historial de reservas del usuario en sesiÃ³n',
     description:
-      'Retorna todas las reservas realizadas por el usuario actualmente autenticado ordenadas cronológicamente.',
+      'Retorna todas las reservas realizadas por el usuario actualmente autenticado ordenadas cronolÃ³gicamente.',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -91,12 +91,12 @@ export class BookingController {
   }
 
   @Get()
-  @Roles(Role.HOTEL_ADMIN, Role.ADMIN, Role.HOTEL_MANAGER, Role.RECEPTIONIST)
+  @Roles(Role.HOTEL_ADMIN, Role.RECEPTIONIST)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Listado administrativo de reservas (Recepción y Administración)',
+    summary: 'Listado administrativo de reservas (RecepciÃ³n y AdministraciÃ³n)',
     description:
-      'Consulta paginada con filtros por hotel, estado (CONFIRMED, CHECKED_IN) o búsqueda por código.',
+      'Consulta paginada con filtros por hotel, estado (CONFIRMED, CHECKED_IN) o bÃºsqueda por cÃ³digo.',
   })
   async findAll(@Query() query: QueryBookingsDto) {
     return await this.bookingService.findAll(query);
@@ -105,7 +105,7 @@ export class BookingController {
   @Get(':idOrCode')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Detalle de reserva por ID o código de confirmación',
+    summary: 'Detalle de reserva por ID o cÃ³digo de confirmaciÃ³n',
     description:
       'Obtiene el registro detallado de la reserva validando pertenencia o privilegios de personal del hotel.',
   })
@@ -119,7 +119,7 @@ export class BookingController {
   @Patch(':idOrCode/cancel')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Cancelar una reserva (Compensación Saga)',
+    summary: 'Cancelar una reserva (CompensaciÃ³n Saga)',
     description:
       'Cambia el estado a CANCELLED, libera las fechas bloqueadas en Availability Service y emite booking.cancelled.',
   })
@@ -132,12 +132,12 @@ export class BookingController {
   }
 
   @Patch(':idOrCode/checkin')
-  @Roles(Role.RECEPTIONIST, Role.HOTEL_ADMIN, Role.ADMIN, Role.HOTEL_MANAGER)
+  @Roles(Role.RECEPTIONIST, Role.HOTEL_ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Registrar Check-In físico del huésped en recepción',
+    summary: 'Registrar Check-In fÃ­sico del huÃ©sped en recepciÃ³n',
     description:
-      'Permite al recepcionista verificar al huésped y marcar la reserva como CHECKED_IN.',
+      'Permite al recepcionista verificar al huÃ©sped y marcar la reserva como CHECKED_IN.',
   })
   async checkIn(
     @Param('idOrCode') idOrCode: string,
@@ -147,11 +147,11 @@ export class BookingController {
   }
 
   @Patch(':idOrCode/checkout')
-  @Roles(Role.RECEPTIONIST, Role.HOTEL_ADMIN, Role.ADMIN, Role.HOTEL_MANAGER)
+  @Roles(Role.RECEPTIONIST, Role.HOTEL_ADMIN)
   @ApiOperation({
     summary: 'Registrar Check-Out y finalizar estancia',
     description:
-      'Marca la estancia como COMPLETED para liberar habitación a limpieza y habilitar reseñas.',
+      'Marca la estancia como COMPLETED para liberar habitaciÃ³n a limpieza y habilitar reseÃ±as.',
   })
   async checkOut(
     @Param('idOrCode') idOrCode: string,
@@ -161,14 +161,14 @@ export class BookingController {
   }
 
   @Post('seed')
-  @Roles(Role.HOTEL_ADMIN, Role.ADMIN)
+  @Roles(Role.HOTEL_ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Sembrar datos de demostración de reservas (Solo Administrador)',
+    summary: 'Sembrar datos de demostraciÃ³n de reservas (Solo Administrador)',
   })
   async seed() {
     await this.bookingService.seed();
-    return { message: 'Semilla de reservas ejecutada con éxito' };
+    return { message: 'Semilla de reservas ejecutada con Ã©xito' };
   }
 }
 

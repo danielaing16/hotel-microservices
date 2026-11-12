@@ -318,6 +318,20 @@ class HotelApiClient {
     });
   }
 
+  async createStaff(staffData) {
+    return await this.request('/api/auth/users', {
+      method: 'POST',
+      body: JSON.stringify(staffData),
+    });
+  }
+
+  async setUserStatus(id, isActive) {
+    return await this.request(`/api/auth/users/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isActive }),
+    });
+  }
+
   // =========================================================================
   // Availability Endpoints (vía Gateway: /api/availability/*)
   // =========================================================================
@@ -437,6 +451,14 @@ class HotelApiClient {
       method: 'POST',
       body: JSON.stringify({ reason }),
     });
+  }
+
+  async getAllPayments(params = {}) {
+    const qs = new URLSearchParams();
+    if (params.status) qs.append('status', params.status);
+    if (params.search) qs.append('search', params.search);
+    if (params.limit) qs.append('limit', params.limit);
+    return await this.request(`/api/payments?${qs.toString()}`, { method: 'GET' });
   }
 
   // Health Checks

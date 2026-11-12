@@ -82,6 +82,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnReceptionRefresh = document.getElementById('btnReceptionRefresh');
   const receptionTableBody = document.getElementById('receptionTableBody');
 
+  // Tab: Gestión de Cuentas (Solo Admin)
+  const adminSidebarGroup = document.getElementById('adminSidebarGroup');
+  const usersTableBody = document.getElementById('usersTableBody');
+  const createStaffForm = document.getElementById('createStaffForm');
+  const submitStaffBtn = document.getElementById('submitStaffBtn');
+  const refreshUsersBtn = document.getElementById('refreshUsersBtn');
+
+  // Tab: Pagos & Reembolsos (Solo Admin)
+  const paymentsTableBody = document.getElementById('paymentsTableBody');
+  const refreshPaymentsBtn = document.getElementById('refreshPaymentsBtn');
+
   // Modales
   const hotelDetailModal = document.getElementById('hotelDetailModal');
   const closeDetailModalBtn = document.getElementById('closeDetailModalBtn');
@@ -173,6 +184,14 @@ document.addEventListener('DOMContentLoaded', () => {
       title: 'Portal de Recepción & Fast Check-In',
       desc: 'Control operativo de llegadas de huéspedes, verificación de reservas y registro de Check-In/Check-Out.',
     },
+    usuarios: {
+      title: 'Gestión de Cuentas & Personal',
+      desc: 'Creación de cuentas de personal, activación/desactivación de accesos y administración de huéspedes.',
+    },
+    pagos: {
+      title: 'Conciliación de Pagos & Reembolsos',
+      desc: 'Visión financiera global de las transacciones y gestión oficial de reembolsos.',
+    },
   };
 
   const ROOM_TYPE_NAMES = {
@@ -250,6 +269,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (staffSidebarGroup) {
         staffSidebarGroup.style.display = isStaff ? 'block' : 'none';
       }
+      // 1.b Gestión de Cuentas y Pagos: Exclusivo del Administrador.
+      if (adminSidebarGroup) {
+        adminSidebarGroup.style.display = isAdmin ? 'block' : 'none';
+      }
       // 2. Registro de Hoteles: Exclusivo de Administradores.
       if (openCreateHotelBtn) {
         openCreateHotelBtn.style.display = isAdmin ? 'inline-flex' : 'none';
@@ -280,6 +303,12 @@ document.addEventListener('DOMContentLoaded', () => {
       tabId = 'hotels';
     }
 
+    // Protección de ruta: Solo el Administrador gestiona cuentas y pagos
+    if ((tabId === 'usuarios' || tabId === 'pagos') && role !== 'HOTEL_ADMIN') {
+      showToast('Acceso Denegado: esta sección es exclusiva del Administrador General', 'warning');
+      tabId = 'hotels';
+    }
+
     sidebarNavItems.forEach(item => {
       item.classList.toggle('active', item.getAttribute('data-tab') === tabId);
     });
@@ -303,6 +332,10 @@ document.addEventListener('DOMContentLoaded', () => {
       loadMyBookings();
     } else if (tabId === 'reception') {
       loadReceptionBookings();
+    } else if (tabId === 'usuarios') {
+      loadUsers();
+    } else if (tabId === 'pagos') {
+      loadPayments();
     }
   }
 
@@ -418,14 +451,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const lastName = document.getElementById('regLastName').value.trim();
     const email = document.getElementById('regEmail').value.trim();
     const phone = document.getElementById('regPhone').value.trim();
-    const role = document.getElementById('regRole').value;
     const password = document.getElementById('regPassword').value;
 
     submitRegBtn.disabled = true;
     submitRegBtn.innerHTML = '<span>Creando cuenta segura...</span>';
 
     try {
-      await api.register({ firstName, lastName, email, phone, role, password }, false);
+      await api.register({ firstName, lastName, email, phone, password }, false);
       showToast(`¡Cuenta creada con éxito! Hemos enviado una confirmación a ${email}. Inicia sesión ahora.`, 'success');
 
       registerForm.reset();
@@ -1516,6 +1548,242 @@ document.addEventListener('DOMContentLoaded', () => {
     if (receptionSearchInput) receptionSearchInput.value = '';
     loadReceptionBookings();
     showToast('Listado de llegadas actualizado', 'info');
+  });
+
+  // --------------------------------------------------------------------------
+  // 15. TAB: GESTIÓN DE CUENTAS & PERSONAL (EXCLUSIVO HOTEL_ADMIN)
+  // --------------------------------------------------------------------------
+  const ROLE_LABELS = {
+    GUEST: { label: 'Cliente / Huésped', color: '#7dd3fc', bg: 'rgba(125, 211, 252, 0.15)' },
+    RECEPTIONIST: { label: 'Recepcionista', color: '#a78bfa', bg: 'rgba(167, 139, 250, 0.15)' },
+    HOTEL_ADMIN: { label: 'Administrador', color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.15)' },
+  };
+
+  async function loadUsers() {
+    if (!usersTableBody) return;
+
+    usersTableBody.innerHTML = `
+      <tr><td colspan="6" style="text-align: center; color: var(--text-dim); padding: 2rem;">Consultando cuentas registradas...</td></tr>
+    `;
+
+    try {
+      const users = await api.getAllUsers();
+      renderUsersTable(Array.isArray(users) ? users : (users.data || []));
+    } catch (err) {
+      usersTableBody.innerHTML = `
+        <tr><td colspan="6" style="text-align: center; color: #f87171; padding: 2rem;">Error cargando usuarios: ${err.message}</td></tr>
+      `;
+    }
+  }
+
+  function renderUsersTable(users = []) {
+    if (!usersTableBody) return;
+
+    if (users.length === 0) {
+      usersTableBody.innerHTML = `
+        <tr><td colspan="6" style="text-align: center; color: var(--text-dim); padding: 2rem;">No hay cuentas registradas.</td></tr>
+      `;
+      return;
+    }
+
+    usersTableBody.innerHTML = users.map(u => {
+      const rl = ROLE_LABELS[u.role] || { label: u.role, color: '#fff', bg: 'rgba(255,255,255,0.1)' };
+      const activeBadge = u.isActive
+        ? `<span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: rgba(52, 211, 153, 0.15); color: #34d399; font-weight: 700;">Activa</span>`
+        : `<span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: rgba(248, 113, 113, 0.15); color: #f87171; font-weight: 700;">Desactivada</span>`;
+
+      let actions = '';
+      if (u.role !== 'HOTEL_ADMIN') {
+        actions += `
+          <button class="btn-user-toggle" data-id="${u.id}" data-active="${u.isActive}"
+            style="padding: 4px 10px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; font-weight: 700;
+              background: rgba(251, 191, 36, 0.15); border: 1px solid #fbbf24; color: #fbbf24;">
+            ${u.isActive ? '🔒 Desactivar' : '🔓 Activar'}
+          </button>
+        `;
+      }
+      if (u.role === 'GUEST') {
+        actions += `
+          <button class="btn-user-delete" data-id="${u.id}" data-email="${u.email}"
+            style="padding: 4px 10px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; font-weight: 700;
+              background: rgba(248, 113, 113, 0.15); border: 1px solid #f87171; color: #f87171;">
+            🗑️ Eliminar
+          </button>
+        `;
+      }
+
+      return `
+        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+          <td style="padding: 0.75rem;">
+            <div style="font-weight: 600; color: #fff;">${u.firstName} ${u.lastName}</div>
+            <div style="font-size: 0.72rem; color: var(--text-dim);">ID: ${u.id?.substring(0, 8)}…</div>
+          </td>
+          <td style="padding: 0.75rem; font-size: 0.82rem; color: #cbd5e1;">${u.email}</td>
+          <td style="padding: 0.75rem;">
+            <span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: ${rl.bg}; color: ${rl.color}; font-weight: 700; border: 1px solid ${rl.color}44;">
+              ${rl.label}
+            </span>
+          </td>
+          <td style="padding: 0.75rem;">${activeBadge}</td>
+          <td style="padding: 0.75rem; font-size: 0.75rem; color: var(--text-dim);">${u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—'}</td>
+          <td style="padding: 0.75rem;">
+            <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">${actions || '<span style="font-size: 0.72rem; color: var(--text-dim);">Cuenta protegida</span>'}</div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    document.querySelectorAll('.btn-user-toggle').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        const isActive = btn.getAttribute('data-active') === 'true';
+        try {
+          await api.setUserStatus(id, !isActive);
+          showToast(`Cuenta ${isActive ? 'desactivada' : 'activada'} correctamente`, 'success');
+          loadUsers();
+        } catch (err) {
+          showToast(`Error: ${err.message}`, 'error');
+        }
+      });
+    });
+
+    document.querySelectorAll('.btn-user-delete').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        const email = btn.getAttribute('data-email');
+        if (!confirm(`¿Eliminar definitivamente la cuenta ${email}? Esta acción libera el correo para futuros registros.`)) return;
+        try {
+          await api.deleteUser(id);
+          showToast(`Cuenta ${email} eliminada`, 'success');
+          loadUsers();
+        } catch (err) {
+          showToast(`Error: ${err.message}`, 'error');
+        }
+      });
+    });
+  }
+
+  createStaffForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const staffData = {
+      firstName: document.getElementById('staffFirstName').value.trim(),
+      lastName: document.getElementById('staffLastName').value.trim(),
+      email: document.getElementById('staffEmail').value.trim(),
+      password: document.getElementById('staffPassword').value,
+      role: document.getElementById('staffRole').value,
+    };
+
+    if (submitStaffBtn) submitStaffBtn.disabled = true;
+    if (submitStaffBtn) submitStaffBtn.innerHTML = '<span>Creando cuenta...</span>';
+
+    try {
+      const res = await api.createStaff(staffData);
+      showToast(`✅ Cuenta ${res.user?.role} creada para ${res.user?.email}`, 'success');
+      createStaffForm.reset();
+      loadUsers();
+    } catch (err) {
+      showToast(`Error: ${err.message}`, 'error');
+    } finally {
+      if (submitStaffBtn) {
+        submitStaffBtn.disabled = false;
+        submitStaffBtn.innerHTML = '<span>CREAR CUENTA</span>';
+      }
+    }
+  });
+
+  refreshUsersBtn?.addEventListener('click', () => {
+    loadUsers();
+    showToast('Listado de cuentas actualizado', 'info');
+  });
+
+  // --------------------------------------------------------------------------
+  // 16. TAB: PAGOS & REEMBOLSOS (EXCLUSIVO HOTEL_ADMIN)
+  // --------------------------------------------------------------------------
+  const PAYMENT_STATUS_MAP = {
+    COMPLETED: { label: 'Completado', color: '#34d399', bg: 'rgba(52, 211, 153, 0.15)' },
+    PENDING: { label: 'Pendiente', color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.15)' },
+    FAILED: { label: 'Fallido', color: '#f87171', bg: 'rgba(248, 113, 113, 0.15)' },
+    REFUNDED: { label: 'Reembolsado', color: '#a78bfa', bg: 'rgba(167, 139, 250, 0.15)' },
+  };
+
+  async function loadPayments() {
+    if (!paymentsTableBody) return;
+
+    paymentsTableBody.innerHTML = `
+      <tr><td colspan="7" style="text-align: center; color: var(--text-dim); padding: 2rem;">Consultando transacciones...</td></tr>
+    `;
+
+    try {
+      const res = await api.getAllPayments({ limit: 100 });
+      renderPaymentsTable(res.data || []);
+    } catch (err) {
+      paymentsTableBody.innerHTML = `
+        <tr><td colspan="7" style="text-align: center; color: #f87171; padding: 2rem;">Error cargando pagos: ${err.message}</td></tr>
+      `;
+    }
+  }
+
+  function renderPaymentsTable(payments = []) {
+    if (!paymentsTableBody) return;
+
+    if (payments.length === 0) {
+      paymentsTableBody.innerHTML = `
+        <tr><td colspan="7" style="text-align: center; color: var(--text-dim); padding: 2rem;">No hay transacciones registradas.</td></tr>
+      `;
+      return;
+    }
+
+    paymentsTableBody.innerHTML = payments.map(p => {
+      const st = PAYMENT_STATUS_MAP[p.status] || { label: p.status, color: '#fff', bg: 'rgba(255,255,255,0.1)' };
+      const canRefund = p.status === 'COMPLETED';
+
+      return `
+        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+          <td style="padding: 0.75rem; font-weight: 800; color: #38bdf8;">${p.paymentReference || p.reference || p.id?.substring(0, 8)}</td>
+          <td style="padding: 0.75rem; font-size: 0.8rem; color: #cbd5e1;">${p.bookingCode || p.bookingId || '—'}</td>
+          <td style="padding: 0.75rem; font-size: 0.8rem; color: #cbd5e1;">${p.method || p.paymentMethod || '—'}</td>
+          <td style="padding: 0.75rem; font-weight: 700; color: #34d399;">
+            $${Number(p.amount || p.totalAmount || 0).toFixed(0)} <span style="font-size: 0.7rem; color: var(--text-dim); font-weight: 400;">USD</span>
+          </td>
+          <td style="padding: 0.75rem;">
+            <span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: ${st.bg}; color: ${st.color}; font-weight: 700; border: 1px solid ${st.color}44;">
+              ${st.label}
+            </span>
+          </td>
+          <td style="padding: 0.75rem; font-size: 0.75rem; color: var(--text-dim);">${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '—'}</td>
+          <td style="padding: 0.75rem;">
+            ${canRefund
+              ? `<button class="btn-refund-action" data-ref="${p.paymentReference || p.reference || p.id}"
+                  style="padding: 4px 10px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; font-weight: 700;
+                    background: rgba(167, 139, 250, 0.15); border: 1px solid #a78bfa; color: #a78bfa;">
+                  ↩️ Reembolsar
+                </button>`
+              : '<span style="font-size: 0.72rem; color: var(--text-dim);">—</span>'}
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    document.querySelectorAll('.btn-refund-action').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const ref = btn.getAttribute('data-ref');
+        const reason = prompt(`Motivo del reembolso para la transacción ${ref}:`);
+        if (reason === null) return;
+        try {
+          showToast(`Procesando reembolso de ${ref}...`, 'info');
+          await api.refundPayment(ref, reason);
+          showToast(`✅ Reembolso procesado para ${ref}`, 'success');
+          loadPayments();
+        } catch (err) {
+          showToast(`Error: ${err.message}`, 'error');
+        }
+      });
+    });
+  }
+
+  refreshPaymentsBtn?.addEventListener('click', () => {
+    loadPayments();
+    showToast('Transacciones actualizadas', 'info');
   });
 
   // --------------------------------------------------------------------------

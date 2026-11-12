@@ -60,4 +60,17 @@ export class UsersService {
     await this.userRepository.remove(user);
     return { message: `Usuario ${user.email} eliminado exitosamente` };
   }
+
+  async setStatus(
+    id: string,
+    isActive: boolean,
+  ): Promise<{ message: string; user: Pick<User, 'id' | 'email' | 'isActive'> }> {
+    const user = await this.findById(id);
+    user.isActive = isActive;
+    const saved = await this.userRepository.save(user);
+    return {
+      message: `Cuenta ${saved.email} ${isActive ? 'activada' : 'desactivada'} exitosamente`,
+      user: { id: saved.id, email: saved.email, isActive: saved.isActive },
+    };
+  }
 }
