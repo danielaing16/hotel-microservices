@@ -117,6 +117,7 @@ export class AvailabilityController {
     return await this.availabilityService.searchAvailability(query);
   }
 
+  @Roles(Role.GUEST)
   @Post('hold')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
@@ -157,10 +158,10 @@ export class AvailabilityController {
     @Body() releaseDto: ReleaseHoldDto,
     @CurrentUser() user: RequestUser,
   ) {
-    // RBAC: el personal (RECEPTIONIST / HOTEL_ADMIN) puede liberar cualquier hold
+    // RBAC: el administrador (HOTEL_ADMIN) puede liberar cualquier hold
     // atascado; un cliente solo puede liberar sus propios bloqueos.
     const isStaff =
-      user?.role === Role.HOTEL_ADMIN || user?.role === Role.RECEPTIONIST;
+      user?.role === Role.HOTEL_ADMIN;
     return await this.availabilityService.releaseHold(releaseDto.holdId, user?.id, isStaff);
   }
 

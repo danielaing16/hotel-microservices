@@ -44,7 +44,7 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(registerDto.password, saltRounds);
 
     // RBAC: el registro público SOLO puede crear clientes (GUEST).
-    // La creación de cuentas de personal (RECEPTIONIST / HOTEL_ADMIN) se hace
+    // La creación de cuentas de administrador (HOTEL_ADMIN) se hace
     // desde el panel del administrador (POST /api/auth/users).
     const createdUser = await this.usersService.create({
       ...registerDto,

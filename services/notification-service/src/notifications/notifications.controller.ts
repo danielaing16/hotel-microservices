@@ -119,7 +119,7 @@ export class NotificationsController {
 
   @Get('history')
   @UseGuards(RolesGuard)
-  @Roles(Role.HOTEL_ADMIN, Role.RECEPTIONIST, Role.GUEST)
+  @Roles(Role.HOTEL_ADMIN, Role.GUEST)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Historial de Notificaciones Procesadas',
@@ -146,7 +146,7 @@ export class NotificationsController {
 
   @Get('voucher/sample')
   @UseGuards(RolesGuard)
-  @Roles(Role.HOTEL_ADMIN, Role.RECEPTIONIST, Role.GUEST)
+  @Roles(Role.HOTEL_ADMIN, Role.GUEST)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Descargar o Previsualizar Voucher PDF de Muestra (Usuarios Autenticados)',
@@ -171,7 +171,7 @@ export class NotificationsController {
 
   @Post('voucher/preview')
   @UseGuards(RolesGuard)
-  @Roles(Role.HOTEL_ADMIN, Role.RECEPTIONIST, Role.GUEST)
+  @Roles(Role.HOTEL_ADMIN, Role.GUEST)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Generar Voucher PDF Personalizado (Usuarios Autenticados)',

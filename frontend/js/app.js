@@ -281,28 +281,43 @@ document.addEventListener('DOMContentLoaded', () => {
       if (dashUserEmail) dashUserEmail.textContent = user.email || 'correo@hotel.com';
 
       const role = user.role || 'GUEST';
+      const isAdmin = role === 'HOTEL_ADMIN';
+
       if (dashRoleBadge) {
-        if (role === 'HOTEL_ADMIN') {
+        if (isAdmin) {
           dashRoleBadge.textContent = 'ADMINISTRADOR GENERAL';
           dashRoleBadge.className = 'dash-badge admin';
-          dashRoleBadge.title = 'Rol HOTEL_ADMIN: Control total de Sedes Hoteleras e Inventario de Habitaciones';
-        } else if (role === 'RECEPTIONIST') {
-          dashRoleBadge.textContent = 'PERSONAL DE RECEPCIÓN';
-          dashRoleBadge.className = 'dash-badge receptionist';
-          dashRoleBadge.title = 'Rol RECEPTIONIST: Control de Llegadas, Fast Check-In/Out y Estado de Habitaciones';
+          dashRoleBadge.title = 'Rol HOTEL_ADMIN: Gestión operativa, comercial, de tarifas, control de inventario y supervisión general';
         } else {
           dashRoleBadge.textContent = 'HUÉSPED / VIAJERO';
           dashRoleBadge.className = 'dash-badge guest';
-          dashRoleBadge.title = 'Rol GUEST: Consulta tarifas, reserva y gestiona tus comprobantes oficiales';
+          dashRoleBadge.title = 'Rol GUEST: Búsqueda avanzada, mapas, reservas, cotizaciones y gestión de estancias';
         }
       }
 
       if (dashAvatar) {
-        dashAvatar.textContent = role === 'HOTEL_ADMIN' ? '👑' : (role === 'RECEPTIONIST' ? '🛎️' : '🌴');
+        dashAvatar.textContent = isAdmin ? '👑' : '🌴';
       }
 
-      const isAdmin = role === 'HOTEL_ADMIN';
-      const isStaff = role === 'HOTEL_ADMIN' || role === 'RECEPTIONIST';
+      // Ocultar opciones de cliente al Administrador (Admin no realiza reservas)
+      document.querySelectorAll('.guest-only').forEach(el => {
+        el.style.display = isAdmin ? 'none' : '';
+      });
+
+      // Panel exclusivo del Administrador (Check-In/Out, Cuentas, Pagos)
+      if (adminSidebarGroup) {
+        adminSidebarGroup.style.display = isAdmin ? 'block' : 'none';
+      }
+      if (staffSidebarGroup) {
+        staffSidebarGroup.style.display = 'none';
+      }
+      const staffNotifTriggers = document.getElementById('staffNotifTriggers');
+      if (staffNotifTriggers) {
+        staffNotifTriggers.style.display = isAdmin ? 'block' : 'none';
+      }
+
+      const isAdminClean = isAdmin;
+      const isStaff = role === 'HOTEL_ADMIN';
 
       // 1. Recepción & Check-In: Exclusivo de Personal (Admin y Recepción). Oculto para Huéspedes.
       if (staffSidebarGroup) {
@@ -347,7 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function switchDashboardTab(tabId) {
     const user = api.getCurrentUser();
     const role = user ? (user.role || 'GUEST') : 'GUEST';
-    const isStaff = role === 'HOTEL_ADMIN' || role === 'RECEPTIONIST';
+    const isStaff = role === 'HOTEL_ADMIN';
 
     // Protección de ruta: Solo personal del hotel puede ver Recepción
     if (tabId === 'reception' && !isStaff) {
@@ -469,10 +484,7 @@ document.addEventListener('DOMContentLoaded', () => {
     quickLoginAs('guest@hotel.com', 'guest123', 'Huésped (GUEST)');
   });
 
-  document.getElementById('btnQuickReception')?.addEventListener('click', () => {
-    quickLoginAs('recepcion@hotel.com', 'recepcion123', 'Personal de Recepción (RECEPTIONIST)');
-  });
-
+  
   document.getElementById('btnQuickAdmin')?.addEventListener('click', () => {
     quickLoginAs('admin@hotel.com', 'admin123', 'Administrador General (HOTEL_ADMIN)');
   });
@@ -1622,8 +1634,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --------------------------------------------------------------------------
   const ROLE_LABELS = {
     GUEST: { label: 'Cliente / Huésped', color: '#7dd3fc', bg: 'rgba(125, 211, 252, 0.15)' },
-    RECEPTIONIST: { label: 'Recepcionista', color: '#a78bfa', bg: 'rgba(167, 139, 250, 0.15)' },
-    HOTEL_ADMIN: { label: 'Administrador', color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.15)' },
+        HOTEL_ADMIN: { label: 'Administrador', color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.15)' },
   };
 
   async function loadUsers() {
@@ -1886,7 +1897,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const history = await api.getNotificationHistory();
       const currentUser = api.getCurrentUser();
       const role = currentUser ? (currentUser.role || 'GUEST') : 'GUEST';
-      const isStaff = role === 'HOTEL_ADMIN' || role === 'RECEPTIONIST';
+      const isStaff = role === 'HOTEL_ADMIN';
 
       // Actualizar píldora de estado de SMTP (Gmail / Ethereal)
       api.getNotificationStatus().then(st => {
@@ -1925,7 +1936,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!history || history.length === 0) {
       const user = api.getCurrentUser();
-      const isStaff = user && (user.role === 'HOTEL_ADMIN' || user.role === 'RECEPTIONIST');
+      const isStaff = user && user.role === 'HOTEL_ADMIN';
       notificationsHistoryList.innerHTML = `
         <div class="notif-history-empty">
           ${isStaff
@@ -2165,7 +2176,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const currentUser = api.getCurrentUser();
     const isAdmin = currentUser && currentUser.role === 'HOTEL_ADMIN';
-    const isStaff = currentUser && (currentUser.role === 'HOTEL_ADMIN' || currentUser.role === 'RECEPTIONIST');
+    const isStaff = currentUser && currentUser.role === 'HOTEL_ADMIN';
 
     roomsGrid.innerHTML = rooms.map(r => {
       const img = (Array.isArray(r.images) && r.images[0]) || 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80';
@@ -2179,7 +2190,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       ` : '';
 
-      // Selector de estado operativo: Disponible para HOTEL_ADMIN y RECEPTIONIST (Staff)
+      // Selector de estado operativo: Disponible exclusivamente para HOTEL_ADMIN
       // Para Huéspedes (GUEST): Solo lectura estática de disponibilidad
       const statusControl = isStaff ? `
         <div style="display:flex; align-items:center; gap:0.35rem;">

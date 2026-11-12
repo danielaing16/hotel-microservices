@@ -24,7 +24,7 @@ interface SeedAccount {
  *    y en cada despliegue.
  *  - El administrador inicial se lee de variables de entorno (SEED_ADMIN_*),
  *    nunca de código, para no exponer credenciales reales en el repositorio.
- *  - Las cuentas demo (guest/recepcion/admin @hotel.com) solo se crean si
+ *  - Las cuentas demo (guest/admin @hotel.com) solo se crean si
  *    SEED_DEMO_USERS=true. En producción debe ir en false.
  */
 @Injectable()
@@ -60,7 +60,6 @@ export class UsersSeedService implements OnApplicationBootstrap {
     if (seedDemo) {
       accounts.push(
         { email: 'guest@hotel.com', password: 'guest123', firstName: 'Carlos', lastName: 'Valderrama', phone: '+57 300 000 0001', role: Role.GUEST },
-        { email: 'recepcion@hotel.com', password: 'recepcion123', firstName: 'Laura', lastName: 'Gómez', phone: '+57 300 000 0002', role: Role.RECEPTIONIST },
         { email: 'admin@hotel.com', password: 'admin123', firstName: 'Mauricio', lastName: 'Montoya', phone: '+57 300 000 0003', role: Role.HOTEL_ADMIN },
       );
     }

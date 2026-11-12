@@ -58,6 +58,7 @@ export class BookingController {
   // =========================================================================
 
   @Post()
+  @Roles(Role.GUEST)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Crear una nueva reserva de hotel (HuÃ©sped / Cliente)',
@@ -91,7 +92,7 @@ export class BookingController {
   }
 
   @Get()
-  @Roles(Role.HOTEL_ADMIN, Role.RECEPTIONIST)
+  @Roles(Role.HOTEL_ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Listado administrativo de reservas (RecepciÃ³n y AdministraciÃ³n)',
@@ -132,7 +133,7 @@ export class BookingController {
   }
 
   @Patch(':idOrCode/checkin')
-  @Roles(Role.RECEPTIONIST, Role.HOTEL_ADMIN)
+  @Roles(Role.HOTEL_ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Registrar Check-In fÃ­sico del huÃ©sped en recepciÃ³n',
@@ -147,7 +148,7 @@ export class BookingController {
   }
 
   @Patch(':idOrCode/checkout')
-  @Roles(Role.RECEPTIONIST, Role.HOTEL_ADMIN)
+  @Roles(Role.HOTEL_ADMIN)
   @ApiOperation({
     summary: 'Registrar Check-Out y finalizar estancia',
     description:

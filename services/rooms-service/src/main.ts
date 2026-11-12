@@ -40,7 +40,7 @@ async function bootstrap() {
         bearerFormat: 'JWT',
         name: 'JWT',
         description:
-          'Ingresa tu token JWT con rol HOTEL_ADMIN o RECEPTIONIST obtenido desde el Gateway o Auth Service',
+          'Ingresa tu token JWT con rol HOTEL_ADMIN obtenido desde el Gateway o Auth Service',
         in: 'header',
       },
       'JWT-auth',

@@ -2,9 +2,11 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { runPreBootMigrations } from './pre-boot.migration';
 
 async function bootstrap() {
   const logger = new Logger('AuthServiceBootstrap');
+  await runPreBootMigrations();
   const app = await NestFactory.create(AppModule);
 
   // Habilitar CORS para integración con Frontend y Gateway

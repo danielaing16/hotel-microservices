@@ -58,7 +58,7 @@ export class CreateUserDto {
     description: 'Rol del usuario (por defecto GUEST)',
     required: false,
   })
-  @IsEnum(Role, { message: 'El rol debe ser GUEST, HOTEL_ADMIN o RECEPTIONIST' })
+  @IsEnum(Role, { message: 'El rol debe ser GUEST o HOTEL_ADMIN' })
   @IsOptional()
   role?: Role;
 }

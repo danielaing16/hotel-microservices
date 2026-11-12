@@ -95,15 +95,11 @@
             </div>
             <div style="display: flex; gap: 0.4rem; justify-content: center; flex-wrap: wrap;">
               <button type="button" class="role-pill-btn" id="btnQuickGuest"
-                title="Huésped: Solo puede cotizar, reservar y ver sus propios vouchers">
+                title="Huésped: Busca, reserva, paga y gestiona sus propias estancias">
                 <span>🌴</span> Huésped
               </button>
-              <button type="button" class="role-pill-btn" id="btnQuickReception"
-                title="Recepción: Puede hacer Check-In / Check-Out y cambiar estado de habitaciones">
-                <span>🛎️</span> Recepción
-              </button>
               <button type="button" class="role-pill-btn" id="btnQuickAdmin"
-                title="Administrador: Control total de Sedes Hoteleras e Inventario de Habitaciones">
+                title="Administrador: Gestión de hoteles, habitaciones, tarifas, pagos, check-in/out y usuarios">
                 <span>👑</span> Admin
               </button>
             </div>
@@ -163,8 +159,8 @@
 
             <div
               style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 0.6rem 0.9rem; font-size: 0.75rem; color: #7dd3fc;">
-              ℹ️ El registro público crea cuentas de <strong>Cliente (Huésped)</strong>. Las cuentas de Recepción y
-              Administración las crea el Administrador desde su panel.
+              ℹ️ El registro público crea cuentas de <strong>Huésped</strong>. Las cuentas de
+              Administración las crea un Administrador desde su panel.
             </div>
 
             <div class="field-group">
@@ -235,7 +231,7 @@
             <span class="dash-nav-label">Hoteles & Sedes</span>
           </button>
 
-          <button type="button" class="dash-nav-item" data-tab="availability">
+          <button type="button" class="dash-nav-item guest-only" data-tab="availability">
             <span class="dash-nav-icon">📅</span>
             <span class="dash-nav-label">Buscar Disponibilidad</span>
           </button>
@@ -245,7 +241,7 @@
             <span class="dash-nav-label">Nuestras Habitaciones</span>
           </button>
 
-          <button type="button" class="dash-nav-item" data-tab="my-bookings">
+          <button type="button" class="dash-nav-item guest-only" data-tab="my-bookings">
             <span class="dash-nav-icon">💼</span>
             <span class="dash-nav-label">Mis Reservas</span>
           </button>
@@ -255,19 +251,14 @@
             <span class="dash-nav-label">Notif. & Vouchers</span>
           </button>
 
-          <!-- SECCIÓN EXCLUSIVA DE PERSONAL DEL HOTEL -->
-          <div id="staffSidebarGroup" style="display: none;">
-            <div class="sidebar-group-title">GESTIÓN DE RECEPCIÓN</div>
-
-            <button type="button" class="dash-nav-item" data-tab="reception">
-              <span class="dash-nav-icon">🛎️</span>
-              <span class="dash-nav-label">Recepción & Check-In</span>
-            </button>
-          </div>
-
           <!-- SECCIÓN EXCLUSIVA DEL ADMINISTRADOR -->
           <div id="adminSidebarGroup" style="display: none;">
             <div class="sidebar-group-title">ADMINISTRACIÓN GENERAL</div>
+
+            <button type="button" class="dash-nav-item" data-tab="reception">
+              <span class="dash-nav-icon">🛎️</span>
+              <span class="dash-nav-label">Check-In / Check-Out</span>
+            </button>
 
             <button type="button" class="dash-nav-item" data-tab="usuarios">
               <span class="dash-nav-icon">👥</span>
@@ -478,7 +469,7 @@
         </section>
 
         <!-- ===============================================================
-             PESTAÑA 5: PORTAL DE RECEPCIÓN & CHECK-IN (SOLO PERSONAL)
+             PESTAÑA 5: CHECK-IN & CHECK-OUT (OPERACIÓN ADMINISTRATIVA)
              =============================================================== -->
         <section class="dash-tab-content" id="view-reception">
           <div
@@ -509,7 +500,7 @@
                   <th>Entrada / Salida</th>
                   <th>Estado</th>
                   <th>Total</th>
-                  <th>Acciones de Recepción</th>
+                  <th>Acción (Check-In / Out)</th>
                 </tr>
               </thead>
               <tbody id="receptionTableBody">
@@ -530,10 +521,10 @@
             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
             <div>
               <h3 style="font-family: var(--font-heading); font-size: 1.2rem; font-weight: 800; color: #fff;">
-                👥 Gestión de Cuentas & Personal
+                👥 Gestión de Cuentas & Huéspedes
               </h3>
               <p style="font-size: 0.85rem; color: var(--text-dim);">
-                Crea cuentas de recepción/administración, activa o desactiva accesos y administra huéspedes.
+                Crea cuentas de administración, supervisa y activa/desactiva cuentas de huéspedes.
               </p>
             </div>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
@@ -550,7 +541,7 @@
           <div
             style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
             <h4 style="font-size: 0.9rem; font-weight: 800; color: #38bdf8; margin-bottom: 1rem;">🛠️ Crear Cuenta de
-              Personal</h4>
+              Administrador</h4>
             <form id="createStaffForm"
               style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; align-items: end;">
               <div class="field-group">
@@ -563,7 +554,7 @@
               </div>
               <div class="field-group">
                 <label class="input-label" for="staffEmail">Correo Corporativo</label>
-                <input type="email" id="staffEmail" class="input-pill" placeholder="recepcion@travelresorts.com"
+                <input type="email" id="staffEmail" class="input-pill" placeholder="admin2@travelresorts.com"
                   required>
               </div>
               <div class="field-group">
@@ -572,14 +563,13 @@
                   required>
               </div>
               <div class="field-group">
-                <label class="input-label" for="staffRole">Rol Operativo</label>
+                <label class="input-label" for="staffRole">Rol Asignado</label>
                 <select id="staffRole" class="input-pill" style="cursor: pointer;">
-                  <option value="RECEPTIONIST" style="color: #000;">Personal de Recepción</option>
-                  <option value="HOTEL_ADMIN" style="color: #000;">Administración Hotelera</option>
+                  <option value="HOTEL_ADMIN" style="color: #000;">Administración Hotelera (HOTEL_ADMIN)</option>
                 </select>
               </div>
               <button type="submit" id="submitStaffBtn" class="btn-blue" style="height: 44px;">
-                <span>CREAR CUENTA</span>
+                <span>CREAR ADMIN</span>
               </button>
             </form>
           </div>
@@ -684,7 +674,7 @@
               </div>
             </div>
 
-            <!-- SECCIÓN DE PERSONAL (HOTEL_ADMIN y RECEPTIONIST): Disparadores de Pruebas -->
+            <!-- SECCIÓN EXCLUSIVA (HOTEL_ADMIN): Disparadores de Pruebas -->
             <div id="staffNotifTriggers" style="display: none; margin-top: 1rem;">
               <h4
                 style="font-size: 0.85rem; font-weight: 800; color: #38bdf8; margin-bottom: 0.75rem; text-transform: uppercase;">

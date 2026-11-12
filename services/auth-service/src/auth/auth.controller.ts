@@ -70,7 +70,7 @@ export class AuthController {
   @ApiBearerAuth('JWT-auth')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
-    summary: 'Crear cuenta de personal (Recepcionista o Administrador) — Solo HOTEL_ADMIN',
+    summary: 'Crear cuenta de Administrador — Solo HOTEL_ADMIN',
     description:
       'Flujo oficial para crear cuentas operativas. El registro público (/register) solo crea clientes GUEST.',
   })
@@ -183,11 +183,11 @@ export class AuthController {
 
   @Get('users')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.HOTEL_ADMIN, Role.RECEPTIONIST)
+  @Roles(Role.HOTEL_ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Listar todos los usuarios registrados (Admin / Recepcionista)',
-    description: 'Devuelve la lista de usuarios con datos básicos. Solo accesible para HOTEL_ADMIN y RECEPTIONIST.',
+    summary: 'Listar todos los usuarios registrados (Solo Administrador)',
+    description: 'Devuelve la lista de usuarios con datos básicos. Solo accesible para HOTEL_ADMIN.',
   })
   @ApiResponse({ status: HttpStatus.OK, description: 'Lista de usuarios obtenida correctamente' })
   @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Acceso denegado: rol insuficiente' })

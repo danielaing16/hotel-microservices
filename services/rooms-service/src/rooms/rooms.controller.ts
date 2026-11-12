@@ -169,11 +169,11 @@ export class RoomsController {
   }
 
   @UseGuards(RolesGuard)
-  @Roles(Role.HOTEL_ADMIN, Role.RECEPTIONIST)
+  @Roles(Role.HOTEL_ADMIN)
   @Patch(':id')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Actualizar parcialmente una habitación (HOTEL_ADMIN o RECEPTIONIST)',
+    summary: 'Actualizar parcialmente una habitación (Solo HOTEL_ADMIN)',
     description: 'Permite ajustar campos puntuales o estado de la habitación.',
   })
   @ApiParam({ name: 'id', description: 'UUID de la habitación a modificar' })
@@ -191,11 +191,11 @@ export class RoomsController {
   }
 
   @UseGuards(RolesGuard)
-  @Roles(Role.HOTEL_ADMIN, Role.RECEPTIONIST)
+  @Roles(Role.HOTEL_ADMIN)
   @Patch(':id/status')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Cambiar estado operativo de una habitación (HOTEL_ADMIN o RECEPTIONIST)',
+    summary: 'Cambiar estado operativo de una habitación (Solo HOTEL_ADMIN)',
     description:
       'Cambia rápidamente el estado entre AVAILABLE, OCCUPIED, MAINTENANCE o INACTIVE.',
   })

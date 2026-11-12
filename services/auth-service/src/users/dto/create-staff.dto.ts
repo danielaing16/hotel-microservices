@@ -14,7 +14,7 @@ import { Role } from '../../auth/enums/role.enum';
  * restringido a roles operativos (no se crean clientes por esta vía).
  */
 export class CreateStaffDto {
-  @ApiProperty({ example: 'recepcion1@hotel.com' })
+  @ApiProperty({ example: 'admin2@hotel.com' })
   @IsEmail({}, { message: 'El correo electrónico debe ser válido' })
   @IsNotEmpty({ message: 'El correo electrónico es obligatorio' })
   email: string;
@@ -36,12 +36,12 @@ export class CreateStaffDto {
   lastName: string;
 
   @ApiProperty({
-    enum: [Role.RECEPTIONIST, Role.HOTEL_ADMIN],
-    example: Role.RECEPTIONIST,
+    enum: [Role.HOTEL_ADMIN],
+    example: Role.HOTEL_ADMIN,
     description: 'Rol operativo de la cuenta de personal',
   })
-  @IsEnum([Role.RECEPTIONIST, Role.HOTEL_ADMIN], {
-    message: 'Solo se pueden crear cuentas RECEPTIONIST o HOTEL_ADMIN',
+  @IsEnum([Role.HOTEL_ADMIN], {
+    message: 'Solo se pueden crear cuentas HOTEL_ADMIN',
   })
   role: Role;
 

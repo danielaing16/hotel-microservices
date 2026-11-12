@@ -36,6 +36,7 @@ export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
   @Post('process')
+  @Roles(Role.GUEST)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Procesar pago de reserva con idempotencia (HuÃ©sped / Checkout)',
