@@ -132,6 +132,22 @@ export class BookingController {
     return await this.bookingService.cancelBooking(idOrCode, cancelDto.reason, user);
   }
 
+  @Patch(':idOrCode/confirm-payment')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Confirmar pago de reserva y promover a CONFIRMED (Llamada interna o Staff)',
+  })
+  async confirmPaymentDirect(
+    @Param('idOrCode') idOrCode: string,
+    @Body() payload: any,
+  ) {
+    return await this.bookingService.handlePaymentSucceeded({
+      bookingId: idOrCode,
+      bookingCode: idOrCode,
+      ...payload,
+    });
+  }
+
   @Patch(':idOrCode/checkin')
   @Roles(Role.HOTEL_ADMIN)
   @ApiBearerAuth('JWT-auth')

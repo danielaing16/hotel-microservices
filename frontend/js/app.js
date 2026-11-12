@@ -126,6 +126,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const cardExp = document.getElementById('cardExp');
   const cardCvc = document.getElementById('cardCvc');
   const submitPaymentBtn = document.getElementById('submitPaymentBtn');
+  const payMethodCardBtn = document.getElementById('payMethodCardBtn');
+  const payMethodTransferBtn = document.getElementById('payMethodTransferBtn');
+  const cardFieldsContainer = document.getElementById('cardFieldsContainer');
+  const transferInfoBox = document.getElementById('transferInfoBox');
+  const transferRefContainer = document.getElementById('transferRefContainer');
+  const transferRefInput = document.getElementById('transferRefInput');
+  const filterPaymentsAllBtn = document.getElementById('filterPaymentsAllBtn');
+  const filterPaymentsPendingBtn = document.getElementById('filterPaymentsPendingBtn');
+  let currentCheckoutMethod = 'CREDIT_CARD';
   const btnPayText = document.getElementById('btnPayText');
 
   // Modal Éxito
@@ -1220,6 +1229,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+
+  // Alternar entre Tarjeta y Transferencia Bancaria en Checkout
+  payMethodCardBtn?.addEventListener('click', () => {
+    currentCheckoutMethod = 'CREDIT_CARD';
+    payMethodCardBtn.style.borderColor = '#38bdf8';
+    payMethodCardBtn.style.background = 'rgba(56,189,248,0.12)';
+    payMethodCardBtn.style.color = '#38bdf8';
+    payMethodTransferBtn.style.borderColor = 'rgba(255,255,255,0.15)';
+    payMethodTransferBtn.style.background = 'transparent';
+    payMethodTransferBtn.style.color = 'var(--text-dim)';
+    if (cardFieldsContainer) cardFieldsContainer.style.display = 'block';
+    if (transferInfoBox) transferInfoBox.style.display = 'none';
+    if (transferRefContainer) transferRefContainer.style.display = 'none';
+    if (btnPayText) btnPayText.textContent = 'PAGAR Y CONFIRMAR RESERVA';
+  });
+
+  payMethodTransferBtn?.addEventListener('click', () => {
+    currentCheckoutMethod = 'TRANSFER';
+    payMethodTransferBtn.style.borderColor = '#fbbf24';
+    payMethodTransferBtn.style.background = 'rgba(251,191,36,0.12)';
+    payMethodTransferBtn.style.color = '#fbbf24';
+    payMethodCardBtn.style.borderColor = 'rgba(255,255,255,0.15)';
+    payMethodCardBtn.style.background = 'transparent';
+    payMethodCardBtn.style.color = 'var(--text-dim)';
+    if (cardFieldsContainer) cardFieldsContainer.style.display = 'none';
+    if (transferInfoBox) transferInfoBox.style.display = 'block';
+    if (transferRefContainer) transferRefContainer.style.display = 'block';
+    if (btnPayText) btnPayText.textContent = 'REGISTRAR TRANSFERENCIA Y ASEGURAR FECHAS';
+  });
+
   // Procesar Pago y Confirmar Reserva (Anti-Doble Cobro vía Idempotency Key)
   paymentForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1403,12 +1442,19 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
 
             <div>
-              <div style="color: var(--text-dim); font-size: 0.75rem;">TOTAL PAGADO</div>
+              <div style="color: var(--text-dim); font-size: 0.75rem;">TOTAL PAGADO / A PAGAR</div>
               <div style="font-size: 1.15rem; font-weight: 800; color: #34d399; margin-top: 2px;">
                 ${formatCOP(b.totalAmount)}
               </div>
             </div>
           </div>
+
+          ${b.status === 'PENDING_PAYMENT' ? `
+            <div style="background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.35); border-radius: 8px; padding: 0.6rem 0.85rem; font-size: 0.78rem; color: #fde68a; display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-size: 1.1rem;">⏳</span>
+              <span><strong>En Revisión Administrativa:</strong> Tu comprobante de transferencia bancaria está siendo validado por el Administrador. Tus fechas se encuentran protegidas en el inventario.</span>
+            </div>
+          ` : ''}
 
           <div style="display: flex; justify-content: flex-end; gap: 0.65rem; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.75rem; flex-wrap: wrap;">
             <button class="btn-hotel-secondary btn-download-voucher"
@@ -1872,6 +1918,33 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
+
+
+  filterPaymentsAllBtn?.addEventListener('click', () => {
+    filterPaymentsAllBtn.style.borderColor = '#38bdf8';
+    filterPaymentsAllBtn.style.background = 'rgba(56,189,248,0.12)';
+    filterPaymentsAllBtn.style.color = '#38bdf8';
+    filterPaymentsPendingBtn.style.borderColor = 'rgba(255,255,255,0.15)';
+    filterPaymentsPendingBtn.style.background = 'transparent';
+    filterPaymentsPendingBtn.style.color = 'var(--text-dim)';
+    loadPayments();
+  });
+
+  filterPaymentsPendingBtn?.addEventListener('click', async () => {
+    filterPaymentsPendingBtn.style.borderColor = '#fbbf24';
+    filterPaymentsPendingBtn.style.background = 'rgba(251,191,36,0.12)';
+    filterPaymentsPendingBtn.style.color = '#fbbf24';
+    filterPaymentsAllBtn.style.borderColor = 'rgba(255,255,255,0.15)';
+    filterPaymentsAllBtn.style.background = 'transparent';
+    filterPaymentsAllBtn.style.color = 'var(--text-dim)';
+    try {
+      showToast('Filtrando transferencias pendientes...', 'info');
+      const pending = await api.getPendingPayments();
+      renderPaymentsTable(pending || []);
+    } catch (err) {
+      showToast(`Error al consultar pendientes: ${err.message}`, 'error');
+    }
+  });
 
   refreshPaymentsBtn?.addEventListener('click', () => {
     loadPayments();

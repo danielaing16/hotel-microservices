@@ -1,7 +1,8 @@
-﻿import {
+import {
   Controller,
   Get,
   Post,
+  Patch,
   Body,
   Param,
   Query,
@@ -71,6 +72,47 @@ export class PaymentController {
   })
   async findAll(@Query() query: QueryPaymentsDto) {
     return await this.paymentService.findAll(query);
+  }
+
+  @Get('admin/pending')
+  @Roles(Role.HOTEL_ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Listado de transacciones pendientes de aprobación manual (Transferencias)',
+  })
+  async findPending() {
+    return await this.paymentService.findPending();
+  }
+
+  @Patch(':idOrRef/approve')
+  @Roles(Role.HOTEL_ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Aprobar transferencia bancaria manualmente (Solo Administradores)',
+    description:
+      'Cambia el estado de PENDING a SUCCEEDED y emite payment.succeeded para confirmar la reserva y emitir el voucher con QR.',
+  })
+  async approve(
+    @Param('idOrRef') idOrRef: string,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return await this.paymentService.approvePayment(idOrRef, user);
+  }
+
+  @Patch(':idOrRef/reject')
+  @Roles(Role.HOTEL_ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Rechazar transferencia bancaria (Solo Administradores)',
+    description:
+      'Cambia el estado a FAILED, cancela la reserva en booking-service y libera las fechas en availability-service.',
+  })
+  async reject(
+    @Param('idOrRef') idOrRef: string,
+    @Body('reason') reason: string,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return await this.paymentService.rejectPayment(idOrRef, reason, user);
   }
 
   @Get(':idOrRef')

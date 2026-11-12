@@ -500,9 +500,36 @@ export class BookingService implements OnModuleInit {
     const booking = await this.bookingRepository.findOne({ where: { id: bookingId } });
     if (booking && booking.status === BookingStatus.PENDING_PAYMENT) {
       booking.status = BookingStatus.CANCELLED;
-      booking.cancellationReason = data.reason || 'Pago rechazado por la entidad bancaria';
+      booking.cancellationReason = data.reason || 'Pago rechazado o transferencia no aprobada';
       await this.bookingRepository.save(booking);
       this.logger.log(`❌ Reserva ${booking.bookingCode} cancelada automáticamente por fallo de pago.`);
+
+      // Liberar inventario en availability-service
+      if (booking.holdId) {
+        try {
+          const availUrl = this.configService.get<string>('AVAILABILITY_SERVICE_URL', 'http://availability-service:3004');
+          await fetch(`${availUrl}/api/availability/release`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ holdId: booking.holdId }),
+            signal: AbortSignal.timeout(3000),
+          });
+          this.logger.log(`🔓 Fechas liberadas en availability tras fallo de pago para hold ${booking.holdId}`);
+        } catch (err) {
+          this.logger.warn(`No se pudo liberar hold en availability tras pago fallido: ${err.message}`);
+        }
+      }
+
+      // Emitir booking.cancelled
+      try {
+        this.rabbitClient.emit('booking.cancelled', {
+          bookingId: booking.id,
+          bookingCode: booking.bookingCode,
+          userId: booking.userId,
+          holdId: booking.holdId,
+          reason: booking.cancellationReason,
+        });
+      } catch (err) {}
     }
   }
 

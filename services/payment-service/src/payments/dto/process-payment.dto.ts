@@ -85,5 +85,13 @@ export class ProcessPaymentDto {
   @IsOptional()
   @IsString()
   cardCvc?: string;
+
+  @ApiPropertyOptional({
+    example: 'TRF-BANCOLOMBIA-98124',
+    description: 'Referencia o número de comprobante de transferencia bancaria',
+  })
+  @IsOptional()
+  @IsString()
+  transferReference?: string;
 }
 

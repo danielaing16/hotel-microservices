@@ -14,6 +14,7 @@ import { ConfigService } from '@nestjs/config';
 import { ClientProxy } from '@nestjs/microservices';
 import { Payment } from './entities/payment.entity';
 import { PaymentStatus } from '../common/enums/payment-status.enum';
+import { PaymentMethod } from '../common/enums/payment-method.enum';
 import { ProcessPaymentDto } from './dto/process-payment.dto';
 import { QueryPaymentsDto } from './dto/query-payments.dto';
 import { RequestUser } from '../common/decorators/current-user.decorator';
@@ -121,7 +122,59 @@ export class PaymentService implements OnModuleInit {
       );
     }
 
-    // 4. Detección de tarjeta de prueba declinada (Simulación bancaria)
+    // 4. Pago por Transferencia Bancaria (Aprobación manual por el Administrador)
+    if (dto.paymentMethod === PaymentMethod.TRANSFER) {
+      const txRef = dto.transferReference || `TRF-${this.generateTxRef()}`;
+      const payment = this.paymentRepository.create({
+        bookingId: booking.id,
+        bookingCode: booking.bookingCode,
+        userId: user.id,
+        userEmail: user.email,
+        amount: dto.amount,
+        amountCents: Math.round(dto.amount * 100),
+        currency: dto.currency || 'USD',
+        gatewayProvider: 'MANUAL_BANK_TRANSFER',
+        transactionReference: txRef,
+        idempotencyKey: dto.idempotencyKey,
+        status: PaymentStatus.PENDING,
+        paymentMethod: 'TRANSFER',
+        cardLast4: null,
+        cardBrand: 'Transferencia Bancaria',
+        receiptUrl: `https://pay.travel-resorts.com/transfers/${txRef}`,
+        errorMessage: 'En espera de verificación y aprobación administrativa por el Hotel Admin',
+      });
+
+      const saved = await this.paymentRepository.save(payment);
+      this.logger.log(`🏛️ Transferencia bancaria registrada (PENDING): ${saved.transactionReference}`);
+
+      // Mantener aseguradas las fechas en availability-service mientras el Administrador aprueba
+      try {
+        const availUrl = this.configService.get('AVAILABILITY_SERVICE_URL', 'http://availability-service:3004');
+        await fetch(`${availUrl}/api/availability/confirm-hold`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-internal-token': this.configService.get('JWT_SECRET', 'super_secret_jwt_key_hotel_2026_dev'),
+          },
+          body: JSON.stringify({
+            holdId: booking.holdId,
+            bookingId: booking.id,
+            bookingCode: booking.bookingCode,
+          }),
+        });
+        this.logger.log(`🔒 Inventario asegurado en availability-service para transferencia ${saved.bookingCode}`);
+      } catch (err) {
+        this.logger.warn(`No se pudo sincronizar confirm-hold con availability: ${err.message}`);
+      }
+
+      return {
+        message: '¡Comprobante de transferencia registrado con éxito! Tu reserva se encuentra en espera de validación administrativa.',
+        payment: saved,
+        requiresApproval: true,
+      };
+    }
+
+    // 5. Detección de tarjeta de prueba declinada (Simulación bancaria)
     const cardNum = (dto.cardNumber || '4242424242424242').replace(/\s+/g, '');
     if (cardNum.endsWith('0002')) {
       const failedTxRef = this.generateTxRef();
@@ -208,6 +261,26 @@ export class PaymentService implements OnModuleInit {
     } catch (err) {
       this.logger.warn(`No se pudo emitir evento payment.succeeded a RabbitMQ: ${err.message}`);
     }
+
+    // Sincronización atómica directa con booking-service
+    try {
+      await fetch(`${bookingsUrl}/api/bookings/${saved.bookingId}/confirm-payment`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': user.id,
+          'x-user-email': user.email,
+          'x-user-role': user.role,
+        },
+        body: JSON.stringify({
+          paymentId: saved.id,
+          bookingId: saved.bookingId,
+          bookingCode: saved.bookingCode,
+          amount: saved.amount,
+          transactionReference: saved.transactionReference,
+        }),
+      });
+    } catch (e) {}
 
     return {
       message: '¡Pago acreditado exitosamente! Tu reserva ha sido confirmada.',
@@ -330,6 +403,151 @@ export class PaymentService implements OnModuleInit {
     return {
       message: `Reembolso de $${updated.amount} ${updated.currency} procesado correctamente.`,
       payment: updated,
+    };
+  }
+
+  /**
+   * Obtiene todos los pagos pendientes de verificación o aprobación manual
+   */
+  async findPending() {
+    return await this.paymentRepository.find({
+      where: { status: PaymentStatus.PENDING },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  /**
+   * Aprueba una transferencia bancaria manual (Solo Administrador)
+   */
+  async approvePayment(idOrRef: string, adminUser: RequestUser) {
+    const payment = await this.findOne(idOrRef, adminUser);
+
+    if (payment.status !== PaymentStatus.PENDING) {
+      throw new BadRequestException(
+        `Solo es posible aprobar transacciones en estado PENDING. Estado actual: '${payment.status}'`,
+      );
+    }
+
+    payment.status = PaymentStatus.SUCCEEDED;
+    payment.errorMessage = `Aprobado por el Administrador ${adminUser.email} el ${new Date().toISOString()}`;
+    const saved = await this.paymentRepository.save(payment);
+
+    // Obtener la reserva para conocer el holdId y confirmar
+    const bookingsUrl = this.configService.get('BOOKINGS_SERVICE_URL', 'http://booking-service:3005');
+    let booking: any = null;
+    try {
+      const res = await fetch(`${bookingsUrl}/api/bookings/${saved.bookingId}`, {
+        headers: {
+          'x-user-id': adminUser.id,
+          'x-user-email': adminUser.email,
+          'x-user-role': adminUser.role,
+        },
+      });
+      if (res.ok) booking = await res.json();
+    } catch (e) {
+      this.logger.warn(`Error al consultar booking para aprobar: ${e.message}`);
+    }
+
+    // Emitir evento RabbitMQ: payment.succeeded
+    try {
+      this.rabbitClient.emit('payment.succeeded', {
+        paymentId: saved.id,
+        bookingId: saved.bookingId,
+        bookingCode: saved.bookingCode,
+        holdId: booking?.holdId,
+        amount: saved.amount,
+        currency: saved.currency,
+        userId: saved.userId,
+        userEmail: saved.userEmail,
+        transactionReference: saved.transactionReference,
+        cardLast4: saved.cardLast4 || 'TRF',
+        cardBrand: 'Transferencia Bancaria (Aprobada)',
+        receiptUrl: saved.receiptUrl,
+        paidAt: saved.updatedAt,
+      });
+      this.logger.log(`🐇 Evento 'payment.succeeded' emitido tras aprobación administrativa de ${saved.transactionReference}`);
+    } catch (err) {
+      this.logger.warn(`No se pudo emitir payment.succeeded: ${err.message}`);
+    }
+
+    // Confirmación atómica directa en booking-service
+    try {
+      await fetch(`${bookingsUrl}/api/bookings/${saved.bookingId}/confirm-payment`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': adminUser.id,
+          'x-user-email': adminUser.email,
+          'x-user-role': adminUser.role,
+        },
+        body: JSON.stringify({
+          paymentId: saved.id,
+          bookingId: saved.bookingId,
+          bookingCode: saved.bookingCode,
+          amount: saved.amount,
+          transactionReference: saved.transactionReference,
+        }),
+      });
+      this.logger.log(`✅ Confirmación directa enviada a booking-service para ${saved.bookingCode}`);
+    } catch (e) {
+      this.logger.warn(`Error al confirmar reserva directamente en booking-service: ${e.message}`);
+    }
+
+    return {
+      message: `Transferencia ${saved.transactionReference} aprobada exitosamente. Reserva confirmada y voucher generado.`,
+      payment: saved,
+    };
+  }
+
+  /**
+   * Rechaza una transferencia bancaria manual (Solo Administrador) y libera fechas
+   */
+  async rejectPayment(idOrRef: string, reason: string, adminUser: RequestUser) {
+    const payment = await this.findOne(idOrRef, adminUser);
+
+    if (payment.status !== PaymentStatus.PENDING) {
+      throw new BadRequestException(
+        `Solo es posible rechazar transacciones en estado PENDING. Estado actual: '${payment.status}'`,
+      );
+    }
+
+    payment.status = PaymentStatus.FAILED;
+    payment.errorMessage = `Rechazado por Admin: ${reason || 'Comprobante inválido o fondos no recibidos'}`;
+    const saved = await this.paymentRepository.save(payment);
+
+    // Cancelar la reserva en booking-service (lo cual libera las fechas en availability-service)
+    const bookingsUrl = this.configService.get('BOOKINGS_SERVICE_URL', 'http://booking-service:3005');
+    try {
+      await fetch(`${bookingsUrl}/api/bookings/${saved.bookingId}/cancel`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': adminUser.id,
+          'x-user-email': adminUser.email,
+          'x-user-role': adminUser.role,
+        },
+        body: JSON.stringify({ reason: `Transferencia rechazada: ${reason || 'Comprobante no válido'}` }),
+      });
+      this.logger.log(`Cancelación enviada a booking-service para liberar inventario.`);
+    } catch (e) {
+      this.logger.warn(`Error al cancelar reserva en booking-service: ${e.message}`);
+    }
+
+    // Emitir evento payment.failed
+    try {
+      this.rabbitClient.emit('payment.failed', {
+        paymentId: saved.id,
+        bookingId: saved.bookingId,
+        bookingCode: saved.bookingCode,
+        reason: payment.errorMessage,
+      });
+    } catch (e) {
+      this.logger.warn(`No se pudo emitir payment.failed: ${e.message}`);
+    }
+
+    return {
+      message: `Transferencia rechazada. La reserva fue cancelada y las fechas han sido liberadas en el inventario.`,
+      payment: saved,
     };
   }
 

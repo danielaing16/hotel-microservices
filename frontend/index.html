@@ -607,12 +607,20 @@
                 💳 Conciliación de Pagos & Reembolsos
               </h3>
               <p style="font-size: 0.85rem; color: var(--text-dim);">
-                Visión financiera completa de las transacciones de la plataforma y gestión de reembolsos.
+                Módulo de transacciones, validación de transferencias bancarias y gestión de reembolsos.
               </p>
             </div>
-            <button id="refreshPaymentsBtn" class="btn-hotel-secondary">
-              <span>🔄</span> Actualizar Transacciones
-            </button>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button id="filterPaymentsAllBtn" class="btn-hotel-secondary" style="border-color: #38bdf8; color: #38bdf8; background: rgba(56,189,248,0.12);">
+                <span>📋 Todas</span>
+              </button>
+              <button id="filterPaymentsPendingBtn" class="btn-hotel-secondary" style="border-color: #fbbf24; color: #fbbf24;">
+                <span>⏳ Pendientes de Aprobación</span>
+              </button>
+              <button id="refreshPaymentsBtn" class="btn-hotel-secondary">
+                <span>🔄</span> Actualizar
+              </button>
+            </div>
           </div>
 
           <div class="reception-table-wrap">
@@ -837,32 +845,64 @@
         </div>
       </div>
 
+      <!-- Selector de Método de Pago -->
+      <div style="margin-top: 0.85rem; margin-bottom: 0.5rem;">
+        <label class="input-label" style="margin-bottom: 0.4rem; display: block;">Selecciona el Método de Pago:</label>
+        <div style="display: flex; gap: 0.5rem;">
+          <button type="button" id="payMethodCardBtn" class="btn-hotel-secondary" style="flex: 1; border-color: #38bdf8; background: rgba(56,189,248,0.12); color: #38bdf8; font-size: 0.82rem; padding: 8px;">
+            <span>💳 Tarjeta (Inmediato)</span>
+          </button>
+          <button type="button" id="payMethodTransferBtn" class="btn-hotel-secondary" style="flex: 1; font-size: 0.82rem; padding: 8px;">
+            <span>🏛️ Transferencia Bancaria</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Datos de Transferencia Bancaria (Oculto por defecto) -->
+      <div id="transferInfoBox" style="display: none; background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 10px; padding: 0.85rem; font-size: 0.8rem; margin-top: 0.5rem; color: #fde68a;">
+        <div style="font-weight: 700; margin-bottom: 0.3rem; color: #fbbf24;">🏛️ Cuenta Corporativa para Transferencia:</div>
+        <div><strong>Banco:</strong> Bancolombia · Cta Corriente No. 123-456789-00</div>
+        <div><strong>Titular:</strong> Travel & Resorts SAS · <strong>NIT:</strong> 900.123.456-7</div>
+        <div style="margin-top: 0.4rem; font-size: 0.74rem; color: #cbd5e1;">
+          ℹ️ Tus fechas quedarán reservadas mientras el Administrador valida el comprobante.
+        </div>
+      </div>
+
       <!-- Formulario de Tarjeta de Crédito (Simulación Segura) -->
       <form id="paymentForm" style="display: flex; flex-direction: column; gap: 0.85rem; margin-top: 0.5rem;">
-        <div class="field-group">
-          <label class="input-label" for="cardHolder">Nombre del Titular de la Tarjeta</label>
-          <input type="text" id="cardHolder" class="input-pill" placeholder="Como aparece en la tarjeta" required>
-        </div>
-
-        <div class="field-group">
-          <label class="input-label" for="cardNumber">Número de Tarjeta</label>
-          <input type="text" id="cardNumber" class="input-pill" placeholder="4242 •••• •••• 4242" maxlength="19"
-            required>
-        </div>
-
-        <div style="display: flex; gap: 0.75rem;">
-          <div class="field-group" style="flex: 1;">
-            <label class="input-label" for="cardExp">Vencimiento (MM/AA)</label>
-            <input type="text" id="cardExp" class="input-pill" placeholder="12/28" maxlength="5" required>
+        <div id="cardFieldsContainer">
+          <div class="field-group">
+            <label class="input-label" for="cardHolder">Nombre del Titular de la Tarjeta</label>
+            <input type="text" id="cardHolder" class="input-pill" placeholder="Como aparece en la tarjeta">
           </div>
-          <div class="field-group" style="flex: 1;">
-            <label class="input-label" for="cardCvc">Código CVC</label>
-            <input type="password" id="cardCvc" class="input-pill" placeholder="123" maxlength="4" required>
+
+          <div class="field-group" style="margin-top: 0.75rem;">
+            <label class="input-label" for="cardNumber">Número de Tarjeta</label>
+            <input type="text" id="cardNumber" class="input-pill" placeholder="4242 •••• •••• 4242" maxlength="19">
+          </div>
+
+          <div style="display: flex; gap: 0.75rem; margin-top: 0.75rem;">
+            <div class="field-group" style="flex: 1;">
+              <label class="input-label" for="cardExp">Vencimiento (MM/AA)</label>
+              <input type="text" id="cardExp" class="input-pill" placeholder="12/28" maxlength="5">
+            </div>
+            <div class="field-group" style="flex: 1;">
+              <label class="input-label" for="cardCvc">Código CVC</label>
+              <input type="password" id="cardCvc" class="input-pill" placeholder="123" maxlength="4">
+            </div>
+          </div>
+        </div>
+
+        <!-- Campo Referencia de Transferencia (Visible cuando se elige transferencia) -->
+        <div id="transferRefContainer" style="display: none;">
+          <div class="field-group">
+            <label class="input-label" for="transferRefInput">Número de Comprobante / Referencia Bancaria</label>
+            <input type="text" id="transferRefInput" class="input-pill" placeholder="Ej. TRF-BANCOLOMBIA-98214">
           </div>
         </div>
 
         <div style="font-size: 0.75rem; color: var(--text-dim); display: flex; align-items: center; gap: 0.5rem;">
-          <span>🔒</span> Encriptación bancaria SSL de 256 bits. Se procesa con control de anti-doble cobro.
+          <span>🔒</span> Transacción protegida con control de anti-doble cobro y cifrado bancario.
         </div>
 
         <button type="submit" class="btn-blue" id="submitPaymentBtn" style="padding: 12px; margin-top: 0.25rem;">

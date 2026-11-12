@@ -467,6 +467,23 @@ class HotelApiClient {
     return await this.request(`/api/payments?${qs.toString()}`, { method: 'GET' });
   }
 
+  async getPendingPayments() {
+    return await this.request('/api/payments/admin/pending', { method: 'GET' });
+  }
+
+  async approvePayment(idOrRef) {
+    return await this.request(`/api/payments/${idOrRef}/approve`, {
+      method: 'PATCH',
+    });
+  }
+
+  async rejectPayment(idOrRef, reason = '') {
+    return await this.request(`/api/payments/${idOrRef}/reject`, {
+      method: 'PATCH',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
   // Health Checks
   async checkGatewayHealth() {
     return await this.request('/health', { method: 'GET', silent: true });
