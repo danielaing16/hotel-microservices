@@ -325,22 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
         staffNotifTriggers.style.display = isAdmin ? 'block' : 'none';
       }
 
-      const isAdminClean = isAdmin;
-      const isStaff = role === 'HOTEL_ADMIN';
 
-      // 1. Recepción & Check-In: Exclusivo de Personal (Admin y Recepción). Oculto para Huéspedes.
-      if (staffSidebarGroup) {
-        staffSidebarGroup.style.display = isStaff ? 'block' : 'none';
-      }
-      // 1.c Disparadores de Notificaciones: Exclusivo de Personal
-      const staffNotifTriggers = document.getElementById('staffNotifTriggers');
-      if (staffNotifTriggers) {
-        staffNotifTriggers.style.display = isStaff ? 'block' : 'none';
-      }
-      // 1.b Gestión de Cuentas y Pagos: Exclusivo del Administrador.
-      if (adminSidebarGroup) {
-        adminSidebarGroup.style.display = isAdmin ? 'block' : 'none';
-      }
       // 2. Registro de Hoteles y Sembrado Demo: Exclusivo de Administradores.
       if (openCreateHotelBtn) {
         openCreateHotelBtn.style.display = isAdmin ? 'inline-flex' : 'none';
