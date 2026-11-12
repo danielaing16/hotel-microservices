@@ -23,3 +23,4 @@ export class ModifyBookingDto {
   @IsString()
   specialRequests?: string;
 }
+
