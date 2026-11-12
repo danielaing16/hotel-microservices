@@ -152,14 +152,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const adminBlockReason = document.getElementById('adminBlockReason');
   const btnAdminUnblock = document.getElementById('btnAdminUnblock');
 
+  // Controles de Reserva para Huéspedes desde el Calendario
+  const clientBookingControls = document.getElementById('clientBookingControls');
+  const calClientCheckInText = document.getElementById('calClientCheckInText');
+  const calClientCheckOutText = document.getElementById('calClientCheckOutText');
+  const calClientNightsText = document.getElementById('calClientNightsText');
+  const calClientGuestsSel = document.getElementById('calClientGuestsSel');
+  const calClientTotalText = document.getElementById('calClientTotalText');
+  const btnProceedBookingFromCalendar = document.getElementById('btnProceedBookingFromCalendar');
+
   let calSelectedRoomId = null;
   let calSelectedRoomName = '';
   let calSelectedHotelName = '';
   let calSelectedHotelId = null;
-  let calSelectedRoomPrice = 150;
+  let calSelectedRoomPrice = 450000;
   let calSelectedRoomMaxAdults = 2;
   let calBookingCheckIn = '2026-11-20';
   let calBookingCheckOut = '2026-11-22';
+  let calSelectionStep = 0; // 0 = selección de llegada, 1 = selección de salida
   let calCurrentYear = 2026;
   let calCurrentMonth = 11; // Noviembre 2026
 
@@ -212,6 +222,24 @@ document.addEventListener('DOMContentLoaded', () => {
     PRESIDENTIAL_SUITE: 'Presidential Suite',
     PENTHOUSE: 'Penthouse Imperial',
   };
+
+  // --------------------------------------------------------------------------
+  // FORMATEADOR OFICIAL DE PRECIOS EN PESOS COLOMBIANOS (COP)
+  // --------------------------------------------------------------------------
+  function getCOPPrice(amount) {
+    const val = Number(amount) || 0;
+    // Si el valor proviene de base de datos en escala USD (< 1000), se proyecta a COP (x 4.000)
+    return val < 1000 ? Math.round(val * 4000) : Math.round(val);
+  }
+
+  function formatCOP(amount) {
+    const copVal = getCOPPrice(amount);
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      maximumFractionDigits: 0,
+    }).format(copVal) + ' COP';
+  }
 
   // --------------------------------------------------------------------------
   // SISTEMA DE NOTIFICACIONES TOAST ELEGANTE
@@ -289,13 +317,21 @@ document.addEventListener('DOMContentLoaded', () => {
       if (adminSidebarGroup) {
         adminSidebarGroup.style.display = isAdmin ? 'block' : 'none';
       }
-      // 2. Registro de Hoteles: Exclusivo de Administradores.
+      // 2. Registro de Hoteles y Sembrado Demo: Exclusivo de Administradores.
       if (openCreateHotelBtn) {
         openCreateHotelBtn.style.display = isAdmin ? 'inline-flex' : 'none';
       }
-      // 3. Registro de Habitaciones: Exclusivo de Administradores.
+      const btnSeedHotels = document.getElementById('btnSeedHotels');
+      if (btnSeedHotels) {
+        btnSeedHotels.style.display = isAdmin ? 'inline-flex' : 'none';
+      }
+      // 3. Registro de Habitaciones y Sembrado Demo: Exclusivo de Administradores.
       if (openCreateRoomBtn) {
         openCreateRoomBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+      }
+      const btnSeedRooms = document.getElementById('btnSeedRooms');
+      if (btnSeedRooms) {
+        btnSeedRooms.style.display = isAdmin ? 'inline-flex' : 'none';
       }
 
       loadHotels();
@@ -726,6 +762,19 @@ document.addEventListener('DOMContentLoaded', () => {
     hotelFormModal.style.display = 'flex';
   });
 
+  const btnSeedHotels = document.getElementById('btnSeedHotels');
+  btnSeedHotels?.addEventListener('click', async () => {
+    if (!confirm('¿Deseas poblar el catálogo hotelero con las sedes oficiales demo (Cartagena, San Andrés, Santa Marta, etc.)?')) return;
+    try {
+      showToast('Sembrando catálogo de hoteles demo...', 'info');
+      await api.seedHotels();
+      showToast('¡Hoteles demo sembrados exitosamente!', 'success');
+      loadHotels();
+    } catch (err) {
+      showToast(`Error al sembrar hoteles: ${err.message}`, 'error');
+    }
+  });
+
   async function openEditHotelModal(id) {
     try {
       const hotel = await api.getHotelById(id);
@@ -956,12 +1005,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const typeLabel = ROOM_TYPE_NAMES[r.roomType] || r.roomType;
       const quote = r.quote || {};
       const nights = quote.nights || 1;
-      const baseRate = quote.basePricePerNight || 120;
-      const surcharges = quote.surcharges || 0;
-      const totalAmount = quote.totalAmount || (baseRate * nights);
+      const baseRate = getCOPPrice(quote.basePricePerNight || 350000);
+      const surcharges = getCOPPrice(quote.surcharges || 0);
+      const totalAmount = getCOPPrice(quote.totalAmount || (baseRate * nights));
 
       const weekendNotice = surcharges > 0
-        ? `<div style="font-size: 0.72rem; color: #fbbf24; margin-top: 2px;">⚡ Incluye +$${surcharges.toFixed(0)} USD (Recargo fin de semana)</div>`
+        ? `<div style="font-size: 0.72rem; color: #fbbf24; margin-top: 2px;">⚡ Incluye +${formatCOP(surcharges)} (Recargo fin de semana)</div>`
         : '';
 
       const amenitiesHtml = (r.amenities || []).slice(0, 3).map(a => `<span class="hotel-amenity-tag">${a}</span>`).join('');
@@ -985,12 +1034,12 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="quote-breakdown-card" style="margin-top: 0.85rem; padding: 0.75rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px;">
               <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim);">
                 <span>Tarifa base (${nights} ${nights === 1 ? 'noche' : 'noches'}):</span>
-                <span>$${(baseRate * nights).toFixed(0)} USD</span>
+                <span>${formatCOP(baseRate * nights)}</span>
               </div>
               ${weekendNotice}
               <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.4rem; padding-top: 0.4rem; border-top: 1px dashed rgba(255,255,255,0.1);">
                 <span style="font-size: 0.78rem; font-weight: 700; color: #fff;">Total Estancia:</span>
-                <span style="font-size: 1.15rem; font-weight: 900; color: #34d399;">$${totalAmount.toFixed(0)} <span style="font-size: 0.68rem; font-weight: 400; color: var(--text-dim);">USD</span></span>
+                <span style="font-size: 1.15rem; font-weight: 900; color: #34d399;">${formatCOP(totalAmount)}</span>
               </div>
             </div>
           </div>
@@ -1072,7 +1121,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (checkoutCheckOut) checkoutCheckOut.textContent = item.checkOut;
       if (checkoutNights) checkoutNights.textContent = `${item.nights} noche(s)`;
       if (checkoutGuests) checkoutGuests.textContent = `${item.guestsCount} persona(s)`;
-      if (checkoutTotalAmount) checkoutTotalAmount.textContent = `$${item.totalAmount.toFixed(2)} USD`;
+      if (checkoutTotalAmount) checkoutTotalAmount.textContent = formatCOP(item.totalAmount);
 
       // Autocompletar datos de tarjeta demo para conveniencia del evaluador
       const currentUser = api.getCurrentUser();
@@ -1195,7 +1244,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bookingId: booking.id,
         idempotencyKey,
         amount: Number(booking.totalAmount),
-        currency: booking.currency || 'USD',
+        currency: booking.currency || 'COP',
         paymentMethod: 'CREDIT_CARD',
         cardNumber: rawCard,
         cardHolderName: cardHolder?.value.trim() || 'Huésped Titular',
@@ -1225,7 +1274,7 @@ document.addEventListener('DOMContentLoaded', () => {
         nights: booking.nights,
         guestsCount: booking.guestsCount,
         totalAmount: booking.totalAmount,
-        currency: booking.currency || 'USD',
+        currency: booking.currency || 'COP',
         paymentId: paymentResult.id || `PAY-${Date.now().toString(36).toUpperCase()}`,
         paymentMethod: `Tarjeta terminada en ${rawCard.slice(-4)}`,
       };
@@ -1344,7 +1393,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div>
               <div style="color: var(--text-dim); font-size: 0.75rem;">TOTAL PAGADO</div>
               <div style="font-size: 1.15rem; font-weight: 800; color: #34d399; margin-top: 2px;">
-                $${Number(b.totalAmount).toFixed(2)} <span style="font-size: 0.7rem; font-weight: 400; color: var(--text-dim);">${b.currency || 'USD'}</span>
+                ${formatCOP(b.totalAmount)}
               </div>
             </div>
           </div>
@@ -1358,8 +1407,8 @@ document.addEventListener('DOMContentLoaded', () => {
               data-checkout="${b.checkOut}"
               data-nights="${b.nights}"
               data-guests="${b.guestsCount}"
-              data-total="${b.totalAmount}"
-              data-currency="${b.currency || 'USD'}"
+              data-total="${getCOPPrice(b.totalAmount)}"
+              data-currency="${b.currency || 'COP'}"
               style="padding: 6px 14px; font-size: 0.8rem;">
               <span>📄</span> Descargar Voucher PDF (QR)
             </button>
@@ -1393,7 +1442,7 @@ document.addEventListener('DOMContentLoaded', () => {
           nights: parseInt(btn.getAttribute('data-nights'), 10),
           guestsCount: parseInt(btn.getAttribute('data-guests'), 10),
           totalAmount: parseFloat(btn.getAttribute('data-total')),
-          currency: btn.getAttribute('data-currency'),
+          currency: btn.getAttribute('data-currency') || 'COP',
           paymentId: `PAY-${Date.now().toString(36).toUpperCase()}`,
           paymentMethod: 'Tarjeta de Crédito Verificada',
         };
@@ -1513,7 +1562,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </span>
           </td>
           <td style="padding: 0.75rem; font-weight: 700; color: #34d399;">
-            $${Number(b.totalAmount).toFixed(0)} <span style="font-size: 0.7rem; color: var(--text-dim); font-weight: 400;">USD</span>
+            ${formatCOP(b.totalAmount)}
           </td>
           <td style="padding: 0.75rem;">
             ${actionsHtml}
@@ -1775,7 +1824,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <td style="padding: 0.75rem; font-size: 0.8rem; color: #cbd5e1;">${p.bookingCode || p.bookingId || '—'}</td>
           <td style="padding: 0.75rem; font-size: 0.8rem; color: #cbd5e1;">${p.method || p.paymentMethod || '—'}</td>
           <td style="padding: 0.75rem; font-weight: 700; color: #34d399;">
-            $${Number(p.amount || p.totalAmount || 0).toFixed(0)} <span style="font-size: 0.7rem; color: var(--text-dim); font-weight: 400;">USD</span>
+            ${formatCOP(p.amount || p.totalAmount || 0)}
           </td>
           <td style="padding: 0.75rem;">
             <span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: ${st.bg}; color: ${st.color}; font-weight: 700; border: 1px solid ${st.color}44;">
@@ -1917,6 +1966,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Triggers de notificación
+  const btnVoucherSampleHeader = document.getElementById('btnVoucherSampleHeader');
+  btnVoucherSampleHeader?.addEventListener('click', () => {
+    const url = api.getVoucherSampleUrl();
+    window.open(url, '_blank');
+    showToast('Generando y transmitiendo Voucher PDF con QR para lectura en recepción...', 'success');
+  });
+
   btnVoucherSample?.addEventListener('click', () => {
     const url = api.getVoucherSampleUrl();
     window.open(url, '_blank');
@@ -1959,8 +2015,8 @@ document.addEventListener('DOMContentLoaded', () => {
         checkOutDate: '2026-11-25',
         nights: 5,
         guestsCount: 2,
-        totalAmount: 950.0,
-        currency: 'USD',
+        totalAmount: 3800000,
+        currency: 'COP',
         paymentId: `pi_stripe_${Date.now().toString(36)}`,
         paymentMethod: 'Tarjeta Visa terminada en 4242',
       });
@@ -1981,8 +2037,8 @@ document.addEventListener('DOMContentLoaded', () => {
         userName: `${user.firstName} ${user.lastName}`,
         hotelName: 'Cartagena Paradise Beach Resort',
         roomTypeName: 'Junior Suite Vista al Mar',
-        totalAmount: 480.0,
-        currency: 'USD',
+        totalAmount: 1920000,
+        currency: 'COP',
         failureReason: 'Fondos insuficientes (card_declined) reportados por la pasarela',
         retryPaymentUrl: `${window.location.origin}`,
         expiresAt: 'Restan 8 minutos de reserva en Redis',
@@ -2030,9 +2086,9 @@ document.addEventListener('DOMContentLoaded', () => {
         userName: `${user.firstName} ${user.lastName}`,
         hotelName: 'The Grand Riviera Luxury Palace',
         roomTypeName: 'Master Oceanfront Suite',
-        refundAmount: 950.0,
-        originalAmount: 950.0,
-        currency: 'USD',
+        refundAmount: 3800000,
+        originalAmount: 3800000,
+        currency: 'COP',
         reason: 'Cancelación voluntaria del huésped con anticipación mayor a 48h.',
       });
       showToast('Comprobante de reembolso despachado exitosamente ✓', 'success');
@@ -2161,7 +2217,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="hotel-card-footer">
             <div>
               <div style="font-size: 1.15rem; font-weight: 800; color: #fff;">
-                $${Number(r.pricePerNight).toFixed(0)} <span style="font-size: 0.7rem; font-weight: 400; color: var(--text-dim);">/ noche</span>
+                ${formatCOP(r.pricePerNight)} <span style="font-size: 0.7rem; font-weight: 400; color: var(--text-dim);">/ noche</span>
               </div>
             </div>
             ${statusControl}
@@ -2171,7 +2227,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 data-room-name="${r.name} #${r.roomNumber}"
                 data-hotel-name="${r.hotelName}"
                 data-hotel-id="${r.hotelId}"
-                data-price="${r.pricePerNight}"
+                data-price="${getCOPPrice(r.pricePerNight)}"
                 data-max-adults="${r.maxAdults || 2}"
                 style="padding: 6px 10px; font-size: 0.75rem;" title="Consultar calendario mensual de fechas y reservar">
                 📅 Calendario & Reserva
@@ -2192,7 +2248,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const roomName = btn.getAttribute('data-room-name');
         const hotelName = btn.getAttribute('data-hotel-name');
         const hotelId = btn.getAttribute('data-hotel-id');
-        const price = Number(btn.getAttribute('data-price') || 150);
+        const price = getCOPPrice(btn.getAttribute('data-price') || 450000);
         const maxAdults = Number(btn.getAttribute('data-max-adults') || 2);
         openRoomCalendarModal(roomId, roomName, hotelName, hotelId, price, maxAdults);
       });
@@ -2242,6 +2298,19 @@ document.addEventListener('DOMContentLoaded', () => {
     await loadRoomHotels();
     roomUpsertForm.reset();
     roomFormModal.style.display = 'flex';
+  });
+
+  const btnSeedRooms = document.getElementById('btnSeedRooms');
+  btnSeedRooms?.addEventListener('click', async () => {
+    if (!confirm('¿Deseas poblar el inventario con las habitaciones y suites oficiales de demostración?')) return;
+    try {
+      showToast('Sembrando inventario de habitaciones demo...', 'info');
+      await api.seedRooms();
+      showToast('¡Habitaciones demo sembradas exitosamente!', 'success');
+      loadRooms();
+    } catch (err) {
+      showToast(`Error al sembrar habitaciones: ${err.message}`, 'error');
+    }
   });
 
   closeRoomModalBtn?.addEventListener('click', () => roomFormModal.style.display = 'none');
@@ -2304,33 +2373,107 @@ document.addEventListener('DOMContentLoaded', () => {
   filterRoomType?.addEventListener('change', loadRooms);
 
   // --------------------------------------------------------------------------
-  // 9. CONTROLADOR DEL CALENDARIO DE DISPONIBILIDAD & GESTIÓN DE FECHAS (ADMIN)
+  // 9. CONTROLADOR DEL CALENDARIO DE DISPONIBILIDAD & RESERVA DE FECHAS
   // --------------------------------------------------------------------------
   const MONTH_NAMES = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
   ];
 
-  async function openRoomCalendarModal(roomId, roomName, hotelName, hotelId) {
+  function updateCalendarBookingPanel() {
+    if (calClientCheckInText) {
+      calClientCheckInText.textContent = calBookingCheckIn || 'Selecciona en calendario';
+      calClientCheckInText.style.color = calBookingCheckIn ? '#34d399' : 'var(--text-dim)';
+    }
+    if (calClientCheckOutText) {
+      calClientCheckOutText.textContent = calBookingCheckOut || 'Selecciona en calendario';
+      calClientCheckOutText.style.color = calBookingCheckOut ? '#38bdf8' : 'var(--text-dim)';
+    }
+
+    if (calBookingCheckIn && calBookingCheckOut) {
+      const dIn = new Date(calBookingCheckIn);
+      const dOut = new Date(calBookingCheckOut);
+      const diffTime = dOut.getTime() - dIn.getTime();
+      const nights = Math.max(1, Math.round(diffTime / (1000 * 60 * 60 * 24)));
+      const total = nights * calSelectedRoomPrice;
+
+      if (calClientNightsText) {
+        calClientNightsText.textContent = `${nights} ${nights === 1 ? 'noche' : 'noches'}`;
+      }
+      if (calClientTotalText) {
+        calClientTotalText.textContent = formatCOP(total);
+      }
+      if (btnProceedBookingFromCalendar) {
+        btnProceedBookingFromCalendar.disabled = false;
+        btnProceedBookingFromCalendar.style.opacity = '1';
+        btnProceedBookingFromCalendar.style.cursor = 'pointer';
+        btnProceedBookingFromCalendar.innerHTML = `<span>✨ RESERVAR HABITACIÓN (${nights} ${nights === 1 ? 'NOCHE' : 'NOCHES'} — ${formatCOP(total)})</span>`;
+      }
+    } else if (calBookingCheckIn && !calBookingCheckOut) {
+      if (calClientNightsText) calClientNightsText.textContent = 'Elige salida';
+      if (calClientTotalText) calClientTotalText.textContent = `${formatCOP(calSelectedRoomPrice)} / noche`;
+      if (btnProceedBookingFromCalendar) {
+        btnProceedBookingFromCalendar.disabled = true;
+        btnProceedBookingFromCalendar.style.opacity = '0.6';
+        btnProceedBookingFromCalendar.style.cursor = 'not-allowed';
+        btnProceedBookingFromCalendar.innerHTML = `<span>👈 SELECCIONA EL DÍA DE SALIDA EN EL CALENDARIO</span>`;
+      }
+    } else {
+      if (calClientNightsText) calClientNightsText.textContent = '—';
+      if (calClientTotalText) calClientTotalText.textContent = `${formatCOP(calSelectedRoomPrice)} / noche`;
+      if (btnProceedBookingFromCalendar) {
+        btnProceedBookingFromCalendar.disabled = true;
+        btnProceedBookingFromCalendar.style.opacity = '0.6';
+        btnProceedBookingFromCalendar.style.cursor = 'not-allowed';
+        btnProceedBookingFromCalendar.innerHTML = `<span>👈 SELECCIONA FECHA DE LLEGADA EN EL CALENDARIO</span>`;
+      }
+    }
+  }
+
+  async function openRoomCalendarModal(roomId, roomName, hotelName, hotelId, price, maxAdults) {
     calSelectedRoomId = roomId;
+    calSelectedRoomName = roomName;
+    calSelectedHotelName = hotelName;
+    calSelectedHotelId = hotelId;
+    calSelectedRoomPrice = getCOPPrice(price || 450000);
+    calSelectedRoomMaxAdults = Number(maxAdults) || 2;
+
     calCurrentYear = 2026;
     calCurrentMonth = 11; // Noviembre 2026
 
-    if (calRoomTitle) calRoomTitle.textContent = roomName;
+    // Rango de fechas por defecto
+    calBookingCheckIn = '2026-11-20';
+    calBookingCheckOut = '2026-11-22';
+    calSelectionStep = 0;
+
+    if (calRoomTitle) calRoomTitle.textContent = `${roomName} · ${formatCOP(calSelectedRoomPrice)} / noche`;
     if (calHotelTitle) calHotelTitle.textContent = hotelName;
     if (adminCalRoomId) adminCalRoomId.value = roomId;
     if (adminCalHotelId) adminCalHotelId.value = hotelId;
 
-    // Solo HOTEL_ADMIN tiene los controles para bloquear/habilitar fechas
+    // Poblar dropdown de huéspedes según capacidad de la habitación
+    if (calClientGuestsSel) {
+      const max = Math.max(1, calSelectedRoomMaxAdults);
+      calClientGuestsSel.innerHTML = Array.from({ length: max }, (_, i) => i + 1)
+        .map(n => `<option value="${n}" ${n === Math.min(2, max) ? 'selected' : ''}>${n}</option>`)
+        .join('');
+    }
+
+    // Controles de Administrador
     const user = api.getCurrentUser();
     const isAdmin = user && user.role === 'HOTEL_ADMIN';
     if (adminDateControls) {
       adminDateControls.style.display = isAdmin ? 'block' : 'none';
     }
-
-    // Fechas por defecto para bloqueo
     if (adminBlockStart) adminBlockStart.value = '2026-11-20';
     if (adminBlockEnd) adminBlockEnd.value = '2026-11-25';
+
+    // Panel de selección para el cliente/huésped
+    if (clientBookingControls) {
+      clientBookingControls.style.display = 'block';
+    }
+
+    updateCalendarBookingPanel();
 
     await loadAndRenderCalendar(calSelectedRoomId, calCurrentYear, calCurrentMonth);
     if (roomCalendarModal) roomCalendarModal.style.display = 'flex';
@@ -2391,15 +2534,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
       calendarDays.forEach(d => {
         const st = STATUS_STYLES[d.status] || STATUS_STYLES.AVAILABLE;
+        const isAvailable = d.status === 'AVAILABLE';
+
+        const isCheckIn = calBookingCheckIn === d.date;
+        const isCheckOut = calBookingCheckOut === d.date;
+        const isInRange = calBookingCheckIn && calBookingCheckOut && d.date > calBookingCheckIn && d.date < calBookingCheckOut;
+
+        let cellBg = st.bg;
+        let cellBorder = st.border;
+        let badgeHtml = `<span style="font-size: 0.65rem; font-weight: 600; color: ${st.color}; margin-top: 2px;">${st.label}</span>`;
+        let extraStyle = '';
+
+        if (isCheckIn) {
+          cellBg = 'rgba(52, 211, 153, 0.35)';
+          cellBorder = '#34d399';
+          badgeHtml = `<span style="font-size: 0.62rem; font-weight: 800; color: #fff; background: #059669; padding: 1px 6px; border-radius: 4px; margin-top: 2px;">Llegada 🟢</span>`;
+          extraStyle = 'box-shadow: 0 0 10px rgba(52, 211, 153, 0.4); transform: scale(1.02);';
+        } else if (isCheckOut) {
+          cellBg = 'rgba(56, 189, 248, 0.35)';
+          cellBorder = '#38bdf8';
+          badgeHtml = `<span style="font-size: 0.62rem; font-weight: 800; color: #fff; background: #0284c7; padding: 1px 6px; border-radius: 4px; margin-top: 2px;">Salida 🔵</span>`;
+          extraStyle = 'box-shadow: 0 0 10px rgba(56, 189, 248, 0.4); transform: scale(1.02);';
+        } else if (isInRange) {
+          cellBg = 'rgba(56, 189, 248, 0.18)';
+          cellBorder = 'rgba(56, 189, 248, 0.4)';
+          badgeHtml = `<span style="font-size: 0.62rem; font-weight: 600; color: #7dd3fc; margin-top: 2px;">Estancia</span>`;
+        }
+
         const refInfo = d.details?.ref ? `<div style="font-size: 0.58rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${d.details.ref}</div>` : '';
 
         html += `
-          <div class="cal-day-cell" data-date="${d.date}"
-            style="background: ${st.bg}; border: 1px solid ${st.border}; border-radius: 8px; padding: 6px 2px; min-height: 52px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s;"
-            title="${d.date}: ${st.label} ${d.details?.ref ? ' - ' + d.details.ref : ''}"
-            onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+          <div class="cal-day-cell" data-date="${d.date}" data-status="${d.status}"
+            style="background: ${cellBg}; border: 2px solid ${cellBorder}; border-radius: 8px; padding: 6px 2px; min-height: 52px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: ${isAvailable ? 'pointer' : 'not-allowed'}; transition: all 0.2s; ${extraStyle}"
+            title="${d.date}: ${st.label}${isCheckIn ? ' (Llegada)' : ''}${isCheckOut ? ' (Salida)' : ''}"
+            onmouseover="if('${isAvailable}' === 'true') this.style.transform='scale(1.05)'" onmouseout="if('${isCheckIn || isCheckOut}' !== 'true') this.style.transform='scale(1)'">
             <span style="font-weight: 800; font-size: 0.82rem; color: #fff;">${d.day}</span>
-            <span style="font-size: 0.65rem; font-weight: 600; color: ${st.color}; margin-top: 2px;">${st.label}</span>
+            ${badgeHtml}
             ${refInfo}
           </div>
         `;
@@ -2407,17 +2577,63 @@ document.addEventListener('DOMContentLoaded', () => {
 
       calDaysGrid.innerHTML = html;
 
-      // Al hacer clic en un día, pre-cargar en el formulario de fechas del admin
+      // Event listener al hacer clic en un día del calendario
       document.querySelectorAll('.cal-day-cell').forEach(cell => {
         cell.addEventListener('click', () => {
           const selectedDate = cell.getAttribute('data-date');
-          if (adminBlockStart) adminBlockStart.value = selectedDate;
-          if (adminBlockEnd) {
-            const nextD = new Date(selectedDate);
-            nextD.setDate(nextD.getDate() + 2);
-            adminBlockEnd.value = nextD.toISOString().split('T')[0];
+          const status = cell.getAttribute('data-status');
+          const user = api.getCurrentUser();
+          const isAdmin = user && user.role === 'HOTEL_ADMIN';
+
+          // Para HOTEL_ADMIN: pre-cargar en formulario administrativo de bloqueo
+          if (isAdmin) {
+            if (adminBlockStart) adminBlockStart.value = selectedDate;
+            if (adminBlockEnd) {
+              const nextD = new Date(selectedDate);
+              nextD.setDate(nextD.getDate() + 2);
+              adminBlockEnd.value = nextD.toISOString().split('T')[0];
+            }
           }
-          showToast(`Fecha ${selectedDate} seleccionada para gestión`, 'info');
+
+          // Validación para clientes: solo fechas disponibles pueden seleccionarse para reservar
+          if (status !== 'AVAILABLE') {
+            const stLabel = status === 'BOOKED' ? 'Reservada por otro huésped' : (status === 'HOLD' ? 'Bloqueada temporalmente (Hold 10m)' : 'Bloqueo administrativo');
+            showToast(`La fecha ${selectedDate} no está disponible (${stLabel}). Selecciona una fecha libre en verde.`, 'warning');
+            return;
+          }
+
+          // Lógica de selección de estancia (Check-In -> Check-Out)
+          if (!calBookingCheckIn || calSelectionStep === 0) {
+            calBookingCheckIn = selectedDate;
+            calBookingCheckOut = null;
+            calSelectionStep = 1;
+            showToast(`📅 Check-In: ${selectedDate}. Ahora haz clic en tu fecha de salida (Check-Out).`, 'info');
+          } else if (calSelectionStep === 1) {
+            if (selectedDate <= calBookingCheckIn) {
+              calBookingCheckIn = selectedDate;
+              calBookingCheckOut = null;
+              calSelectionStep = 1;
+              showToast(`📅 Nueva fecha de Check-In: ${selectedDate}. Selecciona tu fecha de salida.`, 'info');
+            } else {
+              const hasUnavailable = calendarDays.some(cd =>
+                cd.date >= calBookingCheckIn && cd.date < selectedDate && cd.status !== 'AVAILABLE'
+              );
+              if (hasUnavailable) {
+                showToast(`El rango seleccionado contiene fechas intermedias no disponibles. Selecciona otro periodo libre.`, 'warning');
+                return;
+              }
+
+              calBookingCheckOut = selectedDate;
+              calSelectionStep = 0;
+              const dIn = new Date(calBookingCheckIn);
+              const dOut = new Date(calBookingCheckOut);
+              const nights = Math.max(1, Math.round((dOut.getTime() - dIn.getTime()) / (1000 * 60 * 60 * 24)));
+              showToast(`✅ Estancia seleccionada: ${calBookingCheckIn} al ${calBookingCheckOut} (${nights} noches). ¡Listo para reservar!`, 'success');
+            }
+          }
+
+          updateCalendarBookingPanel();
+          loadAndRenderCalendar(roomId, year, month);
         });
       });
 
@@ -2425,6 +2641,44 @@ document.addEventListener('DOMContentLoaded', () => {
       calDaysGrid.innerHTML = `<div style="grid-column: span 7; color: #f87171; padding: 1.5rem;">Error al consultar calendario: ${err.message}</div>`;
     }
   }
+
+  // Listener para proceder al checkout desde el calendario de la habitación
+  btnProceedBookingFromCalendar?.addEventListener('click', async () => {
+    if (!calBookingCheckIn || !calBookingCheckOut) {
+      showToast('Por favor selecciona las fechas de llegada y salida en el calendario', 'warning');
+      return;
+    }
+    const dIn = new Date(calBookingCheckIn);
+    const dOut = new Date(calBookingCheckOut);
+    if (dOut <= dIn) {
+      showToast('La fecha de salida debe ser posterior a la fecha de llegada', 'warning');
+      return;
+    }
+
+    const nights = Math.max(1, Math.round((dOut.getTime() - dIn.getTime()) / (1000 * 60 * 60 * 24)));
+    const guestsCount = Number(calClientGuestsSel?.value || 2);
+    const totalAmount = nights * calSelectedRoomPrice;
+
+    // Cerrar modal de calendario
+    if (roomCalendarModal) roomCalendarModal.style.display = 'none';
+
+    // Iniciar flujo de soft-lock de 10 min en Redis y modal de checkout
+    await startCheckoutFlow({
+      roomId: calSelectedRoomId,
+      roomName: calSelectedRoomName,
+      hotelId: calSelectedHotelId,
+      hotelName: calSelectedHotelName,
+      checkIn: calBookingCheckIn,
+      checkOut: calBookingCheckOut,
+      nights,
+      guestsCount,
+      totalAmount,
+    });
+  });
+
+  calClientGuestsSel?.addEventListener('change', () => {
+    updateCalendarBookingPanel();
+  });
 
   // Navegación de mes del calendario
   calPrevMonthBtn?.addEventListener('click', () => {
