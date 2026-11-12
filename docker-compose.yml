@@ -76,6 +76,12 @@ services:
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-24h}
       RABBITMQ_URL: ${RABBITMQ_URL:-amqp://guest:guest@rabbitmq:5672}
       RABBITMQ_QUEUE: ${RABBITMQ_QUEUE:-hotel_notifications_queue}
+      # Seed idempotente de cuentas (solo crea si no existen)
+      SEED_DEMO_USERS: ${SEED_DEMO_USERS:-true}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
+      SEED_ADMIN_FIRSTNAME: ${SEED_ADMIN_FIRSTNAME:-Administrador}
+      SEED_ADMIN_LASTNAME: ${SEED_ADMIN_LASTNAME:-General}
     ports:
       - "3001:3001"
     volumes:
