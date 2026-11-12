@@ -672,7 +672,8 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div class="hotel-card-footer">
             <div class="hotel-policy-pill">${petStr}</div>
-            <div style="display: flex; gap: 0.5rem;">
+            <div style="display: flex; gap: 0.4rem; align-items: center;">
+              <a href="https://www.google.com/maps/dir/?api=1&destination=${h.latitude || 10.4042},${h.longitude || -75.5562}" target="_blank" rel="noopener" class="btn-hotel-secondary" style="padding: 7px 10px; font-size: 0.78rem;" title="Calcular ruta en Google Maps">🗺️</a>
               <button class="btn-hotel-detail" data-id="${h.id}" style="padding: 7px 12px; font-size: 0.78rem;">Ver Ficha</button>
               <button class="btn-blue btn-quick-book" data-id="${h.id}" data-name="${h.name}" style="padding: 7px 12px; font-size: 0.78rem;">Reservar</button>
             </div>
@@ -748,6 +749,66 @@ document.addEventListener('DOMContentLoaded', () => {
       amenitiesBox.innerHTML = Array.isArray(hotel.amenities)
         ? hotel.amenities.map(a => `<span class="hotel-amenity-tag">${a}</span>`).join('')
         : '<span style="color: var(--text-dim);">Sin amenidades registradas</span>';
+
+      // Coordenadas y Mapa Interactivo de Google Maps
+      const lat = hotel.latitude || 10.4042;
+      const lng = hotel.longitude || -75.5562;
+      const mapIframe = document.getElementById('detailMapIframe');
+      if (mapIframe) {
+        mapIframe.src = `https://www.google.com/maps?q=${lat},${lng}&hl=es&z=15&output=embed`;
+      }
+      const dirLink = document.getElementById('btnDetailDirections');
+      if (dirLink) {
+        dirLink.href = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+      }
+
+      // Generar Puntos de Interés Cercanos (POIs) según ciudad
+      const poisBox = document.getElementById('detailNearbyPois');
+      if (poisBox) {
+        const city = (hotel.city || '').toLowerCase();
+        let pois = [];
+        if (city.includes('cartagena')) {
+          pois = [
+            '✈️ Aeropuerto Int. Rafael Núñez (15 min)',
+            '🏰 Ciudad Amurallada & Torre del Reloj (10 min)',
+            '🏖️ Playa Bocagrande (Acceso directo)',
+            '🍽️ Restaurante Carmen & Candé (12 min)'
+          ];
+        } else if (city.includes('medell')) {
+          pois = [
+            '✈️ Aeropuerto Olaya Herrera (12 min)',
+            '🌳 Parque Lleras & Provenza (5 min a pie)',
+            '🎨 Plaza Botero & Museo de Antioquia (20 min)',
+            '🍸 Rooftop Bar Panorámico (En el hotel)'
+          ];
+        } else if (city.includes('santa marta')) {
+          pois = [
+            '🌿 Parque Nacional Tayrona (40 min)',
+            '⛵ Marina Internacional de Santa Marta (10 min)',
+            '🏖️ Playa El Rodadero (15 min)',
+            '✈️ Aeropuerto Simón Bolívar (25 min)'
+          ];
+        } else if (city.includes('san andr')) {
+          pois = [
+            '🏝️ Cayo Johnny Cay & Acuario (15 min en lancha)',
+            '🏖️ Playa Spratt Bight (5 min)',
+            '🌊 El Hoyo Soplador (20 min)',
+            '✈️ Aeropuerto Gustavo Rojas Pinilla (8 min)'
+          ];
+        } else {
+          pois = [
+            '✈️ Aeropuerto Principal (20 min)',
+            '🏛️ Centro Histórico & Comercial (10 min)',
+            '🍽️ Distrito Gastronómico Recomendado (5 min)'
+          ];
+        }
+
+        poisBox.innerHTML = pois.map(p => `
+          <span style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); color: #7dd3fc; padding: 3px 8px; border-radius: 6px;">
+            ${p}
+          </span>
+        `).join('');
+      }
 
       hotelDetailModal.style.display = 'flex';
     } catch (err) {

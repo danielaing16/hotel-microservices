@@ -771,6 +771,24 @@
         <div class="hotel-amenities-tags" id="detailAmenities"></div>
       </div>
 
+      <!-- Mapa Interactivo & Puntos de Interés (Google Maps) -->
+      <div style="margin: 0.5rem 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <div style="font-size: 0.85rem; font-weight: 700; color: #38bdf8;">🗺️ Ubicación Exacta & Rutas de Llegada</div>
+          <a id="btnDetailDirections" href="#" target="_blank" rel="noopener" class="btn-hotel-secondary" style="padding: 5px 12px; font-size: 0.75rem; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);">
+            <span>🚗</span> Cómo llegar (Google Maps)
+          </a>
+        </div>
+        <div style="height: 200px; border-radius: var(--radius-md); overflow: hidden; border: 1px solid rgba(255,255,255,0.15); background: #0f172a;">
+          <iframe id="detailMapIframe" src="" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+        <!-- POIs -->
+        <div style="margin-top: 0.6rem; background: rgba(255,255,255,0.03); padding: 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
+          <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; margin-bottom: 0.35rem;">📍 Puntos de Interés Cercanos (POIs):</div>
+          <div id="detailNearbyPois" style="display: flex; flex-wrap: wrap; gap: 0.5rem; font-size: 0.78rem;"></div>
+        </div>
+      </div>
+
       <div
         style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-md); font-size: 0.82rem;">
         <div>
