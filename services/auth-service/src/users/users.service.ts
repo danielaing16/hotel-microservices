@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -46,19 +46,23 @@ export class UsersService {
 
   async deleteGuests(): Promise<{ deletedCount: number; message: string }> {
     const guests = await this.userRepository.find({ where: { role: Role.GUEST } });
-    if (guests.length > 0) {
+    const count = guests.length;
+    if (count > 0) {
       await this.userRepository.remove(guests);
     }
     return {
-      deletedCount: guests.length,
-      message: `${guests.length} usuarios con rol GUEST eliminados exitosamente. Correos liberados.`,
+      deletedCount: count,
+      message: `${count} usuario(s) con rol GUEST eliminados exitosamente. Correos liberados.`,
     };
   }
 
   async deleteById(id: string): Promise<{ message: string }> {
     const user = await this.findById(id);
+    if (user.role === Role.HOTEL_ADMIN) {
+      throw new BadRequestException('No se permite eliminar una cuenta con rol de Administrador');
+    }
     await this.userRepository.remove(user);
-    return { message: `Usuario ${user.email} eliminado exitosamente` };
+    return { message: `Cuenta ${user.email} eliminada exitosamente` };
   }
 
   async setStatus(

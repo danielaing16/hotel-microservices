@@ -248,8 +248,13 @@ export class NotificationsService {
   /**
    * Obtiene el historial de notificaciones procesadas
    */
-  getHistory(): NotificationLogEntryDto[] {
-    return this.historyLogs;
+  getHistory(recipientEmail?: string): NotificationLogEntryDto[] {
+    if (!recipientEmail) {
+      return this.historyLogs;
+    }
+
+    const normalizedEmail = recipientEmail.toLowerCase();
+    return this.historyLogs.filter((entry) => entry.recipient.toLowerCase() === normalizedEmail);
   }
 
   /**
@@ -292,4 +297,3 @@ export class NotificationsService {
     return entry;
   }
 }
-

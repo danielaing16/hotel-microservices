@@ -4,9 +4,11 @@ import {
   Post,
   Body,
   Res,
+  Headers,
   UseGuards,
   HttpStatus,
   Logger,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
 import { ApiTags, ApiOperation, ApiResponse, ApiProduces, ApiBearerAuth } from '@nestjs/swagger';
@@ -117,27 +119,37 @@ export class NotificationsController {
 
   @Get('history')
   @UseGuards(RolesGuard)
-  @Roles(Role.HOTEL_ADMIN)
+  @Roles(Role.HOTEL_ADMIN, Role.RECEPTIONIST, Role.GUEST)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Historial de Notificaciones Procesadas (Solo HOTEL_ADMIN)',
-    description: 'Retorna las últimas 50 notificaciones despachadas. Exclusivo del administrador.',
+    summary: 'Historial de Notificaciones Procesadas',
+    description: 'El personal autorizado consulta el historial completo; GUEST solo ve sus propias notificaciones.',
   })
   @ApiResponse({
     status: HttpStatus.OK,
     type: [NotificationLogEntryDto],
     description: 'Historial obtenido satisfactoriamente',
   })
-  getHistory(): NotificationLogEntryDto[] {
+  getHistory(
+    @Headers('x-user-role') userRole: string,
+    @Headers('x-user-email') userEmail?: string,
+  ): NotificationLogEntryDto[] {
+    if (userRole?.toUpperCase() === Role.GUEST) {
+      if (!userEmail) {
+        throw new UnauthorizedException('No se pudo identificar el correo del usuario autenticado');
+      }
+      return this.notificationsService.getHistory(userEmail);
+    }
+
     return this.notificationsService.getHistory();
   }
 
   @Get('voucher/sample')
   @UseGuards(RolesGuard)
-  @Roles(Role.HOTEL_ADMIN)
+  @Roles(Role.HOTEL_ADMIN, Role.RECEPTIONIST, Role.GUEST)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Descargar o Previsualizar Voucher PDF de Muestra (Solo HOTEL_ADMIN)',
+    summary: 'Descargar o Previsualizar Voucher PDF de Muestra (Usuarios Autenticados)',
     description: 'Genera en tiempo real un Voucher de Confirmación elegante en PDF con código QR y lo transmite.',
   })
   @ApiProduces('application/pdf')
@@ -159,10 +171,10 @@ export class NotificationsController {
 
   @Post('voucher/preview')
   @UseGuards(RolesGuard)
-  @Roles(Role.HOTEL_ADMIN)
+  @Roles(Role.HOTEL_ADMIN, Role.RECEPTIONIST, Role.GUEST)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Generar Voucher PDF Personalizado (Solo HOTEL_ADMIN)',
+    summary: 'Generar Voucher PDF Personalizado (Usuarios Autenticados)',
     description: 'Recibe datos de una reserva y devuelve directamente el PDF generado con QR para verificación.',
   })
   @ApiProduces('application/pdf')
@@ -275,4 +287,3 @@ export class NotificationsController {
     }
   }
 }
-

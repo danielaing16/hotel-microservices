@@ -1,5 +1,7 @@
 // API Gateway Client para el Frontend de Reservas Hoteleras
-const GATEWAY_BASE_URL = 'http://localhost:3000';
+const GATEWAY_BASE_URL = (typeof window !== 'undefined' && window.location)
+  ? `${window.location.protocol}//${window.location.hostname || 'localhost'}:3000`
+  : 'http://localhost:3000';
 
 class HotelApiClient {
   constructor() {
@@ -26,10 +28,14 @@ class HotelApiClient {
   async request(endpoint, options = {}) {
     const url = `${this.baseUrl}${endpoint}`;
     const start = Date.now();
-    const headers = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
+    const headers = { ...options.headers };
+
+    // Solo fijar Content-Type: application/json si la petición contiene cuerpo (POST, PUT, PATCH).
+    // Para peticiones sin cuerpo (GET, DELETE), no se envía Content-Type para evitar que
+    // el body-parser de Express consuma el stream y deje congelada la tubería del Proxy.
+    if (options.body && !headers['Content-Type']) {
+      headers['Content-Type'] = 'application/json';
+    }
 
     const token = this.getToken();
     if (token && !headers['Authorization']) {
@@ -497,4 +503,4 @@ class HotelApiClient {
 
 }
 
-window.apiClient = new HotelApiClient();
+window.api = window.apiClient = new HotelApiClient();

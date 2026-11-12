@@ -153,6 +153,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnAdminUnblock = document.getElementById('btnAdminUnblock');
 
   let calSelectedRoomId = null;
+  let calSelectedRoomName = '';
+  let calSelectedHotelName = '';
+  let calSelectedHotelId = null;
+  let calSelectedRoomPrice = 150;
+  let calSelectedRoomMaxAdults = 2;
+  let calBookingCheckIn = '2026-11-20';
+  let calBookingCheckOut = '2026-11-22';
   let calCurrentYear = 2026;
   let calCurrentMonth = 11; // Noviembre 2026
 
@@ -191,6 +198,10 @@ document.addEventListener('DOMContentLoaded', () => {
     pagos: {
       title: 'Conciliación de Pagos & Reembolsos',
       desc: 'Visión financiera global de las transacciones y gestión oficial de reembolsos.',
+    },
+    notifications: {
+      title: 'Worker de Notificaciones & Vouchers PDF',
+      desc: 'Monitoreo de eventos en RabbitMQ, emisión de comprobantes con código QR y entrega de correos transaccionales.',
     },
   };
 
@@ -269,6 +280,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (staffSidebarGroup) {
         staffSidebarGroup.style.display = isStaff ? 'block' : 'none';
       }
+      // 1.c Disparadores de Notificaciones: Exclusivo de Personal
+      const staffNotifTriggers = document.getElementById('staffNotifTriggers');
+      if (staffNotifTriggers) {
+        staffNotifTriggers.style.display = isStaff ? 'block' : 'none';
+      }
       // 1.b Gestión de Cuentas y Pagos: Exclusivo del Administrador.
       if (adminSidebarGroup) {
         adminSidebarGroup.style.display = isAdmin ? 'block' : 'none';
@@ -336,6 +352,8 @@ document.addEventListener('DOMContentLoaded', () => {
       loadUsers();
     } else if (tabId === 'pagos') {
       loadPayments();
+    } else if (tabId === 'notifications') {
+      loadNotificationHistory();
     }
   }
 
@@ -1696,6 +1714,20 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast('Listado de cuentas actualizado', 'info');
   });
 
+  // Botón para eliminar en masa todas las cuentas GUEST de prueba
+  const btnDeleteGuests = document.getElementById('btnDeleteGuests');
+  btnDeleteGuests?.addEventListener('click', async () => {
+    if (!confirm('¿Confirmas que deseas eliminar TODOS los usuarios con rol GUEST?\n\nEsta acción liberará sus correos para nuevas pruebas y registros limpios.')) return;
+    try {
+      showToast('Eliminando usuarios GUEST...', 'info');
+      const res = await api.deleteGuests();
+      showToast(res.message || `${res.deletedCount ?? 0} usuarios GUEST eliminados exitosamente`, 'success');
+      loadUsers();
+    } catch (err) {
+      showToast(`Error al purgar huéspedes: ${err.message}`, 'error');
+    }
+  });
+
   // --------------------------------------------------------------------------
   // 16. TAB: PAGOS & REEMBOLSOS (EXCLUSIVO HOTEL_ADMIN)
   // --------------------------------------------------------------------------
@@ -1784,6 +1816,235 @@ document.addEventListener('DOMContentLoaded', () => {
   refreshPaymentsBtn?.addEventListener('click', () => {
     loadPayments();
     showToast('Transacciones actualizadas', 'info');
+  });
+
+  // --------------------------------------------------------------------------
+  // 17. TAB: NOTIFICACIONES & VOUCHERS (notification-service:3008)
+  // --------------------------------------------------------------------------
+  const notificationsHistoryList = document.getElementById('notificationsHistoryList');
+  const notifCountBadge = document.getElementById('notifCountBadge');
+  const refreshNotifHistoryBtn = document.getElementById('refreshNotifHistoryBtn');
+
+  const btnVoucherSample = document.getElementById('btnVoucherSample');
+  const btnTriggerWelcome = document.getElementById('btnTriggerWelcome');
+  const btnTriggerBookingConfirm = document.getElementById('btnTriggerBookingConfirm');
+  const btnTriggerPaymentFailed = document.getElementById('btnTriggerPaymentFailed');
+  const btnTriggerCheckinReminder = document.getElementById('btnTriggerCheckinReminder');
+  const btnTriggerRefund = document.getElementById('btnTriggerRefund');
+
+  async function loadNotificationHistory() {
+    try {
+      const history = await api.getNotificationHistory();
+      const currentUser = api.getCurrentUser();
+      const role = currentUser ? (currentUser.role || 'GUEST') : 'GUEST';
+      const isStaff = role === 'HOTEL_ADMIN' || role === 'RECEPTIONIST';
+
+      // Actualizar píldora de estado de SMTP (Gmail / Ethereal)
+      api.getNotificationStatus().then(st => {
+        const textElem = document.getElementById('notifSmtpPillText');
+        const pillElem = document.getElementById('notifSmtpPill');
+        if (textElem && st?.smtp) {
+          if (st.smtp.isReal) {
+            textElem.textContent = st.smtp.provider || 'Gmail SMTP (Producción)';
+            if (pillElem) pillElem.style.borderColor = '#22c55e';
+          } else {
+            textElem.textContent = 'Nodemailer (Ethereal Dev)';
+          }
+        }
+      }).catch(() => {});
+
+      // GUEST solo ve sus propias notificaciones; el personal ve todo el registro
+      let filteredHistory = Array.isArray(history) ? history : (history?.data || []);
+      if (!isStaff && currentUser && currentUser.email) {
+        filteredHistory = filteredHistory.filter(item => {
+          const recipient = (item.recipient || item.recipientEmail || item.email || '').toLowerCase();
+          return recipient === currentUser.email.toLowerCase();
+        });
+      }
+      renderNotificationHistory(filteredHistory);
+    } catch (err) {
+      console.warn('No se pudo cargar el historial de notificaciones:', err);
+    }
+  }
+
+  function renderNotificationHistory(history = []) {
+    if (!notificationsHistoryList) return;
+
+    if (notifCountBadge) {
+      notifCountBadge.textContent = `${history.length} notificación(es)`;
+    }
+
+    if (!history || history.length === 0) {
+      const user = api.getCurrentUser();
+      const isStaff = user && (user.role === 'HOTEL_ADMIN' || user.role === 'RECEPTIONIST');
+      notificationsHistoryList.innerHTML = `
+        <div class="notif-history-empty">
+          ${isStaff
+            ? 'No se han procesado notificaciones en esta sesión. Utiliza los botones de arriba para disparar eventos hacia RabbitMQ.'
+            : 'No tienes notificaciones registradas en tu buzón personal por el momento.'}
+        </div>
+      `;
+      return;
+    }
+
+    notificationsHistoryList.innerHTML = history.map(item => {
+      const timeStr = item.timestamp ? new Date(item.timestamp).toLocaleTimeString() : '—';
+      const deliveryBadge = item.status === 'SENT' && !item.previewUrl
+        ? `<span style="color:#34d399; font-size: 0.72rem; font-weight:600;">✓ Entregado a Gmail</span>`
+        : '';
+      const previewLink = item.previewUrl
+        ? `<a href="${item.previewUrl}" target="_blank" class="notif-link-btn" title="Abrir correo renderizado en Ethereal">🔗 Ver Email</a>`
+        : deliveryBadge;
+      const attachmentBadge = item.hasAttachment
+        ? `<span style="color:#6ee7b7; font-size: 0.72rem;">📎 Voucher PDF</span>`
+        : '';
+
+      return `
+        <div class="notif-history-item">
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <span class="notif-badge-tag ${item.type || ''}">${item.type || 'EVENT'}</span>
+            <strong style="color: #f8fafc;">${item.recipient || '—'}</strong>
+            <span style="color: var(--text-dim); font-size: 0.75rem;">${item.subject || ''}</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.6rem; margin-left: auto;">
+            <span style="color: var(--text-dim); font-size: 0.7rem;">${timeStr} (${item.durationMs ?? 0}ms)</span>
+            ${attachmentBadge}
+            ${previewLink}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Triggers de notificación
+  btnVoucherSample?.addEventListener('click', () => {
+    const url = api.getVoucherSampleUrl();
+    window.open(url, '_blank');
+    showToast('Generando y transmitiendo Voucher PDF con QR para lectura en recepción...', 'success');
+  });
+
+  btnTriggerWelcome?.addEventListener('click', async () => {
+    const user = api.getCurrentUser() || { firstName: 'Mauricio', lastName: 'Gómez', email: 'mauromedina2508@gmail.com' };
+    try {
+      showToast(`Despachando evento user.registered a ${user.email}...`, 'info');
+      await api.sendWelcomeNotification({
+        userId: user.id || 'usr_demo_100',
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        loginUrl: window.location.origin,
+      });
+      showToast('Correo de bienvenida despachado exitosamente ✓', 'success');
+      loadNotificationHistory();
+    } catch (err) {
+      showToast(`Error: ${err.message}`, 'error');
+    }
+  });
+
+  btnTriggerBookingConfirm?.addEventListener('click', async () => {
+    const user = api.getCurrentUser() || { firstName: 'Mauricio', lastName: 'Gómez', email: 'mauromedina2508@gmail.com' };
+    const ref = `TR-2026-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+    try {
+      showToast(`Generando Voucher PDF y despachando confirmación a ${user.email}...`, 'info');
+      await api.sendBookingConfirmationNotification({
+        bookingId: `bkg_${Date.now()}_sim`,
+        bookingReference: ref,
+        userEmail: user.email,
+        userName: `${user.firstName} ${user.lastName}`,
+        hotelName: 'The Grand Riviera Luxury Palace',
+        hotelAddress: 'Av. Costanera Km 14',
+        hotelCity: 'Cancún, México',
+        roomTypeName: 'Master Oceanfront Suite con Balcón',
+        checkInDate: '2026-11-20',
+        checkOutDate: '2026-11-25',
+        nights: 5,
+        guestsCount: 2,
+        totalAmount: 950.0,
+        currency: 'USD',
+        paymentId: `pi_stripe_${Date.now().toString(36)}`,
+        paymentMethod: 'Tarjeta Visa terminada en 4242',
+      });
+      showToast(`¡Voucher PDF emitido y correo despachado para ${ref}! ✓`, 'success');
+      loadNotificationHistory();
+    } catch (err) {
+      showToast(`Error: ${err.message}`, 'error');
+    }
+  });
+
+  btnTriggerPaymentFailed?.addEventListener('click', async () => {
+    const user = api.getCurrentUser() || { firstName: 'Mauricio', lastName: 'Gómez', email: 'mauromedina2508@gmail.com' };
+    try {
+      showToast('Despachando alerta payment.failed...', 'info');
+      await api.sendPaymentFailedNotification({
+        bookingId: `bkg_pend_${Math.random().toString(36).substring(2, 7)}`,
+        userEmail: user.email,
+        userName: `${user.firstName} ${user.lastName}`,
+        hotelName: 'Cartagena Paradise Beach Resort',
+        roomTypeName: 'Junior Suite Vista al Mar',
+        totalAmount: 480.0,
+        currency: 'USD',
+        failureReason: 'Fondos insuficientes (card_declined) reportados por la pasarela',
+        retryPaymentUrl: `${window.location.origin}`,
+        expiresAt: 'Restan 8 minutos de reserva en Redis',
+      });
+      showToast('Alerta de pago fallido despachada con éxito ✓', 'success');
+      loadNotificationHistory();
+    } catch (err) {
+      showToast(`Error: ${err.message}`, 'error');
+    }
+  });
+
+  btnTriggerCheckinReminder?.addEventListener('click', async () => {
+    const user = api.getCurrentUser() || { firstName: 'Mauricio', lastName: 'Gómez', email: 'mauromedina2508@gmail.com' };
+    try {
+      showToast('Despachando recordatorio de check-in 24h...', 'info');
+      await api.sendCheckinReminderNotification({
+        bookingId: `bkg_chk_${Date.now().toString(36)}`,
+        bookingReference: 'TR-2026-REMINDER',
+        userEmail: user.email,
+        userName: `${user.firstName} ${user.lastName}`,
+        hotelName: 'The Palm Luxury Suites & Spa',
+        hotelAddress: 'Calle 50 # 12-40, Bocagrande',
+        hotelCity: 'Cartagena de Indias',
+        roomTypeName: 'Penthouse Imperial con Jacuzzi',
+        checkInDate: 'Mañana',
+        checkInTime: '15:00',
+        specialInstructions: 'Recepción VIP con copa de champagne de bienvenida.',
+      });
+      showToast('Recordatorio de check-in enviado exitosamente ✓', 'success');
+      loadNotificationHistory();
+    } catch (err) {
+      showToast(`Error: ${err.message}`, 'error');
+    }
+  });
+
+  btnTriggerRefund?.addEventListener('click', async () => {
+    const user = api.getCurrentUser() || { firstName: 'Mauricio', lastName: 'Gómez', email: 'mauromedina2508@gmail.com' };
+    try {
+      showToast('Despachando comprobante de reembolso...', 'info');
+      await api.sendRefundReceiptNotification({
+        bookingId: `bkg_canc_${Date.now().toString(36)}`,
+        bookingReference: 'TR-2026-REFUND',
+        refundId: `ref_stripe_${Math.random().toString(36).substring(2, 9)}`,
+        userEmail: user.email,
+        userName: `${user.firstName} ${user.lastName}`,
+        hotelName: 'The Grand Riviera Luxury Palace',
+        roomTypeName: 'Master Oceanfront Suite',
+        refundAmount: 950.0,
+        originalAmount: 950.0,
+        currency: 'USD',
+        reason: 'Cancelación voluntaria del huésped con anticipación mayor a 48h.',
+      });
+      showToast('Comprobante de reembolso despachado exitosamente ✓', 'success');
+      loadNotificationHistory();
+    } catch (err) {
+      showToast(`Error: ${err.message}`, 'error');
+    }
+  });
+
+  refreshNotifHistoryBtn?.addEventListener('click', () => {
+    loadNotificationHistory();
+    showToast('Historial de notificaciones actualizado', 'info');
   });
 
   // --------------------------------------------------------------------------
@@ -1910,8 +2171,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 data-room-name="${r.name} #${r.roomNumber}"
                 data-hotel-name="${r.hotelName}"
                 data-hotel-id="${r.hotelId}"
-                style="padding: 6px 10px; font-size: 0.75rem;" title="Consultar calendario mensual de fechas">
-                📅 Calendario
+                data-price="${r.pricePerNight}"
+                data-max-adults="${r.maxAdults || 2}"
+                style="padding: 6px 10px; font-size: 0.75rem;" title="Consultar calendario mensual de fechas y reservar">
+                📅 Calendario & Reserva
               </button>
               <button class="btn-blue btn-book-from-rooms" data-hotel-id="${r.hotelId}" style="padding: 6px 12px; font-size: 0.75rem;">
                 Reservar
@@ -1929,7 +2192,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const roomName = btn.getAttribute('data-room-name');
         const hotelName = btn.getAttribute('data-hotel-name');
         const hotelId = btn.getAttribute('data-hotel-id');
-        openRoomCalendarModal(roomId, roomName, hotelName, hotelId);
+        const price = Number(btn.getAttribute('data-price') || 150);
+        const maxAdults = Number(btn.getAttribute('data-max-adults') || 2);
+        openRoomCalendarModal(roomId, roomName, hotelName, hotelId, price, maxAdults);
       });
     });
 
