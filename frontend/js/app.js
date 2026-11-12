@@ -1686,6 +1686,158 @@ document.addEventListener('DOMContentLoaded', () => {
         HOTEL_ADMIN: { label: 'Administrador', color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.15)' },
   };
 
+  
+  // =========================================================================
+  // FASE 4: PANEL DE CONTROL & TRANSACCIONES (ADMIN DASHBOARD)
+  // =========================================================================
+  async function loadAdminDashboard() {
+    try {
+      // 1. Cargar habitaciones para ocupación
+      const roomsRes = await api.getRooms({ limit: 100 }).catch(() => ({ data: [] }));
+      const rooms = roomsRes?.data || (Array.isArray(roomsRes) ? roomsRes : []);
+      const totalRooms = rooms.length;
+      const occupiedRooms = rooms.filter(r => r.status === 'OCCUPIED').length;
+      const availableRooms = rooms.filter(r => r.status === 'AVAILABLE').length;
+      const maintenanceRooms = rooms.filter(r => r.status === 'MAINTENANCE').length;
+      const inactiveRooms = rooms.filter(r => r.status === 'INACTIVE' || r.isActive === false).length;
+
+      const occupancyRate = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
+
+      const elOccRate = document.getElementById('kpiOccupancyRate');
+      const elOccDetail = document.getElementById('kpiOccupancyDetail');
+      if (elOccRate) elOccRate.textContent = `${occupancyRate}%`;
+      if (elOccDetail) elOccDetail.textContent = `${occupiedRooms} de ${totalRooms} habitaciones ocupadas`;
+
+      const elAvail = document.getElementById('invAvailableCount');
+      const elOcc = document.getElementById('invOccupiedCount');
+      const elMaint = document.getElementById('invMaintenanceCount');
+      const elInact = document.getElementById('invInactiveCount');
+      if (elAvail) elAvail.textContent = availableRooms;
+      if (elOcc) elOcc.textContent = occupiedRooms;
+      if (elMaint) elMaint.textContent = maintenanceRooms;
+      if (elInact) elInact.textContent = inactiveRooms;
+
+      // 2. Cargar pagos para ingresos y transferencias pendientes
+      const payments = await api.getAllPayments().catch(() => []);
+      const confirmedPayments = (payments || []).filter(p => p.status === 'SUCCEEDED');
+      const totalRevenue = confirmedPayments.reduce((acc, p) => acc + (getCOPPrice(p.amount) || 0), 0);
+      const elRev = document.getElementById('kpiTotalRevenue');
+      if (elRev) elRev.textContent = formatCOP(totalRevenue);
+
+      // 3. Transferencias pendientes de aprobación
+      const pendingTransfers = (payments || []).filter(p => p.status === 'PENDING');
+      const elPendingKpi = document.getElementById('kpiPendingTransfers');
+      if (elPendingKpi) elPendingKpi.textContent = pendingTransfers.length;
+
+      renderDashboardPendingTransfers(pendingTransfers);
+
+      // 4. Huéspedes registrados
+      const users = await api.getAllUsers().catch(() => []);
+      const guests = (users || []).filter(u => u.role === 'GUEST');
+      const elGuests = document.getElementById('kpiTotalGuests');
+      if (elGuests) elGuests.textContent = guests.length;
+
+    } catch (err) {
+      console.warn('Error calculando métricas del dashboard:', err.message);
+    }
+  }
+
+  function renderDashboardPendingTransfers(pendingList = []) {
+    const box = document.getElementById('dashboardPendingTransfersBox');
+    if (!box) return;
+
+    if (pendingList.length === 0) {
+      box.innerHTML = `
+        <div style="text-align: center; padding: 1.5rem; color: #34d399; background: rgba(52, 211, 153, 0.05); border-radius: 8px; border: 1px dashed rgba(52, 211, 153, 0.2);">
+          <span>✅ No hay transferencias bancarias pendientes por aprobar en este momento. Todas las reservas están al día.</span>
+        </div>
+      `;
+      return;
+    }
+
+    box.innerHTML = `
+      <table class="reception-table" style="width: 100%;">
+        <thead>
+          <tr>
+            <th>Referencia / Reserva</th>
+            <th>Monto</th>
+            <th>Fecha</th>
+            <th>Ref. Bancaria</th>
+            <th>Acción Rápida</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${pendingList.map(p => `
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+              <td style="padding: 0.75rem;">
+                <div style="font-weight: 700; color: #38bdf8;">${p.bookingCode || p.id?.substring(0,8)}</div>
+                <div style="font-size: 0.72rem; color: var(--text-dim);">ID: ${p.id}</div>
+              </td>
+              <td style="padding: 0.75rem; font-weight: 800; color: #34d399;">
+                ${formatCOP(p.amount)}
+              </td>
+              <td style="padding: 0.75rem; font-size: 0.75rem; color: var(--text-dim);">
+                ${new Date(p.createdAt).toLocaleDateString()}
+              </td>
+              <td style="padding: 0.75rem; font-size: 0.8rem; color: #fbbf24; font-family: monospace;">
+                ${p.transferReference || 'Pendiente'}
+              </td>
+              <td style="padding: 0.75rem;">
+                <div style="display: flex; gap: 0.4rem;">
+                  <button class="btn-dash-approve" data-id="${p.id}"
+                    style="padding: 4px 10px; font-size: 0.75rem; border-radius: 6px; background: rgba(52, 211, 153, 0.2); border: 1px solid #34d399; color: #34d399; cursor: pointer; font-weight: 700;">
+                    Aprobar ✅
+                  </button>
+                  <button class="btn-dash-reject" data-id="${p.id}"
+                    style="padding: 4px 10px; font-size: 0.75rem; border-radius: 6px; background: rgba(248, 113, 113, 0.2); border: 1px solid #f87171; color: #f87171; cursor: pointer; font-weight: 700;">
+                    Rechazar ❌
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+
+    box.querySelectorAll('.btn-dash-approve').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        if (!confirm('¿Aprobar esta transferencia bancaria y confirmar la reserva?')) return;
+        try {
+          await api.approvePayment(id);
+          showToast('Transferencia aprobada. Reserva confirmada.', 'success');
+          loadAdminDashboard();
+          loadPayments();
+        } catch (err) {
+          showToast(err.message, 'error');
+        }
+      });
+    });
+
+    box.querySelectorAll('.btn-dash-reject').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        const reason = prompt('Motivo del rechazo de la transferencia (se notificará al huésped):', 'Comprobante bancario no legible o fondos no acreditados');
+        if (!reason) return;
+        try {
+          await api.rejectPayment(id, reason);
+          showToast('Transferencia rechazada y fechas liberadas en inventario.', 'info');
+          loadAdminDashboard();
+          loadPayments();
+        } catch (err) {
+          showToast(err.message, 'error');
+        }
+      });
+    });
+  }
+
+  const refreshAdminDashboardBtn = document.getElementById('refreshAdminDashboardBtn');
+  refreshAdminDashboardBtn?.addEventListener('click', () => {
+    showToast('Actualizando métricas...', 'info');
+    loadAdminDashboard();
+  });
+
   async function loadUsers() {
     if (!usersTableBody) return;
 
