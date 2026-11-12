@@ -230,5 +230,31 @@ export class CreateRoomDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
+
+  @ApiPropertyOptional({
+    example: 'REGULAR',
+    default: 'REGULAR',
+    description: 'Temporada tarifaria (REGULAR, ALTA, BAJA)',
+  })
+  @IsString()
+  @IsOptional()
+  season?: string;
+
+  @ApiPropertyOptional({
+    example: 10,
+    default: 0,
+    description: 'Porcentaje de descuento u oferta promocional (0 a 100)',
+  })
+  @IsNumber()
+  @IsOptional()
+  discountPercentage?: number;
+
+  @ApiPropertyOptional({
+    example: 'Oferta Especial de Apertura 10% OFF',
+    description: 'Nombre o descripción de la promoción',
+  })
+  @IsString()
+  @IsOptional()
+  offerDescription?: string;
 }
 

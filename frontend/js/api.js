@@ -190,6 +190,10 @@ class HotelApiClient {
     return await this.request(`/api/rooms${queryString}`, { method: 'GET' });
   }
 
+  async getRoomById(id) {
+    return await this.request(`/api/rooms/${id}`, { method: 'GET' });
+  }
+
   async getRoomTypes(hotelId) {
     const qs = hotelId ? `?hotelId=${encodeURIComponent(hotelId)}` : '';
     return await this.request(`/api/rooms/types${qs}`, { method: 'GET' });

@@ -779,6 +779,7 @@ document.addEventListener('DOMContentLoaded', () => {
   openCreateHotelBtn?.addEventListener('click', () => {
     hotelUpsertForm.reset();
     document.getElementById('formHotelId').value = '';
+    const chkActive = document.getElementById('formHotelIsActive'); if (chkActive) chkActive.checked = true;
     hotelFormTitle.textContent = '🏢 Registrar Nueva Sede Hotelera';
     hotelFormModal.style.display = 'flex';
   });
@@ -816,6 +817,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('formHotelCheckOut').value = hotel.checkOutTime || '11:00';
       document.getElementById('formHotelCancel').value = hotel.cancellationPolicy || '';
       document.getElementById('formHotelPetFriendly').checked = !!isPet;
+      const chkActive = document.getElementById('formHotelIsActive'); if (chkActive) chkActive.checked = hotel.isActive !== false;
 
       hotelFormTitle.textContent = `✏️ Editar Sede: ${hotel.name}`;
       hotelFormModal.style.display = 'flex';
@@ -851,6 +853,7 @@ document.addEventListener('DOMContentLoaded', () => {
       checkOutTime: document.getElementById('formHotelCheckOut').value.trim() || '11:00',
       cancellationPolicy: document.getElementById('formHotelCancel').value.trim() || 'Cancelación gratuita hasta 48 horas antes.',
       petFriendly: document.getElementById('formHotelPetFriendly').checked,
+      isActive: document.getElementById('formHotelIsActive') ? document.getElementById('formHotelIsActive').checked : true,
     };
 
     try {
@@ -2360,6 +2363,13 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
+    document.querySelectorAll('.btn-room-edit').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openEditRoomModal(btn.getAttribute('data-id'));
+      });
+    });
+
     document.querySelectorAll('.btn-room-delete').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
@@ -2399,6 +2409,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
   closeRoomModalBtn?.addEventListener('click', () => roomFormModal.style.display = 'none');
   roomFormModal?.addEventListener('click', (e) => { if (e.target === roomFormModal) roomFormModal.style.display = 'none'; });
+
+  
+  async function openEditRoomModal(id) {
+    try {
+      await loadRoomHotels();
+      const room = await api.getRoomById(id);
+      document.getElementById('formRoomId').value = room.id;
+      document.getElementById('formRoomHotel').value = room.hotelId;
+      document.getElementById('formRoomNumber').value = room.roomNumber || '';
+      document.getElementById('formRoomFloor').value = room.floor || 1;
+      document.getElementById('formRoomTypeSel').value = room.roomType || 'STANDARD';
+      document.getElementById('formRoomName').value = room.name || '';
+      document.getElementById('formRoomDesc').value = room.description || '';
+      document.getElementById('formRoomPrice').value = getCOPPrice(room.pricePerNight);
+      document.getElementById('formRoomAdults').value = room.maxAdults || 2;
+      document.getElementById('formRoomChildren').value = room.maxChildren || 0;
+      if (document.getElementById('formRoomSeason')) document.getElementById('formRoomSeason').value = room.season || 'REGULAR';
+      if (document.getElementById('formRoomDiscount')) document.getElementById('formRoomDiscount').value = room.discountPercentage || 0;
+      if (document.getElementById('formRoomOfferDesc')) document.getElementById('formRoomOfferDesc').value = room.offerDescription || '';
+      document.getElementById('formRoomAmenities').value = Array.isArray(room.amenities) ? room.amenities.join(', ') : (room.amenities || '');
+      const firstImg = Array.isArray(room.images) ? room.images[0] : (room.images || '');
+      document.getElementById('formRoomImg').value = firstImg;
+      const rTitle = document.getElementById('roomFormTitle');
+      if (rTitle) rTitle.textContent = `✏️ Editar Habitación ${room.name} (#${room.roomNumber})`;
+      roomFormModal.style.display = 'flex';
+    } catch (err) {
+      showToast(`Error cargando habitación: ${err.message}`, 'error');
+    }
+  }
 
   roomUpsertForm?.addEventListener('submit', async (e) => {
     e.preventDefault();

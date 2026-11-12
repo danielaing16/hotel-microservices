@@ -41,35 +41,56 @@ export class AvailabilityService implements OnModuleInit {
   }
 
   /**
-   * Calcula la cotización dinámica para un rango de noches
-   * Incluye tarifa base y recargo del 15% en noches de viernes y sábado
+   * Calcula la cotización dinámica con soporte de temporadas, ofertas y recargo de fin de semana (+15%)
    */
-  calculateQuotation(pricePerNight: number, checkIn: string, checkOut: string, currency = 'USD') {
+  calculateQuotation(
+    pricePerNight: number,
+    checkIn: string,
+    checkOut: string,
+    currency = 'USD',
+    season = 'REGULAR',
+    discountPercentage = 0,
+    offerDescription?: string,
+  ) {
     const dates = this.redisService.getDatesBetween(checkIn, checkOut);
     const nights = dates.length;
 
+    // Modificador de temporada (ALTA: +20%, BAJA: -10%, REGULAR: 0%)
+    const seasonMultiplier = season === 'ALTA' ? 1.2 : (season === 'BAJA' ? 0.9 : 1.0);
+    const adjustedBase = Math.round(pricePerNight * seasonMultiplier * 100) / 100;
+
     let totalAmount = 0;
     let surcharges = 0;
-    const subtotal = Math.round(pricePerNight * nights * 100) / 100;
+    const subtotal = Math.round(adjustedBase * nights * 100) / 100;
 
     for (const dStr of dates) {
       const date = new Date(`${dStr}T00:00:00Z`);
       const dayOfWeek = date.getUTCDay(); // 5 = Viernes, 6 = Sábado
       if (dayOfWeek === 5 || dayOfWeek === 6) {
-        const weekendExtra = Math.round(pricePerNight * 0.15 * 100) / 100;
+        const weekendExtra = Math.round(adjustedBase * 0.15 * 100) / 100;
         surcharges += weekendExtra;
-        totalAmount += pricePerNight + weekendExtra;
+        totalAmount += adjustedBase + weekendExtra;
       } else {
-        totalAmount += pricePerNight;
+        totalAmount += adjustedBase;
       }
     }
+
+    // Aplicar descuento u oferta promocional
+    const discountFactor = Math.min(Math.max(Number(discountPercentage) || 0, 0), 90) / 100;
+    const discountAmount = Math.round(totalAmount * discountFactor * 100) / 100;
+    const finalTotal = Math.max(0, Math.round((totalAmount - discountAmount) * 100) / 100);
 
     return {
       nights,
       basePricePerNight: pricePerNight,
+      season: season || 'REGULAR',
+      seasonMultiplier,
+      discountPercentage: Number(discountPercentage) || 0,
+      discountAmount,
+      offerDescription: offerDescription || null,
       subtotal,
       surcharges: Math.round(surcharges * 100) / 100,
-      totalAmount: Math.round(totalAmount * 100) / 100,
+      totalAmount: finalTotal,
       currency,
     };
   }
@@ -146,7 +167,15 @@ export class AvailabilityService implements OnModuleInit {
 
       // 3.3. Habitación disponible: calcular cotización dinámica
       const price = room.pricePerNight || 120.0;
-      const quote = this.calculateQuotation(price, query.checkIn, query.checkOut, room.currency || 'USD');
+      const quote = this.calculateQuotation(
+        price,
+        query.checkIn,
+        query.checkOut,
+        room.currency || 'USD',
+        room.season,
+        room.discountPercentage,
+        room.offerDescription,
+      );
 
       availableRooms.push({
         id: room.id,

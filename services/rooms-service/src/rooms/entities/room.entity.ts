@@ -229,6 +229,30 @@ export class Room {
   isActive: boolean;
 
   @ApiProperty({
+    example: 'REGULAR',
+    description: 'Temporada tarifaria (REGULAR, ALTA, BAJA)',
+    default: 'REGULAR',
+  })
+  @Column({ type: 'varchar', length: 20, default: 'REGULAR' })
+  season: string;
+
+  @ApiProperty({
+    example: 10,
+    description: 'Porcentaje de descuento u oferta promocional aplicada a la habitación (0 a 100)',
+    default: 0,
+  })
+  @Column({ type: 'float', default: 0 })
+  discountPercentage: number;
+
+  @ApiProperty({
+    example: 'Oferta Especial de Apertura 10% OFF',
+    description: 'Nombre o descripción de la promoción u oferta vigente',
+    required: false,
+  })
+  @Column({ type: 'varchar', length: 150, nullable: true })
+  offerDescription?: string;
+
+  @ApiProperty({
     example: '2026-11-11T14:00:00.000Z',
     description: 'Fecha de registro en la base de datos',
   })
