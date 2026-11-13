@@ -1353,38 +1353,20 @@ document.addEventListener('DOMContentLoaded', () => {
     updateWhatsAppMessage(activeHold);
   });
 
-  // Alternar entre Tarjeta y Transferencia Bancaria en Checkout
-  payMethodCardBtn?.addEventListener('click', () => {
-    currentCheckoutMethod = 'CREDIT_CARD';
-    payMethodCardBtn.style.borderColor = '#38bdf8';
-    payMethodCardBtn.style.background = 'rgba(56,189,248,0.12)';
-    payMethodCardBtn.style.color = '#38bdf8';
-    payMethodTransferBtn.style.borderColor = 'rgba(255,255,255,0.15)';
-    payMethodTransferBtn.style.background = 'transparent';
-    payMethodTransferBtn.style.color = 'var(--text-dim)';
-    const directOwnerBox = document.getElementById('directOwnerBox');
-    if (cardFieldsContainer) cardFieldsContainer.style.display = 'block';
-    if (directOwnerBox) directOwnerBox.style.display = 'none';
-    if (transferRefContainer) transferRefContainer.style.display = 'none';
-    if (btnPayText) btnPayText.textContent = 'PAGAR CON TARJETA Y CONFIRMAR';
-  });
+  // ==========================================================================
+  // GESTIÓN DE PAGO DIRECTO EN CHAT CON EL ENCARGADO / DUEÑO (MODELO BOOKING)
+  // ==========================================================================
+  const btnConfirmAndChatWhatsApp = document.getElementById('btnConfirmAndChatWhatsApp');
+  const btnChatText = document.getElementById('btnChatText');
+  const bookingPendingWaModal = document.getElementById('bookingPendingWaModal');
+  const pendingWaBookingCode = document.getElementById('pendingWaBookingCode');
+  const pendingWaAmountText = document.getElementById('pendingWaAmountText');
+  const pendingWaPercentText = document.getElementById('pendingWaPercentText');
+  const btnReopenWhatsAppChat = document.getElementById('btnReopenWhatsAppChat');
+  const btnClosePendingWaModal = document.getElementById('btnClosePendingWaModal');
 
-  payMethodTransferBtn?.addEventListener('click', () => {
-    currentCheckoutMethod = 'TRANSFER';
-    payMethodTransferBtn.style.borderColor = '#25D366';
-    payMethodTransferBtn.style.background = 'rgba(37,211,102,0.18)';
-    payMethodTransferBtn.style.color = '#4ade80';
-    payMethodCardBtn.style.borderColor = 'rgba(255,255,255,0.15)';
-    payMethodCardBtn.style.background = 'transparent';
-    payMethodCardBtn.style.color = 'var(--text-dim)';
-    const directOwnerBox = document.getElementById('directOwnerBox');
-    if (cardFieldsContainer) cardFieldsContainer.style.display = 'none';
-    if (directOwnerBox) directOwnerBox.style.display = 'block';
-    if (transferRefContainer) transferRefContainer.style.display = 'block';
-    if (btnPayText) btnPayText.textContent = '✅ NOTIFICAR PAGO AL DUEÑO Y ENVIAR A APROBACIÓN';
-  });
+  let currentPendingWaUrl = '#';
 
-  
   function setupOwnerWhatsAppInfo(payload) {
     const ownerHotelName = document.getElementById('ownerHotelName');
     const ownerPhoneText = document.getElementById('ownerPhoneText');
@@ -1395,75 +1377,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (ownerHotelName) ownerHotelName.textContent = hotelName;
     if (ownerPhoneText) ownerPhoneText.textContent = hotelPhone;
-
-    // Limpiar dígitos para URL internacional WhatsApp
-    let cleanPhone = hotelPhone.replace(/\D/g, '');
-    if (!cleanPhone.startsWith('57') && cleanPhone.length === 10) cleanPhone = '57' + cleanPhone;
-    if (!cleanPhone) cleanPhone = '573001234567';
-
-    updateWhatsAppMessage(payload, cleanPhone);
   }
 
-  function updateWhatsAppMessage(payload, cleanPhone) {
-    const btnWhatsApp = document.getElementById('btnRedirectWhatsApp');
-    if (!btnWhatsApp) return;
-
-    const amountStr = formatCOP(activeHold?.amountToPay || payload?.totalAmount || 0);
-    const percentStr = (activeHold?.depositPercentage === 50) ? '50% (Anticipo / Abono de Garantía)' : '100% (Pago Total de la Estancia)';
-
-    const text = `¡Hola! Deseo reservar la habitación *${payload.roomName || 'Seleccionada'}* en *${payload.hotelName || 'su hotel'}*.
-
-📅 *Fechas de Estancia:* del ${payload.checkIn} al ${payload.checkOut} (${payload.nights} noches)
-👥 *Huéspedes:* ${payload.guestsCount} persona(s)
-💵 *Modalidad Seleccionada:* ${percentStr}
-💰 *Monto a Pagar:* ${amountStr}
-⏳ *Código Temporal de Bloqueo:* ${activeHold?.holdId || 'TR-PROVISIONAL'}
-
-Quedo a la espera de sus datos de cuenta o confirmación de la transferencia para que autorice mi reserva. ¡Muchas gracias!`;
-
-    btnWhatsApp.href = `https://api.whatsapp.com/send?phone=${cleanPhone || '573001234567'}&text=${encodeURIComponent(text)}`;
+  function updateWhatsAppMessage(payload) {
+    // No-op ya que el mensaje final se genera dinámicamente con el bookingCode oficial
   }
 
   function setupDefaultDirectPayment() {
-    currentCheckoutMethod = 'TRANSFER';
-    const payMethodTransferBtn = document.getElementById('payMethodTransferBtn');
-    const payMethodCardBtn = document.getElementById('payMethodCardBtn');
-    const cardFieldsContainer = document.getElementById('cardFieldsContainer');
-    const directOwnerBox = document.getElementById('directOwnerBox');
-    const transferRefContainer = document.getElementById('transferRefContainer');
-    const btnPayText = document.getElementById('btnPayText');
-
-    if (payMethodTransferBtn) {
-      payMethodTransferBtn.style.borderColor = '#25D366';
-      payMethodTransferBtn.style.background = 'rgba(37,211,102,0.18)';
-      payMethodTransferBtn.style.color = '#4ade80';
-    }
-    if (payMethodCardBtn) {
-      payMethodCardBtn.style.borderColor = 'rgba(255,255,255,0.15)';
-      payMethodCardBtn.style.background = 'transparent';
-      payMethodCardBtn.style.color = 'var(--text-dim)';
-    }
-    if (cardFieldsContainer) cardFieldsContainer.style.display = 'none';
-    if (directOwnerBox) directOwnerBox.style.display = 'block';
-    if (transferRefContainer) transferRefContainer.style.display = 'block';
-    if (btnPayText) btnPayText.textContent = '✅ NOTIFICAR PAGO AL DUEÑO Y ENVIAR A APROBACIÓN';
+    // Modo directo por chat activado por defecto
   }
 
-  // Procesar Pago y Confirmar Reserva (Anti-Doble Cobro vía Idempotency Key)
-  paymentForm?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
+  // Acción Principal: Confirmar Pre-Reserva y Abrir Chat de WhatsApp con el Encargado
+  btnConfirmAndChatWhatsApp?.addEventListener('click', async () => {
     if (!activeHold) {
       showToast('No hay una habitación activa en bloqueo temporal', 'error');
       return;
     }
 
-    submitPaymentBtn.disabled = true;
-    if (btnPayText) btnPayText.textContent = 'PROCESANDO PAGO SEGURO (SAGA)...';
+    btnConfirmAndChatWhatsApp.disabled = true;
+    if (btnChatText) btnChatText.textContent = 'ASEGURANDO HABITACIÓN...';
 
     try {
+      showToast('Asegurando habitación por 15 minutos en el sistema...', 'info');
+
+      const depositPct = activeHold.depositPercentage || 100;
+      const amountToPay = activeHold.amountToPay || activeHold.totalAmount;
+      const notes = `Pre-reserva Modelo Booking: Pago directo gestionado por chat WhatsApp con el encargado (${depositPct}% = ${formatCOP(amountToPay)})`;
+
       // 1. Crear Reserva en booking-service con el holdId adquirido
-      showToast('Creando registro de reserva con bloqueo...', 'info');
       const bookingPayload = {
         roomId: activeHold.roomId,
         hotelId: activeHold.hotelId,
@@ -1471,66 +1412,88 @@ Quedo a la espera de sus datos de cuenta o confirmación de la transferencia par
         checkOut: activeHold.checkOut,
         guestsCount: activeHold.guestsCount,
         holdId: activeHold.holdId,
-        specialRequests: 'Reserva confirmada vía Web Luxury Portal',
+        specialRequests: notes,
       };
 
-      const booking = await api.createBooking(bookingPayload);
+      const bookingRes = await api.createBooking(bookingPayload);
+      const booking = bookingRes.booking || bookingRes;
 
-      // 2. Procesar Pago en payment-service con Idempotencia
-      showToast('Procesando transacción con pasarela de pagos...', 'info');
+      // 2. Registrar el intento de pago directo en payment-service (en estado PENDING para revisión del Admin)
       const idempotencyKey = `idemp_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-      const rawCard = (cardNumber?.value || '4242424242424242').replace(/\s+/g, '');
+      const txRef = `WA-CHAT-${booking.bookingCode || Date.now().toString().slice(-6)}`;
 
-      const paymentPayload = {
-        bookingId: booking.id,
-        idempotencyKey,
-        amount: Number(booking.totalAmount),
-        currency: booking.currency || 'COP',
-        paymentMethod: 'CREDIT_CARD',
-        cardNumber: rawCard,
-        cardHolderName: cardHolder?.value.trim() || 'Huésped Titular',
-        cardExp: cardExp?.value.trim() || '12/28',
-        cardCvc: cardCvc?.value.trim() || '123',
-      };
+      try {
+        await api.processPayment({
+          bookingId: booking.id,
+          idempotencyKey,
+          amount: Number(amountToPay),
+          currency: booking.currency || 'USD',
+          paymentMethod: 'TRANSFER',
+          transferReference: txRef,
+        });
+      } catch (payErr) {
+        console.warn('Nota: Pago directo registrado para verificación posterior:', payErr.message);
+      }
 
-      const paymentResult = await api.processPayment(paymentPayload);
+      // 3. Obtener el teléfono del hotel / encargado
+      const hotel = selectedHotelForBooking || {};
+      const hotelPhone = hotel.phone || hotel.contactPhone || '+57 (605) 650 1200';
+      let cleanPhone = hotelPhone.replace(/\D/g, '');
+      if (!cleanPhone.startsWith('57') && cleanPhone.length === 10) cleanPhone = '57' + cleanPhone;
+      if (!cleanPhone) cleanPhone = '573001234567';
 
-      // 3. Detener temporizador y cerrar modal de pago
+      // 4. Armar el mensaje prellenado para WhatsApp con el código oficial de reserva
+      const percentLabel = (depositPct === 50) ? '50% (Anticipo de Garantía)' : '100% (Pago Total de la Estancia)';
+      const waMessage = `¡Hola! Acabo de hacer la pre-reserva de la habitación *${activeHold.roomName || 'Habitación'}* en *${activeHold.hotelName || hotel.name || 'su hotel'}*.
+
+📋 *Código de Reserva:* ${booking.bookingCode}
+📅 *Estancia:* ${activeHold.checkIn} al ${activeHold.checkOut} (${activeHold.nights} noches)
+👥 *Huéspedes:* ${activeHold.guestsCount} persona(s)
+💵 *Modalidad elegida:* ${percentLabel}
+💰 *Monto a Pagar:* ${formatCOP(amountToPay)}
+⏱️ *Estado en Plataforma:* Habitación bloqueada temporalmente por 15 minutos en espera de validación de pago.
+
+¿Me confirma por favor a qué cuenta (Nequi / Bancolombia / Daviplata) le realizo la transferencia para enviarle el comprobante y que autorice mi reserva? ¡Muchas gracias!`;
+
+      currentPendingWaUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waMessage)}`;
+
+      // 5. Abrir WhatsApp en pestaña nueva
+      window.open(currentPendingWaUrl, '_blank');
+
+      // 6. Cerrar modal de checkout y limpiar timer
       if (activeHold.timerId) clearInterval(activeHold.timerId);
       activeHold = null;
       checkoutModal.style.display = 'none';
 
-      // 4. Guardar datos para descarga de voucher
-      lastConfirmedBooking = {
-        bookingId: booking.id,
-        bookingReference: booking.bookingCode,
-        userEmail: booking.userEmail,
-        userName: booking.userName,
-        hotelName: booking.hotelName,
-        hotelAddress: 'Dirección confirmada en voucher',
-        hotelCity: 'Colombia',
-        roomTypeName: booking.roomName,
-        checkInDate: booking.checkIn,
-        checkOutDate: booking.checkOut,
-        nights: booking.nights,
-        guestsCount: booking.guestsCount,
-        totalAmount: booking.totalAmount,
-        currency: booking.currency || 'COP',
-        paymentId: paymentResult.id || `PAY-${Date.now().toString(36).toUpperCase()}`,
-        paymentMethod: `Tarjeta terminada en ${rawCard.slice(-4)}`,
-      };
+      // 7. Mostrar modal de confirmación de pre-reserva y chat
+      if (pendingWaBookingCode) pendingWaBookingCode.textContent = booking.bookingCode;
+      if (pendingWaAmountText) pendingWaAmountText.textContent = formatCOP(amountToPay);
+      if (pendingWaPercentText) pendingWaPercentText.textContent = percentLabel;
+      if (btnReopenWhatsAppChat) btnReopenWhatsAppChat.href = currentPendingWaUrl;
 
-      // 5. Mostrar Modal de Éxito con Código Único
-      if (successBookingCode) {
-        successBookingCode.textContent = booking.bookingCode;
-      }
-      bookingSuccessModal.style.display = 'flex';
-      showToast('¡Pago exitoso y reserva 100% confirmada!', 'success');
+      if (bookingPendingWaModal) bookingPendingWaModal.style.display = 'flex';
+      showToast('¡Pre-reserva creada! Chat de WhatsApp abierto con el encargado.', 'success');
+
+      // Refrescar vistas en segundo plano
+      if (typeof loadMyBookings === 'function') loadMyBookings();
+      if (typeof loadAdminReservations === 'function') loadAdminReservations();
     } catch (err) {
-      showToast(`Error al completar la reserva: ${err.message}`, 'error');
+      showToast(`Error al procesar la pre-reserva: ${err.message}`, 'error');
     } finally {
-      submitPaymentBtn.disabled = false;
-      if (btnPayText) btnPayText.textContent = 'PAGAR Y CONFIRMAR RESERVA';
+      btnConfirmAndChatWhatsApp.disabled = false;
+      if (btnChatText) btnChatText.textContent = 'RESERVAR Y GESTIONAR PAGO POR WHATSAPP';
+    }
+  });
+
+  // Modal 2.5: Botones de interacción
+  btnClosePendingWaModal?.addEventListener('click', () => {
+    if (bookingPendingWaModal) bookingPendingWaModal.style.display = 'none';
+    switchDashboardTab('my-bookings');
+  });
+
+  bookingPendingWaModal?.addEventListener('click', (e) => {
+    if (e.target === bookingPendingWaModal) {
+      bookingPendingWaModal.style.display = 'none';
     }
   });
 
