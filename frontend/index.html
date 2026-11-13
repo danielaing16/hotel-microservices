@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Travel & Resorts - Hoteles de Lujo & Experiencias Exclusivas</title>
-  <link rel="stylesheet" href="css/styles.css?v=4.2">
+  <link rel="stylesheet" href="css/styles.css?v=5.0">
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏨</text></svg>">
 </head>
@@ -40,143 +40,166 @@
     </div>
 
     <!-- Cuerpo Principal: Hero y Tarjeta de Acceso -->
-    <div class="canvas-body">
-      <!-- Columna Izquierda: Texto de Marca -->
-      <div class="hero-content">
-        <div class="hero-brand">
-          <span class="hero-brand-logo">✨</span>
-          <span class="hero-brand-name">HOSPITALIDAD DE LUJO</span>
-        </div>
-        <h1 class="hero-display-title">
-          EXPLORA<br>HORIZONTES
-        </h1>
-        <p class="hero-tagline">
-          Donde los destinos de tus sueños se hacen realidad.
-        </p>
-        <p class="hero-description">
-          Vive estancias inolvidables en los hoteles más exclusivos de Colombia. Reservas en tiempo real, confirmación
-          inmediata y vouchers digitales oficiales con código QR.
-        </p>
-      </div>
+        <!-- Cuerpo Principal: Tarjeta Asimétrica Orgánica (Inspirada en Referencia) -->
+    <div class="canvas-body" style="justify-content: center; align-items: center; padding: 2rem 1.5rem;">
+      <div class="asymmetric-card-container">
+        <div class="asymmetric-split-card">
 
-      <!-- Columna Derecha: Tarjeta de Acceso -->
-      <div class="auth-card-wrapper">
-        <!-- Formulario de Inicio de Sesión -->
-        <div class="auth-card" id="loginFormView">
-          <div class="auth-card-header">
-            <h2 class="auth-card-title">Iniciar Sesión</h2>
-            <p class="auth-card-subtitle">Accede a tus reservas y tarifas preferenciales</p>
-          </div>
-
-          <form id="loginForm">
-            <div class="field-group">
-              <label class="input-label" for="loginEmail">Correo Electrónico</label>
-              <input type="email" id="loginEmail" class="input-pill" placeholder="tu.correo@ejemplo.com" required>
+          <!-- Lado Izquierdo: Formulario Minimalista Blanco / Aqua -->
+          <div class="asymmetric-form-panel">
+            <!-- Borde Orgánico Rasgado / Torn Paper Edge en SVG -->
+            <div class="torn-paper-edge" aria-hidden="true">
+              <svg viewBox="0 0 28 600" preserveAspectRatio="none">
+                <path d="M0,0 
+                         L12,25 L6,55 L20,85 L8,115 L24,150 L10,185 L26,220 
+                         L12,255 L28,290 L10,325 L24,360 L12,395 L26,430 L8,465 
+                         L22,500 L12,535 L18,570 L0,600 Z" 
+                      fill="#ffffff" />
+              </svg>
             </div>
 
-            <div class="field-group">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <label class="input-label" for="loginPassword" style="margin-bottom: 0;">Contraseña</label>
-                <a class="forgot-link" id="forgotPassLink">¿Olvidaste tu contraseña?</a>
+            <!-- Contenedor de Formularios -->
+            <div class="asymmetric-form-inner">
+              
+              <!-- Formulario de Inicio de Sesión -->
+              <div class="auth-card" id="loginFormView">
+                <div class="auth-card-header">
+                  <span class="auth-badge-sub">MEMBER ACCESS</span>
+                  <h2 class="auth-card-title">SIGN IN</h2>
+                  <p class="auth-card-subtitle">Accede a tus reservas y tarifas preferenciales</p>
+                </div>
+
+                <form id="loginForm">
+                  <div class="field-group">
+                    <label class="input-label" for="loginEmail">Correo Electrónico</label>
+                    <div class="input-icon-wrap">
+                      <span class="input-inline-icon">👤</span>
+                      <input type="email" id="loginEmail" class="input-pill" placeholder="tu.correo@ejemplo.com" required>
+                    </div>
+                  </div>
+
+                  <div class="field-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <label class="input-label" for="loginPassword" style="margin-bottom: 0;">Contraseña</label>
+                      <a class="forgot-link" id="forgotPassLink">¿Olvidaste tu contraseña?</a>
+                    </div>
+                    <div class="input-icon-wrap">
+                      <span class="input-inline-icon">🔒</span>
+                      <input type="password" id="loginPassword" class="input-pill" placeholder="••••••••" required>
+                    </div>
+                  </div>
+
+                  <label class="terms-checkbox-wrap">
+                    <input type="checkbox" id="rememberMeCheck" checked>
+                    <span>Recordar sesión en este dispositivo</span>
+                  </label>
+
+                  <button type="submit" class="btn-blue btn-turquoise-glow" id="submitLoginBtn">
+                    <span>INICIAR SESIÓN</span>
+                  </button>
+                </form>
+
+                <!-- Acceso Rápido por Rol -->
+                <div class="quick-demo-roles">
+                  <div class="quick-demo-title">DEMO RÁPIDO DE ROLES (1 CLIC):</div>
+                  <div class="quick-demo-btns">
+                    <button type="button" class="role-pill-btn" id="btnQuickGuest" title="Huésped">
+                      <span>🌴</span> Huésped
+                    </button>
+                    <button type="button" class="role-pill-btn" id="btnQuickAdmin" title="Administrador">
+                      <span>👑</span> Admin
+                    </button>
+                  </div>
+                </div>
+
+                <div class="auth-divider">
+                  <span>o continúa con</span>
+                </div>
+
+                <button type="button" class="btn-google" id="googleLoginBtn">
+                  <svg class="google-icon" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                  </svg>
+                  <span>Continuar con Google</span>
+                </button>
+
+                <div class="card-switch-footer">
+                  ¿No tienes cuenta? <a id="goToRegisterLink">Regístrate gratis</a>
+                </div>
               </div>
-              <input type="password" id="loginPassword" class="input-pill" placeholder="••••••••" required>
-            </div>
 
-            <button type="submit" class="btn-blue" id="submitLoginBtn">
-              <span>INICIAR SESIÓN</span>
-            </button>
-          </form>
+              <!-- Formulario de Registro -->
+              <div class="auth-card" id="registerFormView" style="display: none;">
+                <div class="auth-card-header">
+                  <span class="auth-badge-sub">NUEVO HUÉSPED</span>
+                  <h2 class="auth-card-title">SIGN UP</h2>
+                  <p class="auth-card-subtitle">Únete a nuestra membresía de huéspedes</p>
+                </div>
 
-          <!-- Acceso Rápido por Rol (Demostración de Permisos RBAC) -->
-          <div style="margin-top: 1rem; border-top: 1px dashed rgba(255,255,255,0.12); padding-top: 0.85rem;">
-            <div
-              style="font-size: 0.72rem; color: var(--text-dim); text-align: center; margin-bottom: 0.5rem; letter-spacing: 0.5px;">
-              DEMOSTRAR DIFERENCIA DE ROLES (1 CLIC):
-            </div>
-            <div style="display: flex; gap: 0.4rem; justify-content: center; flex-wrap: wrap;">
-              <button type="button" class="role-pill-btn" id="btnQuickGuest"
-                title="Huésped: Busca, reserva, paga y gestiona sus propias estancias">
-                <span>🌴</span> Huésped
-              </button>
-              <button type="button" class="role-pill-btn" id="btnQuickAdmin"
-                title="Administrador: Gestión de hoteles, habitaciones, tarifas, pagos, check-in/out y usuarios">
-                <span>👑</span> Admin
-              </button>
-            </div>
-          </div>
+                <form id="registerForm">
+                  <div style="display: flex; gap: 0.75rem;">
+                    <div class="field-group" style="flex: 1;">
+                      <label class="input-label" for="regFirstName">Nombre</label>
+                      <input type="text" id="regFirstName" class="input-pill" placeholder="Carlos" required>
+                    </div>
+                    <div class="field-group" style="flex: 1;">
+                      <label class="input-label" for="regLastName">Apellido</label>
+                      <input type="text" id="regLastName" class="input-pill" placeholder="Valderrama" required>
+                    </div>
+                  </div>
 
-          <div class="auth-divider">
-            <span>o continúa con</span>
-          </div>
+                  <div class="field-group">
+                    <label class="input-label" for="regEmail">Correo Electrónico</label>
+                    <div class="input-icon-wrap">
+                      <span class="input-inline-icon">👤</span>
+                      <input type="email" id="regEmail" class="input-pill" placeholder="tu.correo@ejemplo.com" required>
+                    </div>
+                  </div>
 
-          <button type="button" class="btn-google" id="googleLoginBtn">
-            <svg class="google-icon" viewBox="0 0 24 24">
-              <path fill="#4285F4"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-              <path fill="#34A853"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-              <path fill="#FBBC05"
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-              <path fill="#EA4335"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-            </svg>
-            <span>Continuar con Google</span>
-          </button>
+                  <div class="field-group">
+                    <label class="input-label" for="regPhone">Teléfono</label>
+                    <input type="tel" id="regPhone" class="input-pill" placeholder="+57 300 000 0000">
+                  </div>
 
-          <div class="card-switch-footer">
-            ¿No tienes cuenta? <a id="goToRegisterLink">Regístrate gratis</a>
-          </div>
-        </div>
+                  <div class="field-group">
+                    <label class="input-label" for="regPassword">Contraseña</label>
+                    <div class="input-icon-wrap">
+                      <span class="input-inline-icon">🔒</span>
+                      <input type="password" id="regPassword" class="input-pill" placeholder="Mínimo 6 caracteres" minlength="6" required>
+                    </div>
+                  </div>
 
-        <!-- Formulario de Registro -->
-        <div class="auth-card" id="registerFormView" style="display: none;">
-          <div class="auth-card-header">
-            <h2 class="auth-card-title">Crear Cuenta</h2>
-            <p class="auth-card-subtitle">Únete a nuestra membresía de huéspedes</p>
-          </div>
+                  <label class="terms-checkbox-wrap">
+                    <input type="checkbox" id="regAgreeTerms" checked required>
+                    <span>Acepto todos los términos y políticas del servicio</span>
+                  </label>
 
-          <form id="registerForm">
-            <div style="display: flex; gap: 0.75rem;">
-              <div class="field-group" style="flex: 1;">
-                <label class="input-label" for="regFirstName">Nombre</label>
-                <input type="text" id="regFirstName" class="input-pill" placeholder="Carlos" required>
+                  <button type="submit" class="btn-blue btn-turquoise-glow" id="submitRegBtn">
+                    <span>SIGN UP / REGISTRARSE</span>
+                  </button>
+                </form>
+
+                <div class="card-switch-footer" style="margin-top: 1rem;">
+                  ¿Ya tienes cuenta? <a id="goToLoginLink">Inicia Sesión</a>
+                </div>
               </div>
-              <div class="field-group" style="flex: 1;">
-                <label class="input-label" for="regLastName">Apellido</label>
-                <input type="text" id="regLastName" class="input-pill" placeholder="Valderrama" required>
-              </div>
+
             </div>
-
-            <div class="field-group">
-              <label class="input-label" for="regEmail">Correo Electrónico</label>
-              <input type="email" id="regEmail" class="input-pill" placeholder="tu.correo@ejemplo.com" required>
-            </div>
-
-            <div class="field-group">
-              <label class="input-label" for="regPhone">Teléfono</label>
-              <input type="tel" id="regPhone" class="input-pill" placeholder="+57 300 000 0000">
-            </div>
-
-            <div
-              style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 0.6rem 0.9rem; font-size: 0.75rem; color: #7dd3fc;">
-              ℹ️ El registro público crea cuentas de <strong>Huésped</strong>. Las cuentas de
-              Administración las crea un Administrador desde su panel.
-            </div>
-
-            <div class="field-group">
-              <label class="input-label" for="regPassword">Contraseña</label>
-              <input type="password" id="regPassword" class="input-pill" placeholder="Mínimo 6 caracteres" minlength="6"
-                required>
-            </div>
-
-            <button type="submit" class="btn-blue" id="submitRegBtn">
-              <span>REGISTRARSE</span>
-            </button>
-          </form>
-
-          <div class="card-switch-footer" style="margin-top: 1rem;">
-            ¿Ya tienes cuenta? <a id="goToLoginLink">Inicia Sesión</a>
           </div>
+
+          <!-- Lado Derecho: Ventana Visual Envolvente de Alta Calidad -->
+          <div class="asymmetric-photo-panel">
+            <div class="photo-scenery-overlay"></div>
+            <div class="photo-floating-caption">
+              <div class="photo-floating-tag">✨ HOSPITALIDAD DE LUJO</div>
+              <h1 class="photo-floating-title">EXPLORA EL PARAÍSO</h1>
+              <p class="photo-floating-subtitle">Donde los destinos de tus sueños se hacen realidad con estancias inolvidables y aguas cristalinas.</p>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -1413,8 +1436,8 @@
   <div class="toast-shelf" id="toastShelf"></div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=4.6"></script>
-  <script src="js/app.js?v=4.6"></script>
+  <script src="js/.js?v=5.0"></script>
+  <script src="js/.js?v=5.0"></script>
 </body>
 
 </html>
