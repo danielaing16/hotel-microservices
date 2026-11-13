@@ -205,7 +205,7 @@ export class AvailabilityService implements OnModuleInit {
   }
 
   /**
-   * Crea un bloqueo temporal de 10 minutos (Soft-Lock / Hold)
+   * Crea un bloqueo temporal de 15 minutos (Soft-Lock / Hold)
    * Garantiza anti-overbooking mediante script Lua en Redis y registro en PostgreSQL
    */
   async createHold(dto: HoldRoomDto, userId: string) {
@@ -213,7 +213,7 @@ export class AvailabilityService implements OnModuleInit {
       throw new BadRequestException('La fecha de checkIn debe ser estrictamente anterior a checkOut');
     }
 
-    const ttl = dto.ttlSeconds || 600; // 10 minutos por defecto
+    const ttl = dto.ttlSeconds || 900; // 15 minutos por defecto
     const now = new Date();
 
     // 1. Verificar solapamiento en base de datos

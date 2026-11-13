@@ -39,8 +39,8 @@ export class HoldRoomDto {
   guestsCount?: number = 1;
 
   @ApiPropertyOptional({
-    example: 600,
-    default: 600,
+    example: 900,
+    default: 900,
     description: 'Tiempo de vida del bloqueo en segundos (TTL en Redis, máx. 1800s / 30 min)',
   })
   @IsOptional()
@@ -48,6 +48,6 @@ export class HoldRoomDto {
   @IsInt()
   @Min(60)
   @Max(1800)
-  ttlSeconds?: number = 600;
+  ttlSeconds?: number = 900;
 }
 

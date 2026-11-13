@@ -1156,19 +1156,21 @@ document.addEventListener('DOMContentLoaded', () => {
   // 5. FLUJO DE CHECKOUT, BLOQUEO TEMPORAL (SOFT-LOCK) Y PAGO CON TARJETA
   // --------------------------------------------------------------------------
   async function startCheckoutFlow(item) {
-    showToast('Adquiriendo bloqueo temporal de 10 minutos...', 'info');
+    showToast('Bloqueando habitación temporalmente por 15 minutos...', 'info');
 
     try {
-      // 1. Crear el hold atómico en availability-service (Redis Lua)
+      // 1. Crear el hold atómico en availability-service (Redis Lua) con TTL de 15 minutos (900 seg)
       const holdRes = await api.holdRoom({
         roomId: item.roomId,
         checkIn: item.checkIn,
         checkOut: item.checkOut,
         guestsCount: item.guestsCount,
-        ttlSeconds: 600, // 10 minutos
+        ttlSeconds: 900, // 15 minutos
       });
 
       const holdId = holdRes.holdId;
+      const fullTotal = item.totalAmount;
+      const halfTotal = Math.round(fullTotal * 0.5 * 100) / 100;
 
       activeHold = {
         holdId,
@@ -1180,8 +1182,12 @@ document.addEventListener('DOMContentLoaded', () => {
         checkOut: item.checkOut,
         nights: item.nights,
         guestsCount: item.guestsCount,
-        totalAmount: item.totalAmount,
-        remainingSeconds: 600,
+        totalAmount: fullTotal,
+        amountToPay: fullTotal,
+        depositPercentage: 100,
+        remainingBalance: 0,
+        currency: 'USD',
+        remainingSeconds: 900,
       };
 
       // 2. Poblar Modal de Checkout
@@ -1191,23 +1197,36 @@ document.addEventListener('DOMContentLoaded', () => {
       if (checkoutCheckOut) checkoutCheckOut.textContent = item.checkOut;
       if (checkoutNights) checkoutNights.textContent = `${item.nights} noche(s)`;
       if (checkoutGuests) checkoutGuests.textContent = `${item.guestsCount} persona(s)`;
-      if (checkoutTotalAmount) checkoutTotalAmount.textContent = formatCOP(item.totalAmount);
+      if (checkoutTotalAmount) checkoutTotalAmount.textContent = formatCOP(fullTotal);
 
-      // Autocompletar datos de tarjeta demo para conveniencia del evaluador
+      const elAmountToPay = document.getElementById('checkoutAmountToPay');
+      const elRemainingBal = document.getElementById('checkoutRemainingBalance');
+      const elBalRow = document.getElementById('checkoutBalanceRow');
+      if (elAmountToPay) elAmountToPay.textContent = formatCOP(fullTotal);
+      if (elRemainingBal) elRemainingBal.textContent = formatCOP(0);
+      if (elBalRow) elBalRow.style.display = 'none';
+
+      // Configurar contacto y WhatsApp del dueño del hotel
+      setupOwnerWhatsAppInfo(item);
+
+      // Autocompletar datos de usuario
       const currentUser = api.getCurrentUser();
       if (cardHolder && currentUser) {
-        cardHolder.value = `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || 'Carlos Valderrama';
+        cardHolder.value = `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || 'Huésped';
       }
       if (cardNumber) cardNumber.value = '4242 4242 4242 4242';
       if (cardExp) cardExp.value = '12/28';
       if (cardCvc) cardCvc.value = '888';
 
-      // 3. Iniciar temporizador de 10 minutos (600 segundos)
-      startHoldCountdown(600);
+      // 3. Iniciar temporizador de 15 minutos (900 segundos)
+      startHoldCountdown(900);
+
+      // Activar por defecto el método directo / transferencia
+      setupDefaultDirectPayment();
 
       // 4. Mostrar Modal
       checkoutModal.style.display = 'flex';
-      showToast('¡Habitación reservada exclusivamente para ti durante 10 minutos!', 'success');
+      showToast('¡Habitación reservada exclusivamente para ti durante 15 minutos!', 'success');
     } catch (err) {
       showToast(`No se pudo bloquear la habitación: ${err.message}`, 'error');
     }
@@ -1279,6 +1298,61 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 
+  
+  // Selector de 50% vs 100% en Checkout (Booking Style)
+  const payPercent100Btn = document.getElementById('payPercent100Btn');
+  const payPercent50Btn = document.getElementById('payPercent50Btn');
+  const paymentSplitNotice = document.getElementById('paymentSplitNotice');
+  const checkoutAmountToPay = document.getElementById('checkoutAmountToPay');
+  const checkoutRemainingBalance = document.getElementById('checkoutRemainingBalance');
+  const checkoutBalanceRow = document.getElementById('checkoutBalanceRow');
+
+  payPercent100Btn?.addEventListener('click', () => {
+    if (!activeHold) return;
+    activeHold.depositPercentage = 100;
+    activeHold.amountToPay = activeHold.totalAmount;
+    activeHold.remainingBalance = 0;
+
+    payPercent100Btn.style.borderColor = '#34d399';
+    payPercent100Btn.style.background = 'rgba(52, 211, 153, 0.18)';
+    payPercent100Btn.style.color = '#34d399';
+    if (payPercent50Btn) {
+      payPercent50Btn.style.borderColor = 'rgba(255,255,255,0.15)';
+      payPercent50Btn.style.background = 'transparent';
+      payPercent50Btn.style.color = 'var(--text-dim)';
+    }
+
+    if (checkoutAmountToPay) checkoutAmountToPay.textContent = formatCOP(activeHold.amountToPay);
+    if (checkoutBalanceRow) checkoutBalanceRow.style.display = 'none';
+    if (paymentSplitNotice) paymentSplitNotice.textContent = 'Pagas el 100% de la estancia en este momento.';
+
+    updateWhatsAppMessage(activeHold);
+  });
+
+  payPercent50Btn?.addEventListener('click', () => {
+    if (!activeHold) return;
+    const half = Math.round(activeHold.totalAmount * 0.5 * 100) / 100;
+    activeHold.depositPercentage = 50;
+    activeHold.amountToPay = half;
+    activeHold.remainingBalance = activeHold.totalAmount - half;
+
+    payPercent50Btn.style.borderColor = '#fbbf24';
+    payPercent50Btn.style.background = 'rgba(251, 191, 36, 0.18)';
+    payPercent50Btn.style.color = '#fbbf24';
+    if (payPercent100Btn) {
+      payPercent100Btn.style.borderColor = 'rgba(255,255,255,0.15)';
+      payPercent100Btn.style.background = 'transparent';
+      payPercent100Btn.style.color = 'var(--text-dim)';
+    }
+
+    if (checkoutAmountToPay) checkoutAmountToPay.textContent = formatCOP(activeHold.amountToPay);
+    if (checkoutRemainingBalance) checkoutRemainingBalance.textContent = formatCOP(activeHold.remainingBalance);
+    if (checkoutBalanceRow) checkoutBalanceRow.style.display = 'flex';
+    if (paymentSplitNotice) paymentSplitNotice.textContent = `Abonas el 50% (${formatCOP(half)}) para asegurar tu reserva. El saldo restante de ${formatCOP(activeHold.remainingBalance)} se paga directamente en el hotel al realizar el Check-In.`;
+
+    updateWhatsAppMessage(activeHold);
+  });
+
   // Alternar entre Tarjeta y Transferencia Bancaria en Checkout
   payMethodCardBtn?.addEventListener('click', () => {
     currentCheckoutMethod = 'CREDIT_CARD';
@@ -1288,25 +1362,92 @@ document.addEventListener('DOMContentLoaded', () => {
     payMethodTransferBtn.style.borderColor = 'rgba(255,255,255,0.15)';
     payMethodTransferBtn.style.background = 'transparent';
     payMethodTransferBtn.style.color = 'var(--text-dim)';
+    const directOwnerBox = document.getElementById('directOwnerBox');
     if (cardFieldsContainer) cardFieldsContainer.style.display = 'block';
-    if (transferInfoBox) transferInfoBox.style.display = 'none';
+    if (directOwnerBox) directOwnerBox.style.display = 'none';
     if (transferRefContainer) transferRefContainer.style.display = 'none';
-    if (btnPayText) btnPayText.textContent = 'PAGAR Y CONFIRMAR RESERVA';
+    if (btnPayText) btnPayText.textContent = 'PAGAR CON TARJETA Y CONFIRMAR';
   });
 
   payMethodTransferBtn?.addEventListener('click', () => {
     currentCheckoutMethod = 'TRANSFER';
-    payMethodTransferBtn.style.borderColor = '#fbbf24';
-    payMethodTransferBtn.style.background = 'rgba(251,191,36,0.12)';
-    payMethodTransferBtn.style.color = '#fbbf24';
+    payMethodTransferBtn.style.borderColor = '#25D366';
+    payMethodTransferBtn.style.background = 'rgba(37,211,102,0.18)';
+    payMethodTransferBtn.style.color = '#4ade80';
     payMethodCardBtn.style.borderColor = 'rgba(255,255,255,0.15)';
     payMethodCardBtn.style.background = 'transparent';
     payMethodCardBtn.style.color = 'var(--text-dim)';
+    const directOwnerBox = document.getElementById('directOwnerBox');
     if (cardFieldsContainer) cardFieldsContainer.style.display = 'none';
-    if (transferInfoBox) transferInfoBox.style.display = 'block';
+    if (directOwnerBox) directOwnerBox.style.display = 'block';
     if (transferRefContainer) transferRefContainer.style.display = 'block';
-    if (btnPayText) btnPayText.textContent = 'REGISTRAR TRANSFERENCIA Y ASEGURAR FECHAS';
+    if (btnPayText) btnPayText.textContent = '✅ NOTIFICAR PAGO AL DUEÑO Y ENVIAR A APROBACIÓN';
   });
+
+  
+  function setupOwnerWhatsAppInfo(payload) {
+    const ownerHotelName = document.getElementById('ownerHotelName');
+    const ownerPhoneText = document.getElementById('ownerPhoneText');
+
+    const hotel = selectedHotelForBooking || {};
+    const hotelName = payload.hotelName || hotel.name || 'Sede Hotelera';
+    const hotelPhone = hotel.phone || hotel.contactPhone || '+57 (605) 650 1200';
+
+    if (ownerHotelName) ownerHotelName.textContent = hotelName;
+    if (ownerPhoneText) ownerPhoneText.textContent = hotelPhone;
+
+    // Limpiar dígitos para URL internacional WhatsApp
+    let cleanPhone = hotelPhone.replace(/\D/g, '');
+    if (!cleanPhone.startsWith('57') && cleanPhone.length === 10) cleanPhone = '57' + cleanPhone;
+    if (!cleanPhone) cleanPhone = '573001234567';
+
+    updateWhatsAppMessage(payload, cleanPhone);
+  }
+
+  function updateWhatsAppMessage(payload, cleanPhone) {
+    const btnWhatsApp = document.getElementById('btnRedirectWhatsApp');
+    if (!btnWhatsApp) return;
+
+    const amountStr = formatCOP(activeHold?.amountToPay || payload?.totalAmount || 0);
+    const percentStr = (activeHold?.depositPercentage === 50) ? '50% (Anticipo / Abono de Garantía)' : '100% (Pago Total de la Estancia)';
+
+    const text = `¡Hola! Deseo reservar la habitación *${payload.roomName || 'Seleccionada'}* en *${payload.hotelName || 'su hotel'}*.
+
+📅 *Fechas de Estancia:* del ${payload.checkIn} al ${payload.checkOut} (${payload.nights} noches)
+👥 *Huéspedes:* ${payload.guestsCount} persona(s)
+💵 *Modalidad Seleccionada:* ${percentStr}
+💰 *Monto a Pagar:* ${amountStr}
+⏳ *Código Temporal de Bloqueo:* ${activeHold?.holdId || 'TR-PROVISIONAL'}
+
+Quedo a la espera de sus datos de cuenta o confirmación de la transferencia para que autorice mi reserva. ¡Muchas gracias!`;
+
+    btnWhatsApp.href = `https://api.whatsapp.com/send?phone=${cleanPhone || '573001234567'}&text=${encodeURIComponent(text)}`;
+  }
+
+  function setupDefaultDirectPayment() {
+    currentCheckoutMethod = 'TRANSFER';
+    const payMethodTransferBtn = document.getElementById('payMethodTransferBtn');
+    const payMethodCardBtn = document.getElementById('payMethodCardBtn');
+    const cardFieldsContainer = document.getElementById('cardFieldsContainer');
+    const directOwnerBox = document.getElementById('directOwnerBox');
+    const transferRefContainer = document.getElementById('transferRefContainer');
+    const btnPayText = document.getElementById('btnPayText');
+
+    if (payMethodTransferBtn) {
+      payMethodTransferBtn.style.borderColor = '#25D366';
+      payMethodTransferBtn.style.background = 'rgba(37,211,102,0.18)';
+      payMethodTransferBtn.style.color = '#4ade80';
+    }
+    if (payMethodCardBtn) {
+      payMethodCardBtn.style.borderColor = 'rgba(255,255,255,0.15)';
+      payMethodCardBtn.style.background = 'transparent';
+      payMethodCardBtn.style.color = 'var(--text-dim)';
+    }
+    if (cardFieldsContainer) cardFieldsContainer.style.display = 'none';
+    if (directOwnerBox) directOwnerBox.style.display = 'block';
+    if (transferRefContainer) transferRefContainer.style.display = 'block';
+    if (btnPayText) btnPayText.textContent = '✅ NOTIFICAR PAGO AL DUEÑO Y ENVIAR A APROBACIÓN';
+  }
 
   // Procesar Pago y Confirmar Reserva (Anti-Doble Cobro vía Idempotency Key)
   paymentForm?.addEventListener('submit', async (e) => {
@@ -1655,6 +1796,24 @@ document.addEventListener('DOMContentLoaded', () => {
             🚪 Check-Out
           </button>
         `;
+      } else if (b.status === 'PENDING_PAYMENT') {
+        actionsHtml = `
+          <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+            <button class="btn-approve-booking-action" data-code="${b.bookingCode}" data-id="${b.id}"
+              style="padding: 5px 9px; font-size: 0.74rem; border-radius: 6px; background: rgba(52, 211, 153, 0.2); border: 1px solid #34d399; color: #34d399; cursor: pointer; font-weight: 700;" title="Aceptar y autorizar reserva">
+              Aceptar ✅
+            </button>
+            <button class="btn-reject-booking-action" data-code="${b.bookingCode}" data-id="${b.id}"
+              style="padding: 5px 9px; font-size: 0.74rem; border-radius: 6px; background: rgba(248, 113, 113, 0.2); border: 1px solid #f87171; color: #f87171; cursor: pointer; font-weight: 700;" title="Rechazar y liberar habitación">
+              Rechazar ❌
+            </button>
+            <a href="https://api.whatsapp.com/send?phone=573001234567&text=Hola%20${encodeURIComponent(b.userName || 'huésped')},%20nos%20comunicamos%20del%20hotel%20respecto%20a%20su%20reserva%20${b.bookingCode}"
+              target="_blank" rel="noopener"
+              style="padding: 5px 9px; font-size: 0.74rem; border-radius: 6px; background: rgba(37, 211, 102, 0.2); border: 1px solid #25D366; color: #4ade80; text-decoration: none; font-weight: 700;" title="Contactar al huésped por WhatsApp">
+              💬 WA
+            </a>
+          </div>
+        `;
       } else {
         actionsHtml = `<span style="font-size: 0.75rem; color: var(--text-dim);">Sin acciones pendientes</span>`;
       }
@@ -1703,6 +1862,41 @@ document.addEventListener('DOMContentLoaded', () => {
           loadReceptionBookings();
         } catch (err) {
           showToast(`Error: ${err.message}`, 'error');
+        }
+      });
+    });
+
+    document.querySelectorAll('.btn-approve-booking-action').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const code = btn.getAttribute('data-code');
+        if (!confirm(`¿Autorizar y confirmar definitivamente la reserva ${code}? Las fechas quedarán bloqueadas permanentemente y se emitirá el voucher digital oficial.`)) return;
+
+        try {
+          showToast(`Autorizando reserva ${code}...`, 'info');
+          await api.approvePayment(code);
+          showToast(`¡Reserva ${code} autorizada y confirmada exitosamente!`, 'success');
+          loadReceptionBookings();
+          if (typeof loadAdminDashboard === 'function') loadAdminDashboard();
+        } catch (err) {
+          showToast(`Error al autorizar: ${err.message}`, 'error');
+        }
+      });
+    });
+
+    document.querySelectorAll('.btn-reject-booking-action').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const code = btn.getAttribute('data-code');
+        const reason = prompt(`Motivo del rechazo de la reserva ${code} (se liberarán las fechas de inmediato):`, 'Comprobante no recibido o fondos insuficientes');
+        if (!reason) return;
+
+        try {
+          showToast(`Rechazando reserva ${code}...`, 'info');
+          await api.rejectPayment(code, reason);
+          showToast(`Reserva ${code} rechazada. Fechas liberadas en inventario.`, 'info');
+          loadReceptionBookings();
+          if (typeof loadAdminDashboard === 'function') loadAdminDashboard();
+        } catch (err) {
+          showToast(`Error al rechazar: ${err.message}`, 'error');
         }
       });
     });

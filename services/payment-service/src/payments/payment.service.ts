@@ -114,11 +114,15 @@ export class PaymentService implements OnModuleInit {
       );
     }
 
-    // 3. Validar coincidencia de monto
+    // 3. Validar coincidencia de monto (Modelo Booking: 100% total o abono del 50% de reserva)
     const expectedAmount = Number(booking.totalAmount);
-    if (Math.abs(expectedAmount - dto.amount) > 0.05) {
+    const halfAmount = Math.round((expectedAmount * 0.5) * 100) / 100;
+    const isFullPayment = Math.abs(expectedAmount - dto.amount) <= 0.5;
+    const isDepositPayment = Math.abs(halfAmount - dto.amount) <= 0.5;
+
+    if (!isFullPayment && !isDepositPayment) {
       throw new BadRequestException(
-        `Monto inconsistente: El total de la reserva es ${expectedAmount} ${booking.currency}, pero se envió ${dto.amount}`,
+        `Monto inconsistente: El total de la reserva es ${expectedAmount} ${booking.currency}. Se acepta el 100% ($${expectedAmount}) o un abono del 50% ($${halfAmount}), pero se envió $${dto.amount}`,
       );
     }
 
@@ -313,10 +317,10 @@ export class PaymentService implements OnModuleInit {
     const isUuid = this.isUuid(idOrRef);
     const payment = isUuid
       ? await this.paymentRepository.findOne({
-          where: [{ id: idOrRef }, { transactionReference: idOrRef }],
+          where: [{ id: idOrRef }, { transactionReference: idOrRef }, { bookingCode: idOrRef }],
         })
       : await this.paymentRepository.findOne({
-          where: { transactionReference: idOrRef },
+          where: [{ transactionReference: idOrRef }, { bookingCode: idOrRef }],
         });
 
     if (!payment) {

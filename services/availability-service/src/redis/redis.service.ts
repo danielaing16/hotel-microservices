@@ -67,7 +67,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     checkIn: string,
     checkOut: string,
     userId: string,
-    ttlSeconds = 600,
+    ttlSeconds = 900,
   ): Promise<{ success: boolean; conflictingDate?: string }> {
     const nights = this.getDatesBetween(checkIn, checkOut);
     if (nights.length === 0) {
