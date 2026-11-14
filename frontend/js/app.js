@@ -409,15 +409,134 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Alternar Login y Registro
-  goToRegisterLink?.addEventListener('click', () => {
-    loginFormView.style.display = 'none';
-    registerFormView.style.display = 'block';
+  // --------------------------------------------------------------------------
+  // INTERACCIONES EDITORIALES DE LOGIN: CARRUSEL KEN BURNS, VISIBILIDAD Y STAGGER
+  // --------------------------------------------------------------------------
+  function replayStaggerAnimation(container) {
+    if (!container) return;
+    const items = container.querySelectorAll('.stagger-item');
+    items.forEach(el => {
+      el.style.animation = 'none';
+      void el.offsetWidth;
+      el.style.animation = '';
+    });
+  }
+
+  function setupPasswordToggle(btnId, inputId) {
+    const toggleBtn = document.getElementById(btnId);
+    const inputEl = document.getElementById(inputId);
+    if (!toggleBtn || !inputEl) return;
+
+    toggleBtn.addEventListener('click', () => {
+      const isPassword = inputEl.type === 'password';
+      inputEl.type = isPassword ? 'text' : 'password';
+      const eyeOpen = toggleBtn.querySelector('.eye-open');
+      const eyeClosed = toggleBtn.querySelector('.eye-closed');
+      if (eyeOpen) eyeOpen.style.display = isPassword ? 'none' : 'block';
+      if (eyeClosed) eyeClosed.style.display = isPassword ? 'block' : 'none';
+      inputEl.focus();
+    });
+  }
+
+  setupPasswordToggle('toggleLoginPassword', 'loginPassword');
+  setupPasswordToggle('toggleRegPassword', 'regPassword');
+
+  // Carrusel Editorial de Hotelería (Rotación automática cada 6 segundos + Ken Burns)
+  const EDITORIAL_SLIDES_DATA = [
+    {
+      location: 'COLECCIÓN CARIBE & PACÍFICO',
+      caption: '“Arquitectura serena donde el diseño orgánico se funde con la calma del océano.”',
+    },
+    {
+      location: 'SANTUARIOS FRENTE AL MAR',
+      caption: '“Horizontes infinitos concebidos para la privacidad, el silencio y la contemplación.”',
+    },
+    {
+      location: 'RESIDENCIAS & SUITES DE AUTOR',
+      caption: '“Materiales nobles, luz cálida y hospitalidad a medida en cada rincón de su estancia.”',
+    },
+  ];
+
+  const editorialSlides = document.querySelectorAll('.editorial-slide');
+  const editorialProgressTracks = document.querySelectorAll('.editorial-progress-track');
+  const editorialSlideLocation = document.getElementById('editorialSlideLocation');
+  const editorialSlideCaption = document.getElementById('editorialSlideCaption');
+  let currentEditorialSlide = 0;
+  let editorialCarouselTimer = null;
+
+  function setEditorialSlide(index) {
+    if (!editorialSlides.length) return;
+    currentEditorialSlide = (index + editorialSlides.length) % editorialSlides.length;
+
+    editorialSlides.forEach((slide, idx) => {
+      if (idx === currentEditorialSlide) {
+        slide.classList.remove('active');
+        void slide.offsetWidth;
+        slide.classList.add('active');
+      } else {
+        slide.classList.remove('active');
+      }
+    });
+
+    editorialProgressTracks.forEach((track, idx) => {
+      track.classList.remove('active', 'completed');
+      const fill = track.querySelector('.editorial-progress-fill');
+      if (fill) {
+        fill.style.animation = 'none';
+        void fill.offsetWidth;
+        fill.style.animation = '';
+      }
+      if (idx < currentEditorialSlide) {
+        track.classList.add('completed');
+      } else if (idx === currentEditorialSlide) {
+        track.classList.add('active');
+      }
+    });
+
+    const meta = EDITORIAL_SLIDES_DATA[currentEditorialSlide];
+    if (meta && editorialSlideCaption && editorialSlideLocation) {
+      editorialSlideCaption.style.opacity = '0';
+      editorialSlideCaption.style.transform = 'translateY(6px)';
+      setTimeout(() => {
+        editorialSlideLocation.textContent = meta.location;
+        editorialSlideCaption.textContent = meta.caption;
+        editorialSlideCaption.style.opacity = '1';
+        editorialSlideCaption.style.transform = 'translateY(0)';
+      }, 220);
+    }
+  }
+
+  function startEditorialCarousel() {
+    if (!editorialSlides.length) return;
+    if (editorialCarouselTimer) clearInterval(editorialCarouselTimer);
+    editorialCarouselTimer = setInterval(() => {
+      setEditorialSlide(currentEditorialSlide + 1);
+    }, 6000);
+  }
+
+  editorialProgressTracks.forEach((track) => {
+    track.addEventListener('click', () => {
+      const targetIdx = Number(track.getAttribute('data-slide-target') || 0);
+      setEditorialSlide(targetIdx);
+      startEditorialCarousel();
+    });
   });
 
-  goToLoginLink?.addEventListener('click', () => {
+  startEditorialCarousel();
+
+  // Alternar Login y Registro con entrada escalonada
+  goToRegisterLink?.addEventListener('click', (e) => {
+    e.preventDefault();
+    loginFormView.style.display = 'none';
+    registerFormView.style.display = 'block';
+    replayStaggerAnimation(registerFormView);
+  });
+
+  goToLoginLink?.addEventListener('click', (e) => {
+    e.preventDefault();
     registerFormView.style.display = 'none';
     loginFormView.style.display = 'block';
+    replayStaggerAnimation(loginFormView);
   });
 
   forgotPassLink?.addEventListener('click', (e) => {
@@ -427,7 +546,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Explorar como huésped rápido
   exploreAsGuestBtn?.addEventListener('click', async () => {
-    // Si ya tiene sesión, entra al dashboard
     if (api.getToken() && api.getCurrentUser()) {
       refreshSessionView();
       return;
@@ -439,7 +557,6 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast('¡Bienvenido a Travel & Resorts!', 'success');
       refreshSessionView();
     } catch {
-      // Si no existe, crear o intentar login con credenciales de fallback
       try {
         await api.register({
           firstName: 'Carlos',
@@ -452,7 +569,6 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('¡Bienvenido a Travel & Resorts!', 'success');
         refreshSessionView();
       } catch (regErr) {
-        // En caso de que ya exista con otra clave, enfocar login
         loginFormView.style.display = 'block';
         registerFormView.style.display = 'none';
         const em = document.getElementById('loginEmail');
@@ -466,7 +582,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function quickLoginAs(email, password, roleLabel) {
     showToast(`Autenticando como ${roleLabel}...`, 'info');
     try {
-      const res = await api.login(email, password);
+      await api.login(email, password);
       showToast(`¡Sesión iniciada con éxito! Modo activo: ${roleLabel}`, 'success');
       refreshSessionView();
     } catch (err) {
@@ -478,19 +594,18 @@ document.addEventListener('DOMContentLoaded', () => {
     quickLoginAs('guest@hotel.com', 'guest123', 'Huésped (GUEST)');
   });
 
-  
   document.getElementById('btnQuickAdmin')?.addEventListener('click', () => {
     quickLoginAs('admin@hotel.com', 'admin123', 'Administrador General (HOTEL_ADMIN)');
   });
 
-  // Envío de Login
+  // Envío de Login con estado de carga y spinner minimalista
   loginForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
 
     submitLoginBtn.disabled = true;
-    submitLoginBtn.innerHTML = '<span>Verificando credenciales...</span>';
+    submitLoginBtn.innerHTML = '<span class="editorial-spinner" aria-hidden="true"></span><span class="btn-label-text">Verificando credenciales...</span>';
 
     try {
       const res = await api.login(email, password);
@@ -500,11 +615,11 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast(err.message, 'error');
     } finally {
       submitLoginBtn.disabled = false;
-      submitLoginBtn.innerHTML = '<span>INICIAR SESIÓN</span>';
+      submitLoginBtn.innerHTML = '<span class="btn-label-text">Iniciar sesión</span>';
     }
   });
 
-  // Envío de Registro
+  // Envío de Registro con estado de carga y spinner minimalista
   registerForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const firstName = document.getElementById('regFirstName').value.trim();
@@ -514,7 +629,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const password = document.getElementById('regPassword').value;
 
     submitRegBtn.disabled = true;
-    submitRegBtn.innerHTML = '<span>Creando cuenta segura...</span>';
+    submitRegBtn.innerHTML = '<span class="editorial-spinner" aria-hidden="true"></span><span class="btn-label-text">Creando cuenta...</span>';
 
     try {
       await api.register({ firstName, lastName, email, phone, password }, false);
@@ -523,6 +638,7 @@ document.addEventListener('DOMContentLoaded', () => {
       registerForm.reset();
       registerFormView.style.display = 'none';
       loginFormView.style.display = 'block';
+      replayStaggerAnimation(loginFormView);
 
       const loginEmailField = document.getElementById('loginEmail');
       const loginPassField = document.getElementById('loginPassword');
@@ -535,7 +651,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast(err.message, 'error');
     } finally {
       submitRegBtn.disabled = false;
-      submitRegBtn.innerHTML = '<span>REGISTRARSE</span>';
+      submitRegBtn.innerHTML = '<span class="btn-label-text">Crear cuenta de huésped</span>';
     }
   });
 

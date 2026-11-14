@@ -4,216 +4,313 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Travel & Resorts - Hoteles de Lujo & Experiencias Exclusivas</title>
-  <link rel="stylesheet" href="css/styles.css?v=5.0">
+  <title>Travel & Resorts — Colección de Hoteles & Santuarios de Lujo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css?v=6.0">
   <link rel="icon"
-    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏨</text></svg>">
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
 </head>
 
 <body>
 
-  <!-- Fondo Ambiental con Desenfoque Dinámico -->
+  <!-- Fondo Ambiental (oculto en la pantalla editorial de Login, activo en el Dashboard) -->
   <div class="ambient-bg"></div>
   <div class="ambient-overlay"></div>
 
   <!-- =====================================================================
-       1. VISTA DE BIENVENIDA Y AUTENTICACIÓN (LANDING / LOGIN)
+       1. PANTALLA EDITORIAL DE AUTENTICACIÓN (FOUR SEASONS / AMAN STYLE)
        ===================================================================== -->
-  <div class="master-canvas" id="authCanvas">
-    <div class="canvas-scenery-overlay"></div>
+  <div class="editorial-auth-screen" id="authCanvas">
 
-    <!-- Barra Superior -->
-    <div class="canvas-header">
-      <div style="display: flex; align-items: center; gap: 0.75rem;">
-        <span style="font-size: 1.5rem;">🏨</span>
-        <span
-          style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 800; letter-spacing: 1px; color: #fff;">TRAVEL
-          & RESORTS</span>
-      </div>
+    <!-- PANEL IZQUIERDO (45%): Formulario Editorial en Crema Suave (#FAF9F6) -->
+    <div class="editorial-left-panel">
 
-      <div style="display: flex; align-items: center; gap: 0.75rem;">
-        <button type="button" class="bottom-pill-btn" id="exploreAsGuestBtn"
-          style="padding: 6px 16px; font-size: 0.82rem;">
-          <span>🌴</span> Explorar Destinos
-        </button>
-      </div>
-    </div>
-
-    <!-- Cuerpo Principal: Hero y Tarjeta de Acceso -->
-        <!-- Cuerpo Principal: Tarjeta Asimétrica Orgánica (Inspirada en Referencia) -->
-    <div class="canvas-body" style="justify-content: center; align-items: center; padding: 2rem 1.5rem;">
-      <div class="asymmetric-card-container">
-        <div class="asymmetric-split-card">
-
-          <!-- Lado Izquierdo: Formulario Minimalista Blanco / Aqua -->
-          <div class="asymmetric-form-panel">
-            <!-- Borde Orgánico Rasgado / Torn Paper Edge en SVG -->
-            <div class="torn-paper-edge" aria-hidden="true">
-              <svg viewBox="0 0 28 600" preserveAspectRatio="none">
-                <path d="M0,0 
-                         L12,25 L6,55 L20,85 L8,115 L24,150 L10,185 L26,220 
-                         L12,255 L28,290 L10,325 L24,360 L12,395 L26,430 L8,465 
-                         L22,500 L12,535 L18,570 L0,600 Z" 
-                      fill="#ffffff" />
-              </svg>
-            </div>
-
-            <!-- Contenedor de Formularios -->
-            <div class="asymmetric-form-inner">
-              
-              <!-- Formulario de Inicio de Sesión -->
-              <div class="auth-card" id="loginFormView">
-                <div class="auth-card-header">
-                  <span class="auth-badge-sub">MEMBER ACCESS</span>
-                  <h2 class="auth-card-title">SIGN IN</h2>
-                  <p class="auth-card-subtitle">Accede a tus reservas y tarifas preferenciales</p>
-                </div>
-
-                <form id="loginForm">
-                  <div class="field-group">
-                    <label class="input-label" for="loginEmail">Correo Electrónico</label>
-                    <div class="input-icon-wrap">
-                      <span class="input-inline-icon">👤</span>
-                      <input type="email" id="loginEmail" class="input-pill" placeholder="tu.correo@ejemplo.com" required>
-                    </div>
-                  </div>
-
-                  <div class="field-group">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                      <label class="input-label" for="loginPassword" style="margin-bottom: 0;">Contraseña</label>
-                      <a class="forgot-link" id="forgotPassLink">¿Olvidaste tu contraseña?</a>
-                    </div>
-                    <div class="input-icon-wrap">
-                      <span class="input-inline-icon">🔒</span>
-                      <input type="password" id="loginPassword" class="input-pill" placeholder="••••••••" required>
-                    </div>
-                  </div>
-
-                  <label class="terms-checkbox-wrap">
-                    <input type="checkbox" id="rememberMeCheck" checked>
-                    <span>Recordar sesión en este dispositivo</span>
-                  </label>
-
-                  <button type="submit" class="btn-blue btn-turquoise-glow" id="submitLoginBtn">
-                    <span>INICIAR SESIÓN</span>
-                  </button>
-                </form>
-
-                <!-- Acceso Rápido por Rol -->
-                <div class="quick-demo-roles">
-                  <div class="quick-demo-title">DEMO RÁPIDO DE ROLES (1 CLIC):</div>
-                  <div class="quick-demo-btns">
-                    <button type="button" class="role-pill-btn" id="btnQuickGuest" title="Huésped">
-                      <span>🌴</span> Huésped
-                    </button>
-                    <button type="button" class="role-pill-btn" id="btnQuickAdmin" title="Administrador">
-                      <span>👑</span> Admin
-                    </button>
-                  </div>
-                </div>
-
-                <div class="auth-divider">
-                  <span>o continúa con</span>
-                </div>
-
-                <button type="button" class="btn-google" id="googleLoginBtn">
-                  <svg class="google-icon" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                  </svg>
-                  <span>Continuar con Google</span>
-                </button>
-
-                <div class="card-switch-footer">
-                  ¿No tienes cuenta? <a id="goToRegisterLink">Regístrate gratis</a>
-                </div>
-              </div>
-
-              <!-- Formulario de Registro -->
-              <div class="auth-card" id="registerFormView" style="display: none;">
-                <div class="auth-card-header">
-                  <span class="auth-badge-sub">NUEVO HUÉSPED</span>
-                  <h2 class="auth-card-title">SIGN UP</h2>
-                  <p class="auth-card-subtitle">Únete a nuestra membresía de huéspedes</p>
-                </div>
-
-                <form id="registerForm">
-                  <div style="display: flex; gap: 0.75rem;">
-                    <div class="field-group" style="flex: 1;">
-                      <label class="input-label" for="regFirstName">Nombre</label>
-                      <input type="text" id="regFirstName" class="input-pill" placeholder="Carlos" required>
-                    </div>
-                    <div class="field-group" style="flex: 1;">
-                      <label class="input-label" for="regLastName">Apellido</label>
-                      <input type="text" id="regLastName" class="input-pill" placeholder="Valderrama" required>
-                    </div>
-                  </div>
-
-                  <div class="field-group">
-                    <label class="input-label" for="regEmail">Correo Electrónico</label>
-                    <div class="input-icon-wrap">
-                      <span class="input-inline-icon">👤</span>
-                      <input type="email" id="regEmail" class="input-pill" placeholder="tu.correo@ejemplo.com" required>
-                    </div>
-                  </div>
-
-                  <div class="field-group">
-                    <label class="input-label" for="regPhone">Teléfono</label>
-                    <input type="tel" id="regPhone" class="input-pill" placeholder="+57 300 000 0000">
-                  </div>
-
-                  <div class="field-group">
-                    <label class="input-label" for="regPassword">Contraseña</label>
-                    <div class="input-icon-wrap">
-                      <span class="input-inline-icon">🔒</span>
-                      <input type="password" id="regPassword" class="input-pill" placeholder="Mínimo 6 caracteres" minlength="6" required>
-                    </div>
-                  </div>
-
-                  <label class="terms-checkbox-wrap">
-                    <input type="checkbox" id="regAgreeTerms" checked required>
-                    <span>Acepto todos los términos y políticas del servicio</span>
-                  </label>
-
-                  <button type="submit" class="btn-blue btn-turquoise-glow" id="submitRegBtn">
-                    <span>SIGN UP / REGISTRARSE</span>
-                  </button>
-                </form>
-
-                <div class="card-switch-footer" style="margin-top: 1rem;">
-                  ¿Ya tienes cuenta? <a id="goToLoginLink">Inicia Sesión</a>
-                </div>
-              </div>
-
-            </div>
+      <!-- Barra Superior Minimalista: Logo + Explorar Destinos -->
+      <header class="editorial-top-bar stagger-item" style="--stagger-idx: 0;">
+        <div class="editorial-brand">
+          <svg class="editorial-brand-mark" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+            <polygon points="12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2"></polygon>
+            <circle cx="12" cy="12" r="2"></circle>
+          </svg>
+          <div class="editorial-brand-text">
+            <span class="editorial-brand-name">TRAVEL &amp; RESORTS</span>
+            <span class="editorial-brand-sub">SANCTUARIES &amp; PRIVATE RETREATS</span>
           </div>
-
-          <!-- Lado Derecho: Ventana Visual Envolvente de Alta Calidad -->
-          <div class="asymmetric-photo-panel">
-            <div class="photo-scenery-overlay"></div>
-            <div class="photo-floating-caption">
-              <div class="photo-floating-tag">✨ HOSPITALIDAD DE LUJO</div>
-              <h1 class="photo-floating-title">EXPLORA EL PARAÍSO</h1>
-              <p class="photo-floating-subtitle">Donde los destinos de tus sueños se hacen realidad con estancias inolvidables y aguas cristalinas.</p>
-            </div>
-          </div>
-
         </div>
+
+        <button type="button" class="editorial-explore-link" id="exploreAsGuestBtn">
+          <span>Explorar destinos</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+      </header>
+
+      <!-- Cuerpo Central del Formulario -->
+      <div class="editorial-form-container">
+
+        <!-- VISTA: INICIAR SESIÓN -->
+        <div class="editorial-auth-view" id="loginFormView">
+          <div class="editorial-heading-group stagger-item" style="--stagger-idx: 1;">
+            <span class="editorial-eyebrow">PORTAL DE HUÉSPEDES &amp; MIEMBROS</span>
+            <h1 class="editorial-serif-title">Bienvenido de nuevo</h1>
+            <p class="editorial-subtitle">Acceda a sus reservas privadas, itinerarios a medida y beneficios de estancia.</p>
+          </div>
+
+          <form id="loginForm" class="editorial-form" novalidate>
+            <div class="editorial-field stagger-item" style="--stagger-idx: 2;">
+              <label class="editorial-label" for="loginEmail">Correo electrónico</label>
+              <input
+                type="email"
+                id="loginEmail"
+                class="editorial-input"
+                placeholder="nombre@dominio.com"
+                autocomplete="email"
+                required
+              >
+            </div>
+
+            <div class="editorial-field stagger-item" style="--stagger-idx: 3;">
+              <div class="editorial-label-row">
+                <label class="editorial-label" for="loginPassword">Contraseña</label>
+                <a href="#" class="editorial-forgot-link" id="forgotPassLink">¿Olvidaste tu contraseña?</a>
+              </div>
+              <div class="editorial-password-wrap">
+                <input
+                  type="password"
+                  id="loginPassword"
+                  class="editorial-input has-toggle"
+                  placeholder="Ingresa tu contraseña"
+                  autocomplete="current-password"
+                  required
+                >
+                <button
+                  type="button"
+                  class="editorial-pw-toggle"
+                  id="toggleLoginPassword"
+                  aria-label="Mostrar u ocultar contraseña"
+                  title="Mostrar u ocultar contraseña"
+                >
+                  <svg class="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                  <svg class="eye-closed" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="editorial-remember-row stagger-item" style="--stagger-idx: 4;">
+              <label class="editorial-checkbox-label">
+                <input type="checkbox" id="rememberMeCheck" class="editorial-checkbox" checked>
+                <span class="editorial-checkbox-custom"></span>
+                <span>Recordar sesión en este dispositivo</span>
+              </label>
+            </div>
+
+            <div class="stagger-item" style="--stagger-idx: 5;">
+              <button type="submit" class="editorial-btn-primary" id="submitLoginBtn">
+                <span class="btn-label-text">Iniciar sesión</span>
+              </button>
+            </div>
+          </form>
+
+          <div class="editorial-divider stagger-item" style="--stagger-idx: 6;">
+            <span>o continúa con</span>
+          </div>
+
+          <div class="stagger-item" style="--stagger-idx: 7;">
+            <button type="button" class="editorial-btn-google" id="googleLoginBtn">
+              <svg class="google-icon" width="18" height="18" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+              </svg>
+              <span>Continuar con Google</span>
+            </button>
+          </div>
+
+          <!-- Sección Discreta Tipo Píldora/Tabs para Acceso Rápido Demo -->
+          <div class="editorial-demo-box stagger-item" style="--stagger-idx: 8;">
+            <span class="editorial-demo-label">Acceso rápido Demo</span>
+            <div class="editorial-demo-pills" role="group" aria-label="Acceso rápido de demostración">
+              <button
+                type="button"
+                class="editorial-demo-tab"
+                id="btnQuickGuest"
+                title="Ingresar como Huésped para explorar y reservar estancias"
+              >
+                <span class="demo-dot"></span>
+                <span>Huésped</span>
+              </button>
+              <button
+                type="button"
+                class="editorial-demo-tab"
+                id="btnQuickAdmin"
+                title="Ingresar como Administrador para gestionar hoteles, tarifas y pagos"
+              >
+                <span class="demo-dot admin"></span>
+                <span>Admin</span>
+              </button>
+            </div>
+          </div>
+
+          <p class="editorial-switch-prompt stagger-item" style="--stagger-idx: 9;">
+            ¿Aún no eres miembro de la colección?
+            <a href="#" id="goToRegisterLink">Crear una cuenta</a>
+          </p>
+        </div>
+
+        <!-- VISTA: CREAR CUENTA (REGISTRO) -->
+        <div class="editorial-auth-view" id="registerFormView" style="display: none;">
+          <div class="editorial-heading-group stagger-item" style="--stagger-idx: 1;">
+            <span class="editorial-eyebrow">MEMBRESÍA PRIVADA</span>
+            <h1 class="editorial-serif-title">Crear una cuenta</h1>
+            <p class="editorial-subtitle">Regístrese para disfrutar de reservas personalizadas y atención de conserjería.</p>
+          </div>
+
+          <form id="registerForm" class="editorial-form" novalidate>
+            <div class="editorial-field-row stagger-item" style="--stagger-idx: 2;">
+              <div class="editorial-field">
+                <label class="editorial-label" for="regFirstName">Nombre</label>
+                <input type="text" id="regFirstName" class="editorial-input" placeholder="Carlos" required>
+              </div>
+              <div class="editorial-field">
+                <label class="editorial-label" for="regLastName">Apellido</label>
+                <input type="text" id="regLastName" class="editorial-input" placeholder="Valderrama" required>
+              </div>
+            </div>
+
+            <div class="editorial-field stagger-item" style="--stagger-idx: 3;">
+              <label class="editorial-label" for="regEmail">Correo electrónico</label>
+              <input type="email" id="regEmail" class="editorial-input" placeholder="nombre@dominio.com" required>
+            </div>
+
+            <div class="editorial-field stagger-item" style="--stagger-idx: 4;">
+              <label class="editorial-label" for="regPhone">Teléfono de contacto</label>
+              <input type="tel" id="regPhone" class="editorial-input" placeholder="+57 300 000 0000">
+            </div>
+
+            <div class="editorial-field stagger-item" style="--stagger-idx: 5;">
+              <label class="editorial-label" for="regPassword">Contraseña</label>
+              <div class="editorial-password-wrap">
+                <input
+                  type="password"
+                  id="regPassword"
+                  class="editorial-input has-toggle"
+                  placeholder="Mínimo 6 caracteres"
+                  minlength="6"
+                  required
+                >
+                <button
+                  type="button"
+                  class="editorial-pw-toggle"
+                  id="toggleRegPassword"
+                  aria-label="Mostrar u ocultar contraseña"
+                  title="Mostrar u ocultar contraseña"
+                >
+                  <svg class="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                  <svg class="eye-closed" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="editorial-remember-row stagger-item" style="--stagger-idx: 6;">
+              <label class="editorial-checkbox-label">
+                <input type="checkbox" id="regAgreeTerms" class="editorial-checkbox" checked required>
+                <span class="editorial-checkbox-custom"></span>
+                <span>Acepto las políticas de privacidad y términos de hospitalidad</span>
+              </label>
+            </div>
+
+            <div class="stagger-item" style="--stagger-idx: 7;">
+              <button type="submit" class="editorial-btn-primary" id="submitRegBtn">
+                <span class="btn-label-text">Crear cuenta de huésped</span>
+              </button>
+            </div>
+          </form>
+
+          <p class="editorial-switch-prompt stagger-item" style="--stagger-idx: 8;">
+            ¿Ya dispone de una cuenta registrada?
+            <a href="#" id="goToLoginLink">Iniciar sesión</a>
+          </p>
+        </div>
+
       </div>
+
+      <!-- Pie Editorial Discreto -->
+      <footer class="editorial-footer stagger-item" style="--stagger-idx: 10;">
+        <span>© 2026 Travel &amp; Resorts Collection</span>
+        <span class="editorial-footer-sep">·</span>
+        <span>Privacidad &amp; Concierge</span>
+      </footer>
     </div>
 
-    <!-- Barra Inferior -->
-    <div class="canvas-bottom-bar">
-      <div style="font-size: 0.8rem; color: var(--text-dim);">
-        © 2026 Travel & Resorts. Todos los derechos reservados.
+    <!-- PANEL DERECHO (55%): Galería Visual Inmersiva con Efecto Ken Burns -->
+    <aside class="editorial-right-panel" aria-label="Galería de propiedades de lujo">
+      <div class="editorial-gallery-frame">
+
+        <!-- Diapositiva 1: Arquitectura de Hotel Boutique -->
+        <div
+          class="editorial-slide active"
+          data-slide="0"
+          style="background-image: url('https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=1920&q=85');"
+        ></div>
+
+        <!-- Diapositiva 2: Piscina Infinita Frente al Mar -->
+        <div
+          class="editorial-slide"
+          data-slide="1"
+          style="background-image: url('https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1920&q=85');"
+        ></div>
+
+        <!-- Diapositiva 3: Suite de Lujo Cálida -->
+        <div
+          class="editorial-slide"
+          data-slide="2"
+          style="background-image: url('https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1920&q=85');"
+        ></div>
+
+        <!-- Degradado Sutil solo en Esquina Inferior Izquierda -->
+        <div class="editorial-gallery-vignette"></div>
+
+        <!-- Contenido Editorial Inferior: Frase Corta + Indicadores de Progreso -->
+        <div class="editorial-gallery-caption">
+          <p class="editorial-quote-location" id="editorialSlideLocation">COLECCIÓN CARIBE &amp; PACÍFICO</p>
+          <blockquote class="editorial-quote-text" id="editorialSlideCaption">
+            “Arquitectura serena donde el diseño orgánico se funde con la calma del océano.”
+          </blockquote>
+
+          <!-- Indicadores Minimalistas de Progreso (Barritas Finas que se llenan en 6s) -->
+          <div class="editorial-progress-bars" role="tablist" aria-label="Indicadores de galería">
+            <button type="button" class="editorial-progress-track active" data-slide-target="0" aria-label="Imagen 1">
+              <span class="editorial-progress-fill"></span>
+            </button>
+            <button type="button" class="editorial-progress-track" data-slide-target="1" aria-label="Imagen 2">
+              <span class="editorial-progress-fill"></span>
+            </button>
+            <button type="button" class="editorial-progress-track" data-slide-target="2" aria-label="Imagen 3">
+              <span class="editorial-progress-fill"></span>
+            </button>
+          </div>
+        </div>
+
       </div>
-      <div style="display: flex; gap: 1rem;">
-        <span style="font-size: 0.8rem; color: #38bdf8;">🔒 Reservas Seguras</span>
-        <span style="font-size: 0.8rem; color: #34d399;">✨ Confirmación Inmediata</span>
-      </div>
-    </div>
+    </aside>
+
   </div>
 
   <!-- =====================================================================
