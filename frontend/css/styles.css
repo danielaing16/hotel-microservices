@@ -621,6 +621,7 @@ body {
   0% {
     transform: scale(1);
   }
+
   100% {
     transform: scale(1.05);
   }
@@ -630,12 +631,10 @@ body {
 .editorial-gallery-vignette {
   position: absolute;
   inset: 0;
-  background: radial-gradient(
-    circle at 0% 100%,
-    rgba(12, 18, 16, 0.72) 0%,
-    rgba(12, 18, 16, 0.32) 42%,
-    rgba(12, 18, 16, 0) 75%
-  );
+  background: radial-gradient(circle at 0% 100%,
+      rgba(12, 18, 16, 0.72) 0%,
+      rgba(12, 18, 16, 0.32) 42%,
+      rgba(12, 18, 16, 0) 75%);
   pointer-events: none;
   z-index: 2;
 }
@@ -712,6 +711,7 @@ body {
   0% {
     width: 0%;
   }
+
   100% {
     width: 100%;
   }
@@ -726,6 +726,7 @@ body {
     opacity: 0;
     transform: translateY(12px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -747,6 +748,7 @@ body {
     width: 50%;
     padding: 2rem 2.5rem;
   }
+
   .editorial-right-panel {
     width: 50%;
   }
@@ -1382,6 +1384,7 @@ body {
     opacity: 0;
     transform: translateY(16px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -2293,10 +2296,21 @@ textarea.input-pill {
   border-radius: 50%;
 }
 
-.cal-dot.available { background-color: var(--editorial-emerald); }
-.cal-dot.hold { background-color: var(--editorial-gold); }
-.cal-dot.booked { background-color: var(--editorial-danger); }
-.cal-dot.blocked { background-color: var(--editorial-text-subtle); }
+.cal-dot.available {
+  background-color: var(--editorial-emerald);
+}
+
+.cal-dot.hold {
+  background-color: var(--editorial-gold);
+}
+
+.cal-dot.booked {
+  background-color: var(--editorial-danger);
+}
+
+.cal-dot.blocked {
+  background-color: var(--editorial-text-subtle);
+}
 
 .cal-booking-panel,
 .cal-admin-panel {
@@ -2368,6 +2382,7 @@ textarea.input-pill {
     opacity: 0;
     transform: translateY(16px) scale(0.98);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -2428,6 +2443,7 @@ textarea.input-pill {
   .dash-main {
     padding: 2rem 2rem 3rem;
   }
+
   .hotels-grid {
     gap: 1.5rem;
   }
@@ -2437,6 +2453,7 @@ textarea.input-pill {
   .dash-layout {
     grid-template-columns: 1fr;
   }
+
   .dash-sidebar {
     position: static;
     height: auto;
@@ -2444,21 +2461,26 @@ textarea.input-pill {
     border-bottom: 1px solid var(--editorial-border);
     padding: 1.25rem 1.5rem;
   }
+
   .sidebar-menu {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     gap: 0.4rem;
   }
+
   .sidebar-group-title {
     width: 100%;
   }
+
   .dash-nav-item {
     width: auto;
   }
+
   .hotels-grid {
     grid-template-columns: 1fr;
   }
+
   .avail-search-grid {
     grid-template-columns: 1fr;
   }
@@ -2468,18 +2490,22 @@ textarea.input-pill {
   .dash-main {
     padding: 1.25rem 1rem 2.5rem;
   }
+
   .hotels-toolbar {
     flex-direction: column;
     align-items: stretch;
   }
+
   .hotels-filter-bar {
     flex-direction: column;
     align-items: stretch;
   }
+
   .filter-select,
   .filter-checkbox-wrap {
     width: 100%;
   }
+
   .toast-shelf {
     left: 1rem;
     right: 1rem;
@@ -2693,11 +2719,14 @@ textarea.input-pill {
    ========================================================================== */
 
 .site-footer {
-  margin: 2rem 1.5rem 1.25rem;
+  margin-top: auto;
+  margin-bottom: 0;
   background-color: var(--editorial-emerald);
   border-radius: 16px;
-  padding: 2rem 2.25rem 1.25rem;
+  padding: 2.25rem 2.5rem 1.5rem;
   color: rgba(250, 249, 246, 0.82);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .site-footer-grid {
@@ -2834,12 +2863,43 @@ textarea.input-pill {
   color: var(--editorial-text-muted);
 }
 
+@media (max-width: 1100px) {
+  .site-footer-grid {
+    grid-template-columns: 1.2fr 1fr 1fr;
+    gap: 1.5rem;
+  }
+}
+
 @media (max-width: 860px) {
+  .site-footer {
+    padding: 1.75rem 1.5rem 1.25rem;
+    margin-top: 2rem;
+  }
+
   .site-footer-grid {
     grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
   }
 
   .about-us-values {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .site-footer {
+    padding: 1.5rem 1.25rem 1rem;
+    border-radius: 12px;
+  }
+
+  .site-footer-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .site-footer-legal {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
   }
 }
