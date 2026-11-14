@@ -1520,16 +1520,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentPendingWaUrl = '#';
 
+  const OFFICIAL_WHATSAPP_NUMBER = '573046598870';
+  const OFFICIAL_WHATSAPP_DISPLAY = '+57 304 659 8870';
+
   function setupOwnerWhatsAppInfo(payload) {
     const ownerHotelName = document.getElementById('ownerHotelName');
     const ownerPhoneText = document.getElementById('ownerPhoneText');
 
     const hotel = selectedHotelForBooking || {};
     const hotelName = payload.hotelName || hotel.name || 'Sede Hotelera';
-    const hotelPhone = hotel.phone || hotel.contactPhone || '+57 (605) 650 1200';
 
     if (ownerHotelName) ownerHotelName.textContent = hotelName;
-    if (ownerPhoneText) ownerPhoneText.textContent = hotelPhone;
+    if (ownerPhoneText) ownerPhoneText.textContent = OFFICIAL_WHATSAPP_DISPLAY;
   }
 
   function updateWhatsAppMessage(payload) {
@@ -1540,7 +1542,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Modo directo por chat activado por defecto
   }
 
-  // Acción Principal: Confirmar Pre-Reserva y Abrir Chat de WhatsApp con el Encargado
+  // Acción Principal: Confirmar Pre-Reserva y Abrir Chat de WhatsApp con el Encargado (3046598870)
   btnConfirmAndChatWhatsApp?.addEventListener('click', async () => {
     if (!activeHold) {
       showToast('No hay una habitación activa en bloqueo temporal', 'error');
@@ -1555,7 +1557,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const depositPct = activeHold.depositPercentage || 100;
       const amountToPay = activeHold.amountToPay || activeHold.totalAmount;
-      const notes = `Pre-reserva Modelo Booking: Pago directo gestionado por chat WhatsApp con el encargado (${depositPct}% = ${formatCOP(amountToPay)})`;
+      const notes = `Pre-reserva Modelo Booking: Pago directo gestionado por chat WhatsApp (${OFFICIAL_WHATSAPP_DISPLAY}) (${depositPct}% = ${formatCOP(amountToPay)})`;
 
       // 1. Crear Reserva en booking-service con el holdId adquirido
       const bookingPayload = {
@@ -1574,12 +1576,16 @@ document.addEventListener('DOMContentLoaded', () => {
       // 2. Registrar el intento de pago directo en payment-service (en estado PENDING para revisión del Admin)
       const idempotencyKey = `idemp_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
       const txRef = `WA-CHAT-${booking.bookingCode || Date.now().toString().slice(-6)}`;
+      const bookingBaseAmount = Number(booking.totalAmount) || Number(activeHold.totalAmount) || 0;
+      const paymentAmountToSend = depositPct === 50
+        ? Math.round(bookingBaseAmount * 0.5 * 100) / 100
+        : bookingBaseAmount;
 
       try {
         await api.processPayment({
           bookingId: booking.id,
           idempotencyKey,
-          amount: Number(amountToPay),
+          amount: Number(paymentAmountToSend),
           currency: booking.currency || 'USD',
           paymentMethod: 'TRANSFER',
           transferReference: txRef,
@@ -1588,25 +1594,22 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('Nota: Pago directo registrado para verificación posterior:', payErr.message);
       }
 
-      // 3. Obtener el teléfono del hotel / encargado
+      // 3. Línea oficial de WhatsApp para gestión de reservas: 3046598870
       const hotel = selectedHotelForBooking || {};
-      const hotelPhone = hotel.phone || hotel.contactPhone || '+57 (605) 650 1200';
-      let cleanPhone = hotelPhone.replace(/\D/g, '');
-      if (!cleanPhone.startsWith('57') && cleanPhone.length === 10) cleanPhone = '57' + cleanPhone;
-      if (!cleanPhone) cleanPhone = '573001234567';
+      const cleanPhone = OFFICIAL_WHATSAPP_NUMBER;
 
       // 4. Armar el mensaje prellenado para WhatsApp con el código oficial de reserva
       const percentLabel = (depositPct === 50) ? '50% (Anticipo de Garantía)' : '100% (Pago Total de la Estancia)';
-      const waMessage = `¡Hola! Acabo de hacer la pre-reserva de la habitación *${activeHold.roomName || 'Habitación'}* en *${activeHold.hotelName || hotel.name || 'su hotel'}*.
+      const waMessage = `¡Hola! Acabo de realizar la pre-reserva de la habitación *${activeHold.roomName || 'Habitación'}* en *${activeHold.hotelName || hotel.name || 'Travel & Resorts'}*.
 
-📋 *Código de Reserva:* ${booking.bookingCode}
-*Estancia:* ${activeHold.checkIn} al ${activeHold.checkOut} (${activeHold.nights} noches)
-👥 *Huéspedes:* ${activeHold.guestsCount} persona(s)
-💵 *Modalidad elegida:* ${percentLabel}
-💰 *Monto a Pagar:* ${formatCOP(amountToPay)}
-⏱️ *Estado en Plataforma:* Habitación bloqueada temporalmente por 15 minutos en espera de validación de pago.
+• *Código de Reserva:* ${booking.bookingCode}
+• *Estancia:* ${activeHold.checkIn} al ${activeHold.checkOut} (${activeHold.nights} noches)
+• *Huéspedes:* ${activeHold.guestsCount} persona(s)
+• *Modalidad elegida:* ${percentLabel}
+• *Monto a Pagar:* ${formatCOP(amountToPay)}
+• *Estado en Plataforma:* Habitación bloqueada temporalmente por 15 minutos en espera de validación de pago.
 
-¿Me confirma por favor a qué cuenta (Nequi / Bancolombia / Daviplata) le realizo la transferencia para enviarle el comprobante y que autorice mi reserva? ¡Muchas gracias!`;
+¿Me confirma por favor los datos de la cuenta (Nequi / Bancolombia / Daviplata) para enviarle el comprobante y autorizar mi reserva? ¡Muchas gracias!`;
 
       currentPendingWaUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waMessage)}`;
 
@@ -1625,16 +1628,17 @@ document.addEventListener('DOMContentLoaded', () => {
       if (btnReopenWhatsAppChat) btnReopenWhatsAppChat.href = currentPendingWaUrl;
 
       if (bookingPendingWaModal) bookingPendingWaModal.style.display = 'flex';
-      showToast('¡Pre-reserva creada! Chat de WhatsApp abierto con el encargado.', 'success');
+      showToast('¡Pre-reserva creada! Chat de WhatsApp (304 659 8870) abierto.', 'success');
 
       // Refrescar vistas en segundo plano
       if (typeof loadMyBookings === 'function') loadMyBookings();
-      if (typeof loadAdminReservations === 'function') loadAdminReservations();
+      if (typeof loadAdminDashboard === 'function') loadAdminDashboard();
+      if (typeof loadReceptionBookings === 'function') loadReceptionBookings();
     } catch (err) {
       showToast(`Error al procesar la pre-reserva: ${err.message}`, 'error');
     } finally {
       btnConfirmAndChatWhatsApp.disabled = false;
-      if (btnChatText) btnChatText.textContent = 'RESERVAR Y GESTIONAR PAGO POR WHATSAPP';
+      if (btnChatText) btnChatText.textContent = 'Reservar y Gestionar Pago por WhatsApp';
     }
   });
 
@@ -1757,8 +1761,14 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
 
           ${b.status === 'PENDING_PAYMENT' ? `
-            <div style="background: var(--editorial-pill-sand); border: 1px solid rgba(166, 138, 86, 0.4); border-radius: 8px; padding: 0.7rem 0.95rem; font-size: 0.8rem; color: var(--editorial-text-main);">
-              <strong>En Revisión Administrativa:</strong> Tu pago directo o transferencia está siendo verificado por el Administrador. Tus fechas se encuentran protegidas en el inventario.
+            <div style="background: var(--editorial-pill-sand); border: 1px solid rgba(166, 138, 86, 0.4); border-radius: 8px; padding: 0.7rem 0.95rem; font-size: 0.8rem; color: var(--editorial-text-main); display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+              <div>
+                <strong>En Revisión Administrativa:</strong> Tu pago directo o transferencia está siendo verificado por el Administrador (${OFFICIAL_WHATSAPP_DISPLAY}). Tus fechas se encuentran protegidas en el inventario.
+              </div>
+              <a href="https://api.whatsapp.com/send?phone=${OFFICIAL_WHATSAPP_NUMBER}&text=${encodeURIComponent('Hola, envío comprobante de pago para autorizar mi reserva ' + b.bookingCode + ' en ' + b.hotelName + ' (' + b.checkIn + ' al ' + b.checkOut + ').')}"
+                target="_blank" rel="noopener" class="btn-hotel-primary" style="text-decoration: none; font-size: 0.76rem; padding: 0.45rem 0.85rem;">
+                <span>Contactar WhatsApp (304 659 8870)</span>
+              </a>
             </div>
           ` : ''}
 
@@ -1878,6 +1888,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Función auxiliar unificada para aprobar cualquier reserva (con respaldo directo en booking-service)
+  async function approveReservationUnified(codeOrId, bookingIdFallback) {
+    try {
+      await api.approvePayment(codeOrId);
+    } catch (firstErr) {
+      // Respaldo directo: confirmar la reserva en booking-service si payment-service aún no tenía el registro
+      const target = bookingIdFallback || codeOrId;
+      await api.request(`/api/bookings/${target}/confirm-payment`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          bookingId: target,
+          bookingCode: codeOrId,
+          transactionReference: `WA-APPROVED-${codeOrId}`,
+        }),
+      });
+    }
+  }
+
+  // Función auxiliar unificada para rechazar cualquier reserva y liberar fechas
+  async function rejectReservationUnified(codeOrId, reason, bookingIdFallback) {
+    try {
+      await api.rejectPayment(codeOrId, reason);
+    } catch (firstErr) {
+      const target = bookingIdFallback || codeOrId;
+      await api.cancelBooking(target, `Transferencia rechazada: ${reason}`);
+    }
+  }
+
   function renderReceptionTable(bookings = []) {
     if (!receptionTableBody) return;
 
@@ -1893,20 +1931,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     receptionTableBody.innerHTML = bookings.map(b => {
-      const st = BOOKING_STATUS_MAP[b.status] || { label: b.status, color: '#fff', bg: 'rgba(255,255,255,0.1)' };
+      const st = BOOKING_STATUS_MAP[b.status] || { label: b.status, color: 'var(--editorial-text-main)', bg: '#F2EFE9' };
 
       let actionsHtml = '';
       if (b.status === 'CONFIRMED') {
         actionsHtml = `
           <button class="btn-checkin-action" data-id="${b.id}" data-code="${b.bookingCode}"
-            style="padding: 5px 10px; font-size: 0.75rem; border-radius: 6px; background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; color: var(--editorial-emerald); cursor: pointer; font-weight: 700;">
+            style="padding: 5px 11px; font-size: 0.75rem; border-radius: 6px; background: rgba(19, 51, 46, 0.08); border: 1px solid var(--editorial-emerald); color: var(--editorial-emerald); cursor: pointer; font-weight: 700;">
             Check-In
           </button>
         `;
       } else if (b.status === 'CHECKED_IN') {
         actionsHtml = `
           <button class="btn-checkout-action" data-id="${b.id}" data-code="${b.bookingCode}"
-            style="padding: 5px 10px; font-size: 0.75rem; border-radius: 6px; background: rgba(251, 191, 36, 0.2); border: 1px solid #fbbf24; color: var(--editorial-gold); cursor: pointer; font-weight: 700;">
+            style="padding: 5px 11px; font-size: 0.75rem; border-radius: 6px; background: rgba(166, 138, 86, 0.14); border: 1px solid var(--editorial-gold); color: #8C703E; cursor: pointer; font-weight: 700;">
             Check-Out
           </button>
         `;
@@ -1914,16 +1952,16 @@ document.addEventListener('DOMContentLoaded', () => {
         actionsHtml = `
           <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
             <button class="btn-approve-booking-action" data-code="${b.bookingCode}" data-id="${b.id}"
-              style="padding: 5px 9px; font-size: 0.74rem; border-radius: 6px; background: rgba(52, 211, 153, 0.2); border: 1px solid #34d399; color: var(--editorial-emerald); cursor: pointer; font-weight: 700;" title="Aceptar y autorizar reserva">
+              style="padding: 5px 10px; font-size: 0.74rem; border-radius: 6px; background: var(--editorial-emerald); border: 1px solid var(--editorial-emerald); color: #FAF9F6; cursor: pointer; font-weight: 600;" title="Aceptar y autorizar reserva">
               Aceptar
             </button>
             <button class="btn-reject-booking-action" data-code="${b.bookingCode}" data-id="${b.id}"
-              style="padding: 5px 9px; font-size: 0.74rem; border-radius: 6px; background: rgba(248, 113, 113, 0.2); border: 1px solid #f87171; color: #B42318; cursor: pointer; font-weight: 700;" title="Rechazar y liberar habitación">
+              style="padding: 5px 10px; font-size: 0.74rem; border-radius: 6px; background: rgba(180, 35, 24, 0.08); border: 1px solid rgba(180, 35, 24, 0.3); color: #B42318; cursor: pointer; font-weight: 600;" title="Rechazar y liberar habitación">
               Rechazar
             </button>
-            <a href="https://api.whatsapp.com/send?phone=573001234567&text=Hola%20${encodeURIComponent(b.userName || 'huésped')},%20nos%20comunicamos%20del%20hotel%20respecto%20a%20su%20reserva%20${b.bookingCode}"
+            <a href="https://api.whatsapp.com/send?phone=${OFFICIAL_WHATSAPP_NUMBER}&text=${encodeURIComponent('Hola ' + (b.userName || 'huésped') + ', nos comunicamos de Travel & Resorts respecto a la validación de pago de su reserva ' + b.bookingCode + ' en ' + b.hotelName)}"
               target="_blank" rel="noopener"
-              style="padding: 5px 9px; font-size: 0.74rem; border-radius: 6px; background: rgba(37, 211, 102, 0.2); border: 1px solid #25D366; color: #4ade80; text-decoration: none; font-weight: 700;" title="Contactar al huésped por WhatsApp">
+              style="padding: 5px 10px; font-size: 0.74rem; border-radius: 6px; background: #F2EFE9; border: 1px solid var(--editorial-border); color: var(--editorial-emerald); text-decoration: none; font-weight: 600;" title="Gestionar por WhatsApp (304 659 8870)">
               WhatsApp
             </a>
           </div>
@@ -1934,21 +1972,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
       return `
         <tr style="border-bottom: 1px solid var(--editorial-border);">
-          <td style="padding: 0.75rem; font-weight: 800; color: var(--editorial-emerald);">${b.bookingCode}</td>
+          <td style="padding: 0.75rem; font-weight: 700; color: var(--editorial-emerald);">${b.bookingCode}</td>
           <td style="padding: 0.75rem;">
             <div style="font-weight: 600; color: var(--editorial-text-main);">${b.userName || 'Huésped'}</div>
             <div style="font-size: 0.72rem; color: var(--text-dim);">${b.userEmail}</div>
           </td>
           <td style="padding: 0.75rem;">
-            <div style="font-size: 0.85rem; color: var(--editorial-text-main);">${b.hotelName}</div>
+            <div style="font-size: 0.85rem; color: var(--editorial-text-main); font-weight: 500;">${b.hotelName}</div>
             <div style="font-size: 0.75rem; color: var(--editorial-text-muted);">${b.roomName}</div>
           </td>
           <td style="padding: 0.75rem; font-size: 0.8rem; color: var(--editorial-text-muted);">
             <div>In: <strong style="color: var(--editorial-emerald);">${b.checkIn}</strong></div>
-            <div>Out: <strong style="color: #B42318;">${b.checkOut}</strong></div>
+            <div>Out: <strong style="color: #8C703E;">${b.checkOut}</strong></div>
           </td>
           <td style="padding: 0.75rem;">
-            <span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: ${st.bg}; color: ${st.color}; font-weight: 700; border: 1px solid ${st.color}44;">
+            <span style="font-size: 0.72rem; padding: 3px 9px; border-radius: 999px; background: ${st.bg}; color: ${st.color}; font-weight: 600; border: 1px solid ${st.color}33;">
               ${st.label}
             </span>
           </td>
@@ -1974,6 +2012,7 @@ document.addEventListener('DOMContentLoaded', () => {
           await api.checkInBooking(id);
           showToast(`¡Check-In registrado exitosamente para ${code}!`, 'success');
           loadReceptionBookings();
+          loadAdminDashboard();
         } catch (err) {
           showToast(`Error: ${err.message}`, 'error');
         }
@@ -1983,14 +2022,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.btn-approve-booking-action').forEach(btn => {
       btn.addEventListener('click', async () => {
         const code = btn.getAttribute('data-code');
+        const id = btn.getAttribute('data-id');
         if (!confirm(`¿Autorizar y confirmar definitivamente la reserva ${code}? Las fechas quedarán bloqueadas permanentemente y se emitirá el voucher digital oficial.`)) return;
 
         try {
           showToast(`Autorizando reserva ${code}...`, 'info');
-          await api.approvePayment(code);
+          await approveReservationUnified(code, id);
           showToast(`¡Reserva ${code} autorizada y confirmada exitosamente!`, 'success');
           loadReceptionBookings();
-          if (typeof loadAdminDashboard === 'function') loadAdminDashboard();
+          loadAdminDashboard();
+          loadPayments();
         } catch (err) {
           showToast(`Error al autorizar: ${err.message}`, 'error');
         }
@@ -2000,15 +2041,17 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.btn-reject-booking-action').forEach(btn => {
       btn.addEventListener('click', async () => {
         const code = btn.getAttribute('data-code');
+        const id = btn.getAttribute('data-id');
         const reason = prompt(`Motivo del rechazo de la reserva ${code} (se liberarán las fechas de inmediato):`, 'Comprobante no recibido o fondos insuficientes');
         if (!reason) return;
 
         try {
           showToast(`Rechazando reserva ${code}...`, 'info');
-          await api.rejectPayment(code, reason);
+          await rejectReservationUnified(code, reason, id);
           showToast(`Reserva ${code} rechazada. Fechas liberadas en inventario.`, 'info');
           loadReceptionBookings();
-          if (typeof loadAdminDashboard === 'function') loadAdminDashboard();
+          loadAdminDashboard();
+          loadPayments();
         } catch (err) {
           showToast(`Error al rechazar: ${err.message}`, 'error');
         }
@@ -2026,6 +2069,7 @@ document.addEventListener('DOMContentLoaded', () => {
           await api.checkOutBooking(id);
           showToast(`¡Check-Out completado con éxito para ${code}!`, 'success');
           loadReceptionBookings();
+          loadAdminDashboard();
         } catch (err) {
           showToast(`Error: ${err.message}`, 'error');
         }
@@ -2047,58 +2091,145 @@ document.addEventListener('DOMContentLoaded', () => {
   // 15. TAB: GESTIÓN DE CUENTAS & PERSONAL (EXCLUSIVO HOTEL_ADMIN)
   // --------------------------------------------------------------------------
   const ROLE_LABELS = {
-    GUEST: { label: 'Cliente / Huésped', color: '#7dd3fc', bg: 'rgba(125, 211, 252, 0.15)' },
-        HOTEL_ADMIN: { label: 'Administrador', color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.15)' },
+    GUEST: { label: 'Cliente / Huésped', color: '#13332E', bg: 'rgba(19, 51, 46, 0.08)' },
+    HOTEL_ADMIN: { label: 'Administrador', color: '#8C703E', bg: 'rgba(166, 138, 86, 0.14)' },
   };
 
-  
   // =========================================================================
-  // FASE 4: PANEL DE CONTROL & TRANSACCIONES (ADMIN DASHBOARD)
+  // FASE 4: PANEL DE CONTROL & TRANSACCIONES (ADMIN DASHBOARD SINCRONIZADO)
   // =========================================================================
   async function loadAdminDashboard() {
     try {
-      // 1. Cargar habitaciones para ocupación
-      const roomsRes = await api.getRooms({ limit: 100 }).catch(() => ({ data: [] }));
-      const rooms = roomsRes?.data || (Array.isArray(roomsRes) ? roomsRes : []);
+      // 1. Cargar en paralelo Habitaciones, Reservas, Pagos y Usuarios para que las métricas sean 100% coherentes
+      const [roomsRes, bookingsRes, paymentsRes, usersRes] = await Promise.all([
+        api.getRooms({ limit: 100 }).catch(() => ({ data: [] })),
+        api.getAllBookings({ limit: 100 }).catch(() => ({ data: [] })),
+        api.getAllPayments({ limit: 100 }).catch(() => ({ data: [] })),
+        api.getAllUsers().catch(() => []),
+      ]);
+
+      const rooms = Array.isArray(roomsRes) ? roomsRes : (roomsRes?.data || []);
+      const bookings = Array.isArray(bookingsRes) ? bookingsRes : (bookingsRes?.data || []);
+      const payments = Array.isArray(paymentsRes) ? paymentsRes : (paymentsRes?.data || []);
+      const users = Array.isArray(usersRes) ? usersRes : (usersRes?.data || []);
+
+      // 2. Calcular Ocupación real (Habitaciones en estado OCCUPIED + Habitaciones con reserva activa CONFIRMED o CHECKED_IN)
+      const activeBookedRoomIds = new Set(
+        bookings
+          .filter(b => b.status === 'CONFIRMED' || b.status === 'CHECKED_IN')
+          .map(b => b.roomId)
+          .filter(Boolean)
+      );
+
       const totalRooms = rooms.length;
-      const occupiedRooms = rooms.filter(r => r.status === 'OCCUPIED').length;
-      const availableRooms = rooms.filter(r => r.status === 'AVAILABLE').length;
       const maintenanceRooms = rooms.filter(r => r.status === 'MAINTENANCE').length;
       const inactiveRooms = rooms.filter(r => r.status === 'INACTIVE' || r.isActive === false).length;
+      const occupiedRoomsCount = rooms.filter(
+        r => r.status === 'OCCUPIED' || activeBookedRoomIds.has(r.id)
+      ).length;
+      const availableRooms = Math.max(0, totalRooms - occupiedRoomsCount - maintenanceRooms - inactiveRooms);
 
-      const occupancyRate = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
+      const occupancyRate = totalRooms > 0 ? Math.round((occupiedRoomsCount / totalRooms) * 100) : 0;
 
       const elOccRate = document.getElementById('kpiOccupancyRate');
       const elOccDetail = document.getElementById('kpiOccupancyDetail');
       if (elOccRate) elOccRate.textContent = `${occupancyRate}%`;
-      if (elOccDetail) elOccDetail.textContent = `${occupiedRooms} de ${totalRooms} habitaciones ocupadas`;
+      if (elOccDetail) elOccDetail.textContent = `${occupiedRoomsCount} de ${totalRooms} habitaciones con estancia activa`;
 
       const elAvail = document.getElementById('invAvailableCount');
       const elOcc = document.getElementById('invOccupiedCount');
       const elMaint = document.getElementById('invMaintenanceCount');
       const elInact = document.getElementById('invInactiveCount');
       if (elAvail) elAvail.textContent = availableRooms;
-      if (elOcc) elOcc.textContent = occupiedRooms;
+      if (elOcc) elOcc.textContent = occupiedRoomsCount;
       if (elMaint) elMaint.textContent = maintenanceRooms;
       if (elInact) elInact.textContent = inactiveRooms;
 
-      // 2. Cargar pagos para ingresos y transferencias pendientes
-      const payments = await api.getAllPayments().catch(() => []);
-      const confirmedPayments = (payments || []).filter(p => p.status === 'SUCCEEDED');
-      const totalRevenue = confirmedPayments.reduce((acc, p) => acc + (getCOPPrice(p.amount) || 0), 0);
+      // 3. Calcular Ingresos Confirmados (Unificando reservas CONFIRMED / CHECKED_IN / COMPLETED y pagos SUCCEEDED sin duplicar por bookingCode)
+      const revenueByBookingCode = new Map();
+      bookings
+        .filter(b => b.status === 'CONFIRMED' || b.status === 'CHECKED_IN' || b.status === 'COMPLETED')
+        .forEach(b => {
+          revenueByBookingCode.set(b.bookingCode || b.id, getCOPPrice(b.totalAmount) || 0);
+        });
+      payments
+        .filter(p => p.status === 'SUCCEEDED' || p.status === 'COMPLETED')
+        .forEach(p => {
+          const key = p.bookingCode || p.bookingId || p.id;
+          if (!revenueByBookingCode.has(key)) {
+            revenueByBookingCode.set(key, getCOPPrice(p.amount) || 0);
+          }
+        });
+
+      let totalRevenue = 0;
+      revenueByBookingCode.forEach(val => { totalRevenue += val; });
+
       const elRev = document.getElementById('kpiTotalRevenue');
       if (elRev) elRev.textContent = formatCOP(totalRevenue);
 
-      // 3. Transferencias pendientes de aprobación
-      const pendingTransfers = (payments || []).filter(p => p.status === 'PENDING');
+      // 4. Unificar Solicitudes de Reserva y Transferencias Pendientes de Aprobación (PENDING_PAYMENT + PENDING)
+      const pendingMap = new Map();
+
+      // Primero todas las reservas en estado PENDING_PAYMENT (fuente de verdad de las reservas pendientes)
+      bookings
+        .filter(b => b.status === 'PENDING_PAYMENT')
+        .forEach(b => {
+          pendingMap.set(b.bookingCode, {
+            id: b.bookingCode,
+            bookingId: b.id,
+            bookingCode: b.bookingCode,
+            userName: b.userName || 'Huésped',
+            userEmail: b.userEmail || '',
+            hotelName: b.hotelName || 'Sede Hotelera',
+            roomName: b.roomName || 'Suite',
+            checkIn: b.checkIn,
+            checkOut: b.checkOut,
+            amount: b.totalAmount,
+            createdAt: b.createdAt,
+            transferReference: `WA-CHAT-${b.bookingCode}`,
+          });
+        });
+
+      // Agregar pagos en estado PENDING cuya reserva siga pendiente
+      const cancelledOrConfirmedCodes = new Set(
+        bookings
+          .filter(b => b.status !== 'PENDING_PAYMENT')
+          .map(b => b.bookingCode)
+      );
+
+      payments
+        .filter(p => p.status === 'PENDING')
+        .forEach(p => {
+          const code = p.bookingCode || p.id;
+          if (cancelledOrConfirmedCodes.has(code)) return;
+          if (!pendingMap.has(code)) {
+            pendingMap.set(code, {
+              id: p.bookingCode || p.id,
+              bookingId: p.bookingId,
+              bookingCode: p.bookingCode || p.id?.substring(0, 8),
+              userName: p.userEmail ? p.userEmail.split('@')[0] : 'Huésped',
+              userEmail: p.userEmail || '',
+              hotelName: 'Gestión Directa WhatsApp',
+              roomName: p.cardBrand || 'Transferencia Bancaria',
+              amount: p.amount,
+              createdAt: p.createdAt,
+              transferReference: p.transactionReference || p.transferReference || `WA-CHAT-${code}`,
+            });
+          } else {
+            const existing = pendingMap.get(code);
+            existing.transferReference = p.transactionReference || p.transferReference || existing.transferReference;
+          }
+        });
+
+      const unifiedPendingList = Array.from(pendingMap.values());
+
       const elPendingKpi = document.getElementById('kpiPendingTransfers');
-      if (elPendingKpi) elPendingKpi.textContent = pendingTransfers.length;
+      if (elPendingKpi) elPendingKpi.textContent = unifiedPendingList.length;
 
-      renderDashboardPendingTransfers(pendingTransfers);
+      renderDashboardPendingTransfers(unifiedPendingList);
 
-      // 4. Huéspedes registrados
-      const users = await api.getAllUsers().catch(() => []);
-      const guests = (users || []).filter(u => u.role === 'GUEST');
+      // 5. Huéspedes registrados
+      const guests = users.filter(u => u.role === 'GUEST');
       const elGuests = document.getElementById('kpiTotalGuests');
       if (elGuests) elGuests.textContent = guests.length;
 
@@ -2113,66 +2244,83 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (pendingList.length === 0) {
       box.innerHTML = `
-        <div style="text-align: center; padding: 1.5rem; color: var(--editorial-emerald); background: rgba(52, 211, 153, 0.05); border-radius: 8px; border: 1px dashed rgba(52, 211, 153, 0.2);">
-          <span>No hay transferencias bancarias pendientes por aprobar en este momento. Todas las reservas están al día.</span>
+        <div style="text-align: center; padding: 1.5rem; color: var(--editorial-emerald); background: rgba(19, 51, 46, 0.04); border-radius: 8px; border: 1px dashed rgba(19, 51, 46, 0.2);">
+          <span>No hay solicitudes ni transferencias pendientes por aprobar en este momento. Todas las reservas están al día.</span>
         </div>
       `;
       return;
     }
 
     box.innerHTML = `
-      <table class="reception-table" style="width: 100%;">
-        <thead>
-          <tr>
-            <th>Referencia / Reserva</th>
-            <th>Monto</th>
-            <th>Fecha</th>
-            <th>Ref. Bancaria</th>
-            <th>Acción Rápida</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${pendingList.map(p => `
-            <tr style="border-bottom: 1px solid var(--editorial-border);">
-              <td style="padding: 0.75rem;">
-                <div style="font-weight: 700; color: var(--editorial-emerald);">${p.bookingCode || p.id?.substring(0,8)}</div>
-                <div style="font-size: 0.72rem; color: var(--text-dim);">ID: ${p.id}</div>
-              </td>
-              <td style="padding: 0.75rem; font-weight: 800; color: var(--editorial-emerald);">
-                ${formatCOP(p.amount)}
-              </td>
-              <td style="padding: 0.75rem; font-size: 0.75rem; color: var(--text-dim);">
-                ${new Date(p.createdAt).toLocaleDateString()}
-              </td>
-              <td style="padding: 0.75rem; font-size: 0.8rem; color: var(--editorial-gold); font-family: monospace;">
-                ${p.transferReference || 'Pendiente'}
-              </td>
-              <td style="padding: 0.75rem;">
-                <div style="display: flex; gap: 0.4rem;">
-                  <button class="btn-dash-approve" data-id="${p.id}"
-                    style="padding: 4px 10px; font-size: 0.75rem; border-radius: 6px; background: rgba(52, 211, 153, 0.2); border: 1px solid #34d399; color: var(--editorial-emerald); cursor: pointer; font-weight: 700;">
-                    Aprobar
-                  </button>
-                  <button class="btn-dash-reject" data-id="${p.id}"
-                    style="padding: 4px 10px; font-size: 0.75rem; border-radius: 6px; background: rgba(248, 113, 113, 0.2); border: 1px solid #f87171; color: #B42318; cursor: pointer; font-weight: 700;">
-                    Rechazar
-                  </button>
-                </div>
-              </td>
+      <div class="table-responsive">
+        <table class="reception-table" style="width: 100%;">
+          <thead>
+            <tr>
+              <th>Código Reserva</th>
+              <th>Huésped</th>
+              <th>Hotel &amp; Habitación</th>
+              <th>Monto</th>
+              <th>Canal / Referencia</th>
+              <th>Acción Rápida</th>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            ${pendingList.map(p => `
+              <tr style="border-bottom: 1px solid var(--editorial-border);">
+                <td style="padding: 0.75rem;">
+                  <div style="font-weight: 700; color: var(--editorial-emerald);">${p.bookingCode}</div>
+                  <div style="font-size: 0.72rem; color: var(--text-dim);">${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'Hoy'}</div>
+                </td>
+                <td style="padding: 0.75rem;">
+                  <div style="font-weight: 600; color: var(--editorial-text-main);">${p.userName || 'Huésped'}</div>
+                  <div style="font-size: 0.72rem; color: var(--text-dim);">${p.userEmail || ''}</div>
+                </td>
+                <td style="padding: 0.75rem;">
+                  <div style="font-size: 0.84rem; color: var(--editorial-text-main); font-weight: 500;">${p.hotelName || 'Sede Hotelera'}</div>
+                  <div style="font-size: 0.74rem; color: var(--editorial-text-muted);">${p.roomName || ''} ${p.checkIn ? `(${p.checkIn} → ${p.checkOut})` : ''}</div>
+                </td>
+                <td style="padding: 0.75rem; font-weight: 700; color: var(--editorial-emerald);">
+                  ${formatCOP(p.amount)}
+                </td>
+                <td style="padding: 0.75rem; font-size: 0.78rem; color: #8C703E; font-weight: 600;">
+                  <div>${p.transferReference || 'WhatsApp Directo'}</div>
+                  <div style="font-size: 0.7rem; color: var(--editorial-text-subtle);">WhatsApp: ${OFFICIAL_WHATSAPP_DISPLAY}</div>
+                </td>
+                <td style="padding: 0.75rem;">
+                  <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                    <button class="btn-dash-approve" data-code="${p.bookingCode}" data-booking-id="${p.bookingId || ''}"
+                      style="padding: 5px 10px; font-size: 0.74rem; border-radius: 6px; background: var(--editorial-emerald); border: 1px solid var(--editorial-emerald); color: #FAF9F6; cursor: pointer; font-weight: 600;">
+                      Aprobar
+                    </button>
+                    <button class="btn-dash-reject" data-code="${p.bookingCode}" data-booking-id="${p.bookingId || ''}"
+                      style="padding: 5px 10px; font-size: 0.74rem; border-radius: 6px; background: rgba(180, 35, 24, 0.08); border: 1px solid rgba(180, 35, 24, 0.3); color: #B42318; cursor: pointer; font-weight: 600;">
+                      Rechazar
+                    </button>
+                    <a href="https://api.whatsapp.com/send?phone=${OFFICIAL_WHATSAPP_NUMBER}&text=${encodeURIComponent('Hola ' + (p.userName || 'huésped') + ', nos comunicamos de Travel & Resorts sobre la reserva ' + p.bookingCode)}"
+                      target="_blank" rel="noopener"
+                      style="padding: 5px 10px; font-size: 0.74rem; border-radius: 6px; background: #F2EFE9; border: 1px solid var(--editorial-border); color: var(--editorial-emerald); text-decoration: none; font-weight: 600;">
+                      WhatsApp
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
     `;
 
     box.querySelectorAll('.btn-dash-approve').forEach(btn => {
       btn.addEventListener('click', async () => {
-        const id = btn.getAttribute('data-id');
-        if (!confirm('¿Aprobar esta transferencia bancaria y confirmar la reserva?')) return;
+        const code = btn.getAttribute('data-code');
+        const bookingId = btn.getAttribute('data-booking-id');
+        if (!confirm(`¿Aprobar el pago y confirmar definitivamente la reserva ${code}?`)) return;
         try {
-          await api.approvePayment(id);
-          showToast('Transferencia aprobada. Reserva confirmada.', 'success');
+          showToast(`Autorizando reserva ${code}...`, 'info');
+          await approveReservationUnified(code, bookingId);
+          showToast(`¡Reserva ${code} aprobada y confirmada con éxito!`, 'success');
           loadAdminDashboard();
+          loadReceptionBookings();
           loadPayments();
         } catch (err) {
           showToast(err.message, 'error');
@@ -2182,13 +2330,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     box.querySelectorAll('.btn-dash-reject').forEach(btn => {
       btn.addEventListener('click', async () => {
-        const id = btn.getAttribute('data-id');
-        const reason = prompt('Motivo del rechazo de la transferencia (se notificará al huésped):', 'Comprobante bancario no legible o fondos no acreditados');
+        const code = btn.getAttribute('data-code');
+        const bookingId = btn.getAttribute('data-booking-id');
+        const reason = prompt(`Motivo del rechazo de la reserva ${code} (se notificará al huésped):`, 'Comprobante bancario no legible o fondos no acreditados');
         if (!reason) return;
         try {
-          await api.rejectPayment(id, reason);
-          showToast('Transferencia rechazada y fechas liberadas en inventario.', 'info');
+          showToast(`Rechazando reserva ${code}...`, 'info');
+          await rejectReservationUnified(code, reason, bookingId);
+          showToast(`Reserva ${code} rechazada y fechas liberadas en inventario.`, 'info');
           loadAdminDashboard();
+          loadReceptionBookings();
           loadPayments();
         } catch (err) {
           showToast(err.message, 'error');
@@ -2231,17 +2382,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     usersTableBody.innerHTML = users.map(u => {
-      const rl = ROLE_LABELS[u.role] || { label: u.role, color: '#fff', bg: 'rgba(255,255,255,0.1)' };
+      const rl = ROLE_LABELS[u.role] || { label: u.role, color: 'var(--editorial-text-main)', bg: '#F2EFE9' };
       const activeBadge = u.isActive
-        ? `<span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: rgba(52, 211, 153, 0.15); color: var(--editorial-emerald); font-weight: 700;">Activa</span>`
-        : `<span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: rgba(248, 113, 113, 0.15); color: #B42318; font-weight: 700;">Desactivada</span>`;
+        ? `<span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: rgba(19, 51, 46, 0.08); color: var(--editorial-emerald); font-weight: 700;">Activa</span>`
+        : `<span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: rgba(180, 35, 24, 0.08); color: #B42318; font-weight: 700;">Desactivada</span>`;
 
       let actions = '';
       if (u.role !== 'HOTEL_ADMIN') {
         actions += `
           <button class="btn-user-toggle" data-id="${u.id}" data-active="${u.isActive}"
-            style="padding: 4px 10px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; font-weight: 700;
-              background: rgba(251, 191, 36, 0.15); border: 1px solid #fbbf24; color: var(--editorial-gold);">
+            style="padding: 4px 10px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; font-weight: 600;
+              background: rgba(166, 138, 86, 0.12); border: 1px solid var(--editorial-gold); color: #8C703E;">
             ${u.isActive ? 'Desactivar' : 'Activar'}
           </button>
         `;
@@ -2249,8 +2400,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (u.role === 'GUEST') {
         actions += `
           <button class="btn-user-delete" data-id="${u.id}" data-email="${u.email}"
-            style="padding: 4px 10px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; font-weight: 700;
-              background: rgba(248, 113, 113, 0.15); border: 1px solid #f87171; color: #B42318;">
+            style="padding: 4px 10px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; font-weight: 600;
+              background: rgba(180, 35, 24, 0.08); border: 1px solid rgba(180, 35, 24, 0.3); color: #B42318;">
             Eliminar
           </button>
         `;
@@ -2330,7 +2481,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } finally {
       if (submitStaffBtn) {
         submitStaffBtn.disabled = false;
-        submitStaffBtn.innerHTML = '<span>CREAR CUENTA</span>';
+        submitStaffBtn.innerHTML = '<span>Crear Cuenta</span>';
       }
     }
   });
@@ -2340,7 +2491,6 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast('Listado de cuentas actualizado', 'info');
   });
 
-  // Botón para eliminar en masa todas las cuentas GUEST de prueba
   const btnDeleteGuests = document.getElementById('btnDeleteGuests');
   btnDeleteGuests?.addEventListener('click', async () => {
     if (!confirm('¿Confirmas que deseas eliminar TODOS los usuarios con rol GUEST?\n\nEsta acción liberará sus correos para nuevas pruebas y registros limpios.')) return;
@@ -2358,11 +2508,55 @@ document.addEventListener('DOMContentLoaded', () => {
   // 16. TAB: PAGOS & REEMBOLSOS (EXCLUSIVO HOTEL_ADMIN)
   // --------------------------------------------------------------------------
   const PAYMENT_STATUS_MAP = {
-    COMPLETED: { label: 'Completado', color: '#34d399', bg: 'rgba(52, 211, 153, 0.15)' },
-    PENDING: { label: 'Pendiente', color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.15)' },
-    FAILED: { label: 'Fallido', color: '#f87171', bg: 'rgba(248, 113, 113, 0.15)' },
-    REFUNDED: { label: 'Reembolsado', color: '#a78bfa', bg: 'rgba(167, 139, 250, 0.15)' },
+    COMPLETED: { label: 'Completado', color: '#13332E', bg: 'rgba(19, 51, 46, 0.08)' },
+    SUCCEEDED: { label: 'Completado', color: '#13332E', bg: 'rgba(19, 51, 46, 0.08)' },
+    PENDING: { label: 'Pendiente de Aprobación', color: '#8C703E', bg: 'rgba(166, 138, 86, 0.14)' },
+    FAILED: { label: 'Rechazado / Fallido', color: '#B42318', bg: 'rgba(180, 35, 24, 0.08)' },
+    REFUNDED: { label: 'Reembolsado', color: '#6E6B64', bg: '#F2EFE9' },
   };
+
+  async function buildUnifiedPaymentsList(onlyPending = false) {
+    const [paymentsRes, bookingsRes] = await Promise.all([
+      onlyPending ? api.getPendingPayments().catch(() => []) : api.getAllPayments({ limit: 100 }).catch(() => ({ data: [] })),
+      api.getAllBookings({ limit: 100 }).catch(() => ({ data: [] })),
+    ]);
+
+    const rawPayments = Array.isArray(paymentsRes) ? paymentsRes : (paymentsRes?.data || []);
+    const rawBookings = Array.isArray(bookingsRes) ? bookingsRes : (bookingsRes?.data || []);
+
+    const byCode = new Map();
+    rawPayments.forEach(p => {
+      const key = p.bookingCode || p.id;
+      byCode.set(key, {
+        ...p,
+        paymentReference: p.transactionReference || p.paymentReference || p.reference || `WA-CHAT-${p.bookingCode || ''}`,
+        bookingCode: p.bookingCode || p.bookingId,
+        method: p.cardBrand || p.paymentMethod || 'Transferencia / WhatsApp',
+      });
+    });
+
+    rawBookings.forEach(b => {
+      if (onlyPending && b.status !== 'PENDING_PAYMENT') return;
+      if (!byCode.has(b.bookingCode)) {
+        const mappedStatus = b.status === 'PENDING_PAYMENT'
+          ? 'PENDING'
+          : (b.status === 'CONFIRMED' || b.status === 'CHECKED_IN' || b.status === 'COMPLETED' ? 'SUCCEEDED' : 'FAILED');
+        byCode.set(b.bookingCode, {
+          id: b.id,
+          bookingId: b.id,
+          bookingCode: b.bookingCode,
+          paymentReference: `WA-CHAT-${b.bookingCode}`,
+          method: `WhatsApp (${OFFICIAL_WHATSAPP_DISPLAY})`,
+          amount: b.totalAmount,
+          status: mappedStatus,
+          createdAt: b.createdAt,
+        });
+      }
+    });
+
+    const list = Array.from(byCode.values());
+    return onlyPending ? list.filter(item => item.status === 'PENDING') : list;
+  }
 
   async function loadPayments() {
     if (!paymentsTableBody) return;
@@ -2372,8 +2566,8 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
 
     try {
-      const res = await api.getAllPayments({ limit: 100 });
-      renderPaymentsTable(res.data || []);
+      const list = await buildUnifiedPaymentsList(false);
+      renderPaymentsTable(list);
     } catch (err) {
       paymentsTableBody.innerHTML = `
         <tr><td colspan="7" style="text-align: center; color: #B42318; padding: 2rem;">Error cargando pagos: ${err.message}</td></tr>
@@ -2392,35 +2586,94 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     paymentsTableBody.innerHTML = payments.map(p => {
-      const st = PAYMENT_STATUS_MAP[p.status] || { label: p.status, color: '#fff', bg: 'rgba(255,255,255,0.1)' };
-      const canRefund = p.status === 'COMPLETED';
+      const st = PAYMENT_STATUS_MAP[p.status] || { label: p.status, color: 'var(--editorial-text-main)', bg: '#F2EFE9' };
+      const canRefund = p.status === 'COMPLETED' || p.status === 'SUCCEEDED';
+      const isPending = p.status === 'PENDING';
+      const codeOrRef = p.bookingCode || p.paymentReference || p.id;
+
+      let actionButtons = '<span style="font-size: 0.72rem; color: var(--text-dim);">—</span>';
+      if (isPending) {
+        actionButtons = `
+          <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+            <button class="btn-pay-approve-action" data-code="${p.bookingCode || codeOrRef}" data-booking-id="${p.bookingId || ''}"
+              style="padding: 4px 10px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; font-weight: 600;
+                background: var(--editorial-emerald); border: 1px solid var(--editorial-emerald); color: #FAF9F6;">
+              Aprobar
+            </button>
+            <button class="btn-pay-reject-action" data-code="${p.bookingCode || codeOrRef}" data-booking-id="${p.bookingId || ''}"
+              style="padding: 4px 10px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; font-weight: 600;
+                background: rgba(180, 35, 24, 0.08); border: 1px solid rgba(180, 35, 24, 0.3); color: #B42318;">
+              Rechazar
+            </button>
+          </div>
+        `;
+      } else if (canRefund) {
+        actionButtons = `
+          <button class="btn-refund-action" data-ref="${codeOrRef}"
+            style="padding: 4px 10px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; font-weight: 600;
+              background: #F2EFE9; border: 1px solid var(--editorial-border); color: var(--editorial-text-main);">
+            Reembolsar
+          </button>
+        `;
+      }
 
       return `
         <tr style="border-bottom: 1px solid var(--editorial-border);">
-          <td style="padding: 0.75rem; font-weight: 800; color: var(--editorial-emerald);">${p.paymentReference || p.reference || p.id?.substring(0, 8)}</td>
-          <td style="padding: 0.75rem; font-size: 0.8rem; color: var(--editorial-text-muted);">${p.bookingCode || p.bookingId || '—'}</td>
-          <td style="padding: 0.75rem; font-size: 0.8rem; color: var(--editorial-text-muted);">${p.method || p.paymentMethod || '—'}</td>
+          <td style="padding: 0.75rem; font-weight: 700; color: var(--editorial-emerald);">${p.paymentReference || p.transactionReference || p.id?.substring(0, 8)}</td>
+          <td style="padding: 0.75rem; font-size: 0.82rem; font-weight: 600; color: var(--editorial-text-main);">${p.bookingCode || p.bookingId || '—'}</td>
+          <td style="padding: 0.75rem; font-size: 0.8rem; color: var(--editorial-text-muted);">${p.method || p.cardBrand || p.paymentMethod || '—'}</td>
           <td style="padding: 0.75rem; font-weight: 700; color: var(--editorial-emerald);">
             ${formatCOP(p.amount || p.totalAmount || 0)}
           </td>
           <td style="padding: 0.75rem;">
-            <span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: ${st.bg}; color: ${st.color}; font-weight: 700; border: 1px solid ${st.color}44;">
+            <span style="font-size: 0.72rem; padding: 3px 9px; border-radius: 999px; background: ${st.bg}; color: ${st.color}; font-weight: 600; border: 1px solid ${st.color}33;">
               ${st.label}
             </span>
           </td>
           <td style="padding: 0.75rem; font-size: 0.75rem; color: var(--text-dim);">${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '—'}</td>
           <td style="padding: 0.75rem;">
-            ${canRefund
-              ? `<button class="btn-refund-action" data-ref="${p.paymentReference || p.reference || p.id}"
-                  style="padding: 4px 10px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; font-weight: 700;
-                    background: rgba(167, 139, 250, 0.15); border: 1px solid #a78bfa; color: #a78bfa;">
-                  Reembolsar
-                </button>`
-              : '<span style="font-size: 0.72rem; color: var(--text-dim);">—</span>'}
+            ${actionButtons}
           </td>
         </tr>
       `;
     }).join('');
+
+    document.querySelectorAll('.btn-pay-approve-action').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const code = btn.getAttribute('data-code');
+        const bookingId = btn.getAttribute('data-booking-id');
+        if (!confirm(`¿Autorizar pago y confirmar la reserva ${code}?`)) return;
+        try {
+          showToast(`Autorizando ${code}...`, 'info');
+          await approveReservationUnified(code, bookingId);
+          showToast(`¡Reserva ${code} autorizada y confirmada!`, 'success');
+          loadPayments();
+          loadAdminDashboard();
+          loadReceptionBookings();
+        } catch (err) {
+          showToast(`Error: ${err.message}`, 'error');
+        }
+      });
+    });
+
+    document.querySelectorAll('.btn-pay-reject-action').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const code = btn.getAttribute('data-code');
+        const bookingId = btn.getAttribute('data-booking-id');
+        const reason = prompt(`Motivo del rechazo para ${code}:`, 'Comprobante bancario no acreditado');
+        if (!reason) return;
+        try {
+          showToast(`Rechazando ${code}...`, 'info');
+          await rejectReservationUnified(code, reason, bookingId);
+          showToast(`Reserva ${code} rechazada y fechas liberadas.`, 'info');
+          loadPayments();
+          loadAdminDashboard();
+          loadReceptionBookings();
+        } catch (err) {
+          showToast(`Error: ${err.message}`, 'error');
+        }
+      });
+    });
 
     document.querySelectorAll('.btn-refund-action').forEach(btn => {
       btn.addEventListener('click', async () => {
@@ -2432,6 +2685,7 @@ document.addEventListener('DOMContentLoaded', () => {
           await api.refundPayment(ref, reason);
           showToast(`Reembolso procesado para ${ref}`, 'success');
           loadPayments();
+          loadAdminDashboard();
         } catch (err) {
           showToast(`Error: ${err.message}`, 'error');
         }
@@ -2439,27 +2693,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-
   filterPaymentsAllBtn?.addEventListener('click', () => {
-    filterPaymentsAllBtn.style.borderColor = '#38bdf8';
-    filterPaymentsAllBtn.style.background = 'rgba(56,189,248,0.12)';
-    filterPaymentsAllBtn.style.color = '#38bdf8';
-    filterPaymentsPendingBtn.style.borderColor = 'rgba(255,255,255,0.15)';
-    filterPaymentsPendingBtn.style.background = 'transparent';
-    filterPaymentsPendingBtn.style.color = 'var(--text-dim)';
+    filterPaymentsAllBtn.classList.add('active-filter');
+    filterPaymentsPendingBtn?.classList.remove('active-filter');
     loadPayments();
   });
 
   filterPaymentsPendingBtn?.addEventListener('click', async () => {
-    filterPaymentsPendingBtn.style.borderColor = '#fbbf24';
-    filterPaymentsPendingBtn.style.background = 'rgba(251,191,36,0.12)';
-    filterPaymentsPendingBtn.style.color = '#fbbf24';
-    filterPaymentsAllBtn.style.borderColor = 'rgba(255,255,255,0.15)';
-    filterPaymentsAllBtn.style.background = 'transparent';
-    filterPaymentsAllBtn.style.color = 'var(--text-dim)';
+    filterPaymentsPendingBtn.classList.add('active-filter');
+    filterPaymentsAllBtn?.classList.remove('active-filter');
     try {
-      showToast('Filtrando transferencias pendientes...', 'info');
-      const pending = await api.getPendingPayments();
+      showToast('Filtrando solicitudes y transferencias pendientes...', 'info');
+      const pending = await buildUnifiedPaymentsList(true);
       renderPaymentsTable(pending || []);
     } catch (err) {
       showToast(`Error al consultar pendientes: ${err.message}`, 'error');

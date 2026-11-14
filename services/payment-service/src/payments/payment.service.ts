@@ -114,36 +114,45 @@ export class PaymentService implements OnModuleInit {
       );
     }
 
-    // 3. Validar coincidencia de monto (Modelo Booking: 100% total o abono del 50% de reserva)
+    // 3. Validar coincidencia de monto (Modelo Booking: 100% total o abono del 50% de reserva, en USD o equivalente COP)
     const expectedAmount = Number(booking.totalAmount);
     const halfAmount = Math.round((expectedAmount * 0.5) * 100) / 100;
-    const isFullPayment = Math.abs(expectedAmount - dto.amount) <= 0.5;
-    const isDepositPayment = Math.abs(halfAmount - dto.amount) <= 0.5;
+    const copExpected = expectedAmount < 10000 ? expectedAmount * 4000 : expectedAmount;
+    const copHalf = Math.round((copExpected * 0.5) * 100) / 100;
 
-    if (!isFullPayment && !isDepositPayment) {
+    const isFullUsd = Math.abs(expectedAmount - dto.amount) <= 1;
+    const isHalfUsd = Math.abs(halfAmount - dto.amount) <= 1;
+    const isFullCop = Math.abs(copExpected - dto.amount) <= 1000;
+    const isHalfCop = Math.abs(copHalf - dto.amount) <= 1000;
+
+    const isTransfer = dto.paymentMethod === PaymentMethod.TRANSFER;
+
+    if (!isTransfer && !isFullUsd && !isHalfUsd && !isFullCop && !isHalfCop) {
       throw new BadRequestException(
         `Monto inconsistente: El total de la reserva es ${expectedAmount} ${booking.currency}. Se acepta el 100% ($${expectedAmount}) o un abono del 50% ($${halfAmount}), pero se envió $${dto.amount}`,
       );
     }
 
-    // 4. Pago por Transferencia Bancaria (Aprobación manual por el Administrador)
+    const normalizedAmount = (isHalfUsd || isHalfCop) ? halfAmount : expectedAmount;
+
+    // 4. Pago por Transferencia Bancaria / WhatsApp Directo (Aprobación manual por el Administrador)
     if (dto.paymentMethod === PaymentMethod.TRANSFER) {
       const txRef = dto.transferReference || `TRF-${this.generateTxRef()}`;
       const payment = this.paymentRepository.create({
         bookingId: booking.id,
         bookingCode: booking.bookingCode,
-        userId: user.id,
-        userEmail: user.email,
-        amount: dto.amount,
-        amountCents: Math.round(dto.amount * 100),
-        currency: dto.currency || 'USD',
+        userId: user.id || booking.userId,
+        userEmail: user.email || booking.userEmail,
+        amount: normalizedAmount,
+        amountCents: Math.round(normalizedAmount * 100),
+        currency: booking.currency || dto.currency || 'USD',
         gatewayProvider: 'MANUAL_BANK_TRANSFER',
         transactionReference: txRef,
         idempotencyKey: dto.idempotencyKey,
         status: PaymentStatus.PENDING,
         paymentMethod: 'TRANSFER',
         cardLast4: null,
-        cardBrand: 'Transferencia Bancaria',
+        cardBrand: 'Transferencia / WhatsApp (+57 304 659 8870)',
         receiptUrl: `https://pay.travel-resorts.com/transfers/${txRef}`,
         errorMessage: 'En espera de verificación y aprobación administrativa por el Hotel Admin',
       });
@@ -317,7 +326,7 @@ export class PaymentService implements OnModuleInit {
     const isUuid = this.isUuid(idOrRef);
     const payment = isUuid
       ? await this.paymentRepository.findOne({
-          where: [{ id: idOrRef }, { transactionReference: idOrRef }, { bookingCode: idOrRef }],
+          where: [{ id: idOrRef }, { bookingId: idOrRef }, { transactionReference: idOrRef }, { bookingCode: idOrRef }],
         })
       : await this.paymentRepository.findOne({
           where: [{ transactionReference: idOrRef }, { bookingCode: idOrRef }],
@@ -424,23 +433,18 @@ export class PaymentService implements OnModuleInit {
    * Aprueba una transferencia bancaria manual (Solo Administrador)
    */
   async approvePayment(idOrRef: string, adminUser: RequestUser) {
-    const payment = await this.findOne(idOrRef, adminUser);
-
-    if (payment.status !== PaymentStatus.PENDING) {
-      throw new BadRequestException(
-        `Solo es posible aprobar transacciones en estado PENDING. Estado actual: '${payment.status}'`,
-      );
+    const bookingsUrl = this.configService.get('BOOKINGS_SERVICE_URL', 'http://booking-service:3005');
+    let payment: Payment | null = null;
+    try {
+      payment = await this.findOne(idOrRef, adminUser);
+    } catch {
+      payment = null;
     }
 
-    payment.status = PaymentStatus.SUCCEEDED;
-    payment.errorMessage = `Aprobado por el Administrador ${adminUser.email} el ${new Date().toISOString()}`;
-    const saved = await this.paymentRepository.save(payment);
-
-    // Obtener la reserva para conocer el holdId y confirmar
-    const bookingsUrl = this.configService.get('BOOKINGS_SERVICE_URL', 'http://booking-service:3005');
     let booking: any = null;
     try {
-      const res = await fetch(`${bookingsUrl}/api/bookings/${saved.bookingId}`, {
+      const targetBookingRef = payment ? payment.bookingId : idOrRef;
+      const res = await fetch(`${bookingsUrl}/api/bookings/${targetBookingRef}`, {
         headers: {
           'x-user-id': adminUser.id,
           'x-user-email': adminUser.email,
@@ -451,6 +455,65 @@ export class PaymentService implements OnModuleInit {
     } catch (e) {
       this.logger.warn(`Error al consultar booking para aprobar: ${e.message}`);
     }
+
+    // Si la reserva se creó sin registro previo en payment-service, crearlo automáticamente
+    if (!payment) {
+      if (!booking) {
+        throw new NotFoundException(`No se encontró ninguna reserva ni transacción con referencia '${idOrRef}'`);
+      }
+      const txRef = `WA-CHAT-${booking.bookingCode}`;
+      const amount = Number(booking.totalAmount) || 0;
+      payment = this.paymentRepository.create({
+        bookingId: booking.id,
+        bookingCode: booking.bookingCode,
+        userId: booking.userId,
+        userEmail: booking.userEmail,
+        amount,
+        amountCents: Math.round(amount * 100),
+        currency: booking.currency || 'USD',
+        gatewayProvider: 'MANUAL_BANK_TRANSFER',
+        transactionReference: txRef,
+        idempotencyKey: `auto_approve_${booking.bookingCode}_${Date.now()}`,
+        status: PaymentStatus.PENDING,
+        paymentMethod: 'TRANSFER',
+        cardLast4: null,
+        cardBrand: 'Transferencia / WhatsApp (+57 304 659 8870)',
+        receiptUrl: `https://pay.travel-resorts.com/transfers/${txRef}`,
+        errorMessage: null,
+      });
+    }
+
+    if (payment.status === PaymentStatus.SUCCEEDED) {
+      // Asegurar que la reserva también esté confirmada en booking-service
+      if (booking && booking.status === 'PENDING_PAYMENT') {
+        try {
+          await fetch(`${bookingsUrl}/api/bookings/${payment.bookingId}/confirm-payment`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-user-id': adminUser.id,
+              'x-user-email': adminUser.email,
+              'x-user-role': adminUser.role,
+            },
+            body: JSON.stringify({
+              paymentId: payment.id,
+              bookingId: payment.bookingId,
+              bookingCode: payment.bookingCode,
+              amount: payment.amount,
+              transactionReference: payment.transactionReference,
+            }),
+          });
+        } catch {}
+      }
+      return {
+        message: `La reserva ${payment.bookingCode} ya ha sido aprobada y confirmada.`,
+        payment,
+      };
+    }
+
+    payment.status = PaymentStatus.SUCCEEDED;
+    payment.errorMessage = `Aprobado por el Administrador ${adminUser.email} el ${new Date().toISOString()}`;
+    const saved = await this.paymentRepository.save(payment);
 
     // Emitir evento RabbitMQ: payment.succeeded
     try {
@@ -465,7 +528,7 @@ export class PaymentService implements OnModuleInit {
         userEmail: saved.userEmail,
         transactionReference: saved.transactionReference,
         cardLast4: saved.cardLast4 || 'TRF',
-        cardBrand: 'Transferencia Bancaria (Aprobada)',
+        cardBrand: 'Transferencia / WhatsApp (Aprobada)',
         receiptUrl: saved.receiptUrl,
         paidAt: saved.updatedAt,
       });
@@ -498,7 +561,7 @@ export class PaymentService implements OnModuleInit {
     }
 
     return {
-      message: `Transferencia ${saved.transactionReference} aprobada exitosamente. Reserva confirmada y voucher generado.`,
+      message: `Reserva ${saved.bookingCode} aprobada exitosamente. Voucher digital emitido.`,
       payment: saved,
     };
   }
@@ -507,12 +570,53 @@ export class PaymentService implements OnModuleInit {
    * Rechaza una transferencia bancaria manual (Solo Administrador) y libera fechas
    */
   async rejectPayment(idOrRef: string, reason: string, adminUser: RequestUser) {
-    const payment = await this.findOne(idOrRef, adminUser);
+    const bookingsUrl = this.configService.get('BOOKINGS_SERVICE_URL', 'http://booking-service:3005');
+    let payment: Payment | null = null;
+    try {
+      payment = await this.findOne(idOrRef, adminUser);
+    } catch {
+      payment = null;
+    }
 
-    if (payment.status !== PaymentStatus.PENDING) {
-      throw new BadRequestException(
-        `Solo es posible rechazar transacciones en estado PENDING. Estado actual: '${payment.status}'`,
-      );
+    let booking: any = null;
+    try {
+      const targetBookingRef = payment ? payment.bookingId : idOrRef;
+      const res = await fetch(`${bookingsUrl}/api/bookings/${targetBookingRef}`, {
+        headers: {
+          'x-user-id': adminUser.id,
+          'x-user-email': adminUser.email,
+          'x-user-role': adminUser.role,
+        },
+      });
+      if (res.ok) booking = await res.json();
+    } catch (e) {
+      this.logger.warn(`Error al consultar booking para rechazar: ${e.message}`);
+    }
+
+    if (!payment) {
+      if (!booking) {
+        throw new NotFoundException(`No se encontró ninguna reserva ni transacción con referencia '${idOrRef}'`);
+      }
+      const txRef = `WA-CHAT-${booking.bookingCode}`;
+      const amount = Number(booking.totalAmount) || 0;
+      payment = this.paymentRepository.create({
+        bookingId: booking.id,
+        bookingCode: booking.bookingCode,
+        userId: booking.userId,
+        userEmail: booking.userEmail,
+        amount,
+        amountCents: Math.round(amount * 100),
+        currency: booking.currency || 'USD',
+        gatewayProvider: 'MANUAL_BANK_TRANSFER',
+        transactionReference: txRef,
+        idempotencyKey: `auto_reject_${booking.bookingCode}_${Date.now()}`,
+        status: PaymentStatus.PENDING,
+        paymentMethod: 'TRANSFER',
+        cardLast4: null,
+        cardBrand: 'Transferencia / WhatsApp (+57 304 659 8870)',
+        receiptUrl: `https://pay.travel-resorts.com/transfers/${txRef}`,
+        errorMessage: null,
+      });
     }
 
     payment.status = PaymentStatus.FAILED;
@@ -520,7 +624,6 @@ export class PaymentService implements OnModuleInit {
     const saved = await this.paymentRepository.save(payment);
 
     // Cancelar la reserva en booking-service (lo cual libera las fechas en availability-service)
-    const bookingsUrl = this.configService.get('BOOKINGS_SERVICE_URL', 'http://booking-service:3005');
     try {
       await fetch(`${bookingsUrl}/api/bookings/${saved.bookingId}/cancel`, {
         method: 'PATCH',
@@ -550,7 +653,7 @@ export class PaymentService implements OnModuleInit {
     }
 
     return {
-      message: `Transferencia rechazada. La reserva fue cancelada y las fechas han sido liberadas en el inventario.`,
+      message: `Reserva ${saved.bookingCode} rechazada. La reserva fue cancelada y las fechas han sido liberadas en el inventario.`,
       payment: saved,
     };
   }
