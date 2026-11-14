@@ -268,7 +268,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // --------------------------------------------------------------------------
   function getCOPPrice(amount) {
     const val = Number(amount) || 0;
-    return val < 1000 ? Math.round(val * 4000) : Math.round(val);
+    // Si el valor proviene de base de datos en escala USD (< 50.000), se proyecta a COP (x 4.000)
+    return val < 50000 ? Math.round(val * 4000) : Math.round(val);
   }
 
   function formatCOP(amount) {
@@ -1556,7 +1557,7 @@ document.addEventListener('DOMContentLoaded', () => {
         amountToPay: fullTotal,
         depositPercentage: 100,
         remainingBalance: 0,
-        currency: 'USD',
+        currency: 'COP',
         remainingSeconds: 900,
       };
 
@@ -1800,9 +1801,9 @@ document.addEventListener('DOMContentLoaded', () => {
       // 2. Registrar el intento de pago directo en payment-service (en estado PENDING para revisión del Admin)
       const idempotencyKey = `idemp_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
       const txRef = `WA-CHAT-${booking.bookingCode || Date.now().toString().slice(-6)}`;
-      const bookingBaseAmount = Number(booking.totalAmount) || Number(activeHold.totalAmount) || 0;
+      const bookingBaseAmount = getCOPPrice(booking.totalAmount || activeHold.totalAmount || 0);
       const paymentAmountToSend = depositPct === 50
-        ? Math.round(bookingBaseAmount * 0.5 * 100) / 100
+        ? Math.round(bookingBaseAmount * 0.5)
         : bookingBaseAmount;
 
       try {
@@ -1810,7 +1811,7 @@ document.addEventListener('DOMContentLoaded', () => {
           bookingId: booking.id,
           idempotencyKey,
           amount: Number(paymentAmountToSend),
-          currency: booking.currency || 'USD',
+          currency: 'COP',
           paymentMethod: 'TRANSFER',
           transferReference: txRef,
         });
