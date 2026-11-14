@@ -8,16 +8,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css?v=6.2">
-  <link rel="icon"
-    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
+  <link rel="stylesheet" href="css/styles.css?v=7.0">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2313332E%22 stroke-width=%221.5%22><polygon points=%2212 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2%22/><circle cx=%2212%22 cy=%2212%22 r=%222%22/></svg>">
 </head>
 
 <body>
-
-  <!-- Fondo Ambiental (oculto en la pantalla editorial de Login, activo en el Dashboard) -->
-  <div class="ambient-bg"></div>
-  <div class="ambient-overlay"></div>
 
   <!-- =====================================================================
        1. PANTALLA EDITORIAL DE AUTENTICACIÓN (FOUR SEASONS / AMAN STYLE)
@@ -314,61 +309,105 @@
   </div>
 
   <!-- =====================================================================
-       2. VISTA PRINCIPAL DEL PORTAL (DASHBOARD & RESERVAS)
+       2. VISTA PRINCIPAL EDITORIAL (DASHBOARD DE HUÉSPED & EXPLORADOR DE HOTELES)
        ===================================================================== -->
   <div class="dashboard-canvas" id="dashboardCanvas">
     <div class="dash-layout">
 
       <!-- =================================================================
-           BARRA LATERAL DE NAVEGACIÓN
+           SIDEBAR IZQUIERDO (NAVEGACIÓN EDITORIAL)
            ================================================================= -->
-      <aside class="dash-sidebar">
-        <!-- Marca / Logo -->
+      <aside class="dash-sidebar" aria-label="Navegación principal">
+        <!-- Marca / Logo Minimalista -->
         <div class="sidebar-brand">
-          <div class="sidebar-brand-icon">🏨</div>
+          <div class="sidebar-brand-icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2"></polygon>
+              <circle cx="12" cy="12" r="2"></circle>
+            </svg>
+          </div>
           <div class="sidebar-brand-text">
-            <span class="sidebar-brand-title">TRAVEL & RESORTS</span>
+            <span class="sidebar-brand-title">TRAVEL &amp; RESORTS</span>
             <span class="sidebar-brand-sub">LUXURY COLLECTION</span>
           </div>
         </div>
 
-        <!-- Perfil del Usuario Activo -->
+        <!-- Tarjeta Limpia de Perfil del Huésped -->
         <div class="sidebar-user-card">
-          <div class="sidebar-avatar" id="dashAvatar">👤</div>
+          <div class="sidebar-avatar" id="dashAvatar" aria-hidden="true">CV</div>
           <div class="sidebar-user-info">
-            <div class="sidebar-user-name" id="dashUserName">Huésped VIP</div>
-            <div class="sidebar-user-email" id="dashUserEmail">huesped@hotel.com</div>
-            <span id="dashRoleBadge" class="dash-badge guest">HUÉSPED</span>
+            <div class="sidebar-user-name" id="dashUserName">Carlos Valderrama</div>
+            <div class="sidebar-user-email" id="dashUserEmail">guest@hotel.com</div>
+            <span id="dashRoleBadge" class="dash-badge guest">Huésped / Viajero</span>
           </div>
         </div>
 
-        <!-- Menú de Navegación -->
-        <nav class="sidebar-menu">
-          <div class="sidebar-group-title">EXPERIENCIA & RESERVAS</div>
+        <!-- Menú de Navegación Editorial (5 Secciones Principales) -->
+        <nav class="sidebar-menu" aria-label="Secciones de la plataforma">
+          <div class="sidebar-group-title">EXPERIENCIA &amp; RESERVAS</div>
 
           <button type="button" class="dash-nav-item active" data-tab="hotels">
-            <span class="dash-nav-icon">🌴</span>
-            <span class="dash-nav-label">Hoteles & Sedes</span>
+            <span class="dash-nav-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 21h18"></path>
+                <path d="M5 21V7l8-4v18"></path>
+                <path d="M19 21V11l-6-4"></path>
+                <path d="M9 9v.01"></path>
+                <path d="M9 12v.01"></path>
+                <path d="M9 15v.01"></path>
+                <path d="M9 18v.01"></path>
+              </svg>
+            </span>
+            <span class="dash-nav-label">Hoteles &amp; Sedes</span>
           </button>
 
           <button type="button" class="dash-nav-item guest-only" data-tab="availability">
-            <span class="dash-nav-icon">📅</span>
+            <span class="dash-nav-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+                <path d="M8 14h.01"></path>
+                <path d="M12 14h.01"></path>
+                <path d="M16 14h.01"></path>
+                <path d="M8 18h.01"></path>
+                <path d="M12 18h.01"></path>
+              </svg>
+            </span>
             <span class="dash-nav-label">Buscar Disponibilidad</span>
           </button>
 
           <button type="button" class="dash-nav-item" data-tab="rooms">
-            <span class="dash-nav-icon">🛏️</span>
+            <span class="dash-nav-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 4v16"></path>
+                <path d="M2 8h18a2 2 0 0 1 2 2v10"></path>
+                <path d="M2 17h20"></path>
+                <path d="M6 8v9"></path>
+              </svg>
+            </span>
             <span class="dash-nav-label">Nuestras Habitaciones</span>
           </button>
 
           <button type="button" class="dash-nav-item guest-only" data-tab="my-bookings">
-            <span class="dash-nav-icon">💼</span>
+            <span class="dash-nav-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+              </svg>
+            </span>
             <span class="dash-nav-label">Mis Reservas</span>
           </button>
 
           <button type="button" class="dash-nav-item" data-tab="notifications">
-            <span class="dash-nav-icon">📨</span>
-            <span class="dash-nav-label">Notif. & Vouchers</span>
+            <span class="dash-nav-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+              </svg>
+            </span>
+            <span class="dash-nav-label">Notif. &amp; Vouchers</span>
           </button>
 
           <!-- SECCIÓN EXCLUSIVA DEL ADMINISTRADOR -->
@@ -376,23 +415,49 @@
             <div class="sidebar-group-title">ADMINISTRACIÓN GENERAL</div>
 
             <button type="button" class="dash-nav-item" data-tab="admin-dashboard">
-              <span class="dash-nav-icon">📊</span>
-              <span class="dash-nav-label">Panel & Métricas</span>
+              <span class="dash-nav-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="7" height="9" rx="1"></rect>
+                  <rect x="14" y="3" width="7" height="5" rx="1"></rect>
+                  <rect x="14" y="12" width="7" height="9" rx="1"></rect>
+                  <rect x="3" y="16" width="7" height="5" rx="1"></rect>
+                </svg>
+              </span>
+              <span class="dash-nav-label">Panel &amp; Métricas</span>
             </button>
 
             <button type="button" class="dash-nav-item" data-tab="reception">
-              <span class="dash-nav-icon">🛎️</span>
+              <span class="dash-nav-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2 18h20"></path>
+                  <path d="M12 6v2"></path>
+                  <path d="M4 18a8 8 0 0 1 16 0"></path>
+                  <path d="M9 6h6"></path>
+                </svg>
+              </span>
               <span class="dash-nav-label">Check-In / Check-Out</span>
             </button>
 
             <button type="button" class="dash-nav-item" data-tab="usuarios">
-              <span class="dash-nav-icon">👥</span>
+              <span class="dash-nav-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </span>
               <span class="dash-nav-label">Gestión de Cuentas</span>
             </button>
 
             <button type="button" class="dash-nav-item" data-tab="pagos">
-              <span class="dash-nav-icon">💳</span>
-              <span class="dash-nav-label">Pagos & Reembolsos</span>
+              <span class="dash-nav-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                  <line x1="2" y1="10" x2="22" y2="10"></line>
+                </svg>
+              </span>
+              <span class="dash-nav-label">Pagos &amp; Reembolsos</span>
             </button>
           </div>
         </nav>
@@ -400,32 +465,39 @@
         <!-- Pie de Barra Lateral -->
         <div class="sidebar-footer">
           <button id="logoutBtn" class="sidebar-logout-btn" title="Cerrar sesión activa">
-            <span>🚪</span>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
             <span>Cerrar Sesión</span>
           </button>
         </div>
       </aside>
 
       <!-- =================================================================
-           CONTENIDO PRINCIPAL
+           CONTENIDO PRINCIPAL EDITORIAL
            ================================================================= -->
       <main class="dash-main">
-        <!-- Encabezado de la Sección -->
+        <!-- Encabezado Editorial de la Sección -->
         <header class="dash-header">
           <div class="dash-header-title-box">
-            <h2 id="dashViewTitle">Catálogo de Hoteles & Destinos</h2>
+            <span class="dash-header-eyebrow">TRAVEL &amp; RESORTS — LUXURY COLLECTION</span>
+            <h2 id="dashViewTitle">Nuestras Sedes &amp; Santuarios</h2>
             <p id="dashViewDesc">Descubre nuestras exclusivas propiedades en los destinos más emblemáticos.</p>
           </div>
 
           <div class="dash-header-status-pills">
-            <div class="status-badge"
-              style="background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.35); color: #34d399;">
-              <span class="dot" style="background: #34d399; box-shadow: 0 0 8px #34d399;"></span>
+            <div class="status-badge">
+              <span class="dot online"></span>
               <span>Disponibilidad 24/7 en Línea</span>
             </div>
-            <div class="status-badge"
-              style="background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.35); color: #38bdf8;">
-              <span>🔒 Pago Seguro Garantizado</span>
+            <div class="status-badge bronze">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                <path d="m9 12 2 2 4-4"></path>
+              </svg>
+              <span>Reserva Protegida</span>
             </div>
           </div>
         </header>
@@ -434,14 +506,20 @@
              PESTAÑA 1: CATÁLOGO DE HOTELES & DESTINOS
              =============================================================== -->
         <section class="dash-tab-content active" id="view-hotels">
-          <div class="hotels-section" style="margin-top: 0;">
+          <div class="hotels-section">
+            <!-- Barra de Búsqueda y Filtros Superior -->
             <div class="hotels-toolbar">
               <div class="hotels-filter-bar">
                 <div class="filter-input-wrap">
+                  <svg class="filter-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
                   <input type="text" id="filterHotelSearch" class="filter-input"
-                    placeholder="🔍 Buscar por nombre o ciudad...">
+                    placeholder="Buscar por nombre o ciudad...">
                 </div>
-                <select id="filterHotelCity" class="filter-select">
+
+                <select id="filterHotelCity" class="filter-select" aria-label="Filtrar por ciudad">
                   <option value="">Todas las Ciudades</option>
                   <option value="Cartagena">Cartagena</option>
                   <option value="Medellín">Medellín</option>
@@ -450,33 +528,55 @@
                   <option value="Armenia">Eje Cafetero</option>
                   <option value="San Andrés">San Andrés</option>
                 </select>
-                <select id="filterHotelStars" class="filter-select">
+
+                <select id="filterHotelStars" class="filter-select" aria-label="Filtrar por categoría">
                   <option value="">Cualquier Categoría</option>
-                  <option value="5">⭐⭐⭐⭐⭐ (5 Estrellas)</option>
-                  <option value="4">⭐⭐⭐⭐ (4 Estrellas)</option>
+                  <option value="5">5 Estrellas — Gran Lujo</option>
+                  <option value="4">4 Estrellas — Boutique</option>
                 </select>
+
                 <label class="filter-checkbox-wrap">
                   <input type="checkbox" id="filterPetFriendly">
-                  <span>🐾 Pet-friendly</span>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="11" cy="4" r="2"></circle>
+                    <circle cx="18" cy="8" r="2"></circle>
+                    <circle cx="20" cy="16" r="2"></circle>
+                    <path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"></path>
+                  </svg>
+                  <span>Pet-friendly</span>
                 </label>
               </div>
 
               <div class="hotels-actions-row">
                 <button id="openCreateHotelBtn" class="btn-hotel-action" style="display: none;">
-                  <span>➕</span> Registrar Hotel
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  <span>Registrar Hotel</span>
                 </button>
                 <button id="btnSeedHotels" class="btn-hotel-secondary" style="display: none;" title="Poblar catálogo inicial con sedes demo">
-                  <span>🌱</span> Sembrar Hoteles Demo
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 22v-7l-2-2"></path>
+                    <path d="M17 8v.8A6 6 0 0 1 13.8 20H10A6.5 6.5 0 0 1 7 8a5 5 0 0 1 10 0Z"></path>
+                  </svg>
+                  <span>Sembrar Sedes</span>
                 </button>
                 <button id="refreshHotelsBtn" class="btn-hotel-secondary">
-                  <span>🔄</span> Actualizar
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                    <path d="M3 3v5h5"></path>
+                    <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+                    <path d="M16 16h5v5"></path>
+                  </svg>
+                  <span>Actualizar</span>
                 </button>
               </div>
             </div>
 
-            <!-- Grilla de Hoteles -->
+            <!-- Grilla Editorial de 2 Columnas Amplia -->
             <div class="hotels-grid" id="hotelsGrid">
-              <div class="empty-hotels-box"><span>Cargando catálogo hotelero...</span></div>
+              <div class="empty-hotels-box"><span>Cargando colección de propiedades...</span></div>
             </div>
           </div>
         </section>
@@ -486,9 +586,12 @@
              =============================================================== -->
         <section class="dash-tab-content" id="view-availability">
           <div class="avail-search-box">
-            <h3
-              style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem; color: #fff;">
-              🔍 Encuentra tu Habitación Ideal con Tarifa en Tiempo Real
+            <h3 class="editorial-section-subtitle">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <span>Encuentra tu Habitación Ideal con Tarifa en Tiempo Real</span>
             </h3>
 
             <form id="availSearchForm" class="avail-search-grid">
@@ -512,18 +615,17 @@
                 <input type="number" id="availGuests" class="input-pill" min="1" max="6" value="2" required>
               </div>
 
-              <button type="submit" class="btn-blue" id="btnSubmitAvailSearch" style="height: 44px; padding: 0 1.5rem;">
-                <span>BUSCAR</span>
+              <button type="submit" class="btn-blue" id="btnSubmitAvailSearch" style="height: 44px; padding: 0 1.6rem;">
+                <span>Buscar Disponibilidad</span>
               </button>
             </form>
           </div>
 
           <!-- Resultados de Disponibilidad -->
-          <div id="availResultsSummary"
-            style="font-size: 0.88rem; color: #38bdf8; margin-bottom: 1rem; font-weight: 600;"></div>
+          <div id="availResultsSummary" class="avail-results-summary"></div>
           <div class="hotels-grid" id="availRoomsGrid">
             <div class="empty-hotels-box">
-              <span>Selecciona un hotel y las fechas de tu viaje para ver las habitaciones disponibles.</span>
+              <span>Selecciona un hotel y las fechas de tu viaje para consultar las suites disponibles.</span>
             </div>
           </div>
         </section>
@@ -532,18 +634,22 @@
              PESTAÑA 3: INVENTARIO DE HABITACIONES
              =============================================================== -->
         <section class="dash-tab-content" id="view-rooms">
-          <div class="hotels-section" style="margin-top: 0;">
+          <div class="hotels-section">
             <div class="hotels-toolbar">
               <div class="hotels-filter-bar">
                 <div class="filter-input-wrap">
+                  <svg class="filter-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
                   <input type="text" id="filterRoomSearch" class="filter-input"
-                    placeholder="🔍 Buscar habitación, tipo o vista...">
+                    placeholder="Buscar habitación, categoría o vista...">
                 </div>
-                <select id="filterRoomHotel" class="filter-select">
+                <select id="filterRoomHotel" class="filter-select" aria-label="Filtrar por hotel">
                   <option value="">Todos los Hoteles</option>
                 </select>
-                <select id="filterRoomType" class="filter-select">
-                  <option value="">Todos los Tipos</option>
+                <select id="filterRoomType" class="filter-select" aria-label="Filtrar por tipo de suite">
+                  <option value="">Todas las Categorías</option>
                   <option value="STANDARD">Standard</option>
                   <option value="DELUXE">Deluxe</option>
                   <option value="JUNIOR_SUITE">Junior Suite</option>
@@ -553,19 +659,33 @@
 
               <div class="hotels-actions-row">
                 <button id="openCreateRoomBtn" class="btn-hotel-action" style="display: none;">
-                  <span>➕</span> Registrar Habitación
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  <span>Registrar Habitación</span>
                 </button>
                 <button id="btnSeedRooms" class="btn-hotel-secondary" style="display: none;" title="Poblar inventario inicial con habitaciones demo">
-                  <span>🌱</span> Sembrar Habitaciones Demo
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 22v-7l-2-2"></path>
+                    <path d="M17 8v.8A6 6 0 0 1 13.8 20H10A6.5 6.5 0 0 1 7 8a5 5 0 0 1 10 0Z"></path>
+                  </svg>
+                  <span>Sembrar Habitaciones</span>
                 </button>
                 <button id="refreshRoomsBtn" class="btn-hotel-secondary">
-                  <span>🔄</span> Actualizar
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                    <path d="M3 3v5h5"></path>
+                    <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+                    <path d="M16 16h5v5"></path>
+                  </svg>
+                  <span>Actualizar</span>
                 </button>
               </div>
             </div>
 
             <div class="hotels-grid" id="roomsGrid">
-              <div class="empty-hotels-box"><span>Cargando habitaciones...</span></div>
+              <div class="empty-hotels-box"><span>Cargando habitaciones y suites...</span></div>
             </div>
           </div>
         </section>
@@ -574,17 +694,21 @@
              PESTAÑA 4: MIS RESERVAS & VOUCHERS OFICIALES
              =============================================================== -->
         <section class="dash-tab-content" id="view-my-bookings">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+          <div class="editorial-panel-header">
             <div>
-              <h3 style="font-family: var(--font-heading); font-size: 1.2rem; font-weight: 800; color: #fff;">
-                💼 Tus Estancias Reservadas
-              </h3>
-              <p style="font-size: 0.85rem; color: var(--text-dim);">
-                Consulta tus comprobantes oficiales, descarga vouchers en PDF con código QR o cancela tus estancias.
+              <h3 class="editorial-section-title">Tus Estancias Reservadas</h3>
+              <p class="editorial-section-desc">
+                Consulta tus comprobantes oficiales, descarga vouchers en PDF con código QR o gestiona tus estancias.
               </p>
             </div>
             <button id="refreshMyBookingsBtn" class="btn-hotel-secondary">
-              <span>🔄</span> Actualizar Reservas
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                <path d="M3 3v5h5"></path>
+                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+                <path d="M16 16h5v5"></path>
+              </svg>
+              <span>Actualizar Reservas</span>
             </button>
           </div>
 
@@ -594,23 +718,89 @@
         </section>
 
         <!-- ===============================================================
+             PESTAÑA 4.5: PANEL DE CONTROL & MÉTRICAS (SOLO ADMINISTRADOR)
+             =============================================================== -->
+        <section class="dash-tab-content" id="view-admin-dashboard">
+          <div class="editorial-panel-header">
+            <div>
+              <h3 class="editorial-section-title">Panel Ejecutivo &amp; Aprobaciones</h3>
+              <p class="editorial-section-desc">
+                Métricas de ocupación e ingresos en tiempo real, más supervisión de reservas pendientes de validación.
+              </p>
+            </div>
+            <button id="refreshAdminDashboardBtn" class="btn-hotel-secondary">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                <path d="M3 3v5h5"></path>
+                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+                <path d="M16 16h5v5"></path>
+              </svg>
+              <span>Actualizar Métricas</span>
+            </button>
+          </div>
+
+          <div class="gateway-cluster-grid">
+            <div class="cluster-card">
+              <div class="cluster-card-top">
+                <span class="cluster-card-title">Ocupación General</span>
+              </div>
+              <div id="kpiOccupancyRate" class="kpi-value">0%</div>
+              <div id="kpiOccupancyDetail" class="cluster-card-metric">Calculando inventario...</div>
+            </div>
+            <div class="cluster-card">
+              <div class="cluster-card-top">
+                <span class="cluster-card-title">Ingresos Confirmados</span>
+              </div>
+              <div id="kpiTotalRevenue" class="kpi-value">$0 COP</div>
+              <div class="cluster-card-metric">Pagos verificados</div>
+            </div>
+            <div class="cluster-card">
+              <div class="cluster-card-top">
+                <span class="cluster-card-title">Pagos por Aprobar</span>
+              </div>
+              <div id="kpiPendingTransfers" class="kpi-value bronze">0</div>
+              <div class="cluster-card-metric">Transferencias en revisión</div>
+            </div>
+            <div class="cluster-card">
+              <div class="cluster-card-top">
+                <span class="cluster-card-title">Huéspedes Registrados</span>
+              </div>
+              <div id="kpiTotalGuests" class="kpi-value">0</div>
+              <div class="cluster-card-metric">Cuentas activas (<span id="invAvailableCount">0</span> hab. libres / <span id="invOccupiedCount">0</span> ocupadas / <span id="invMaintenanceCount">0</span> mant. / <span id="invInactiveCount">0</span> inact.)</div>
+            </div>
+          </div>
+
+          <div class="editorial-surface-card">
+            <h4 class="editorial-card-heading">Transacciones &amp; Reservas Pendientes de Aprobación</h4>
+            <div id="dashboardPendingTransfersBox">
+              <div class="empty-hotels-box"><span>Consultando transacciones pendientes...</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===============================================================
              PESTAÑA 5: CHECK-IN & CHECK-OUT (OPERACIÓN ADMINISTRATIVA)
              =============================================================== -->
         <section class="dash-tab-content" id="view-reception">
-          <div
-            style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
+          <div class="editorial-surface-card" style="margin-bottom: 1.5rem;">
             <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
               <div style="flex: 1; min-width: 250px;">
                 <label class="input-label" for="receptionSearchInput">Buscar Huésped o Código de Reserva</label>
                 <input type="text" id="receptionSearchInput" class="input-pill"
                   placeholder="Ej. TR-2026- o correo del huésped...">
               </div>
-              <button type="button" class="btn-blue" id="btnReceptionSearch" style="height: 44px; padding: 0 1.5rem;">
-                <span>BUSCAR</span>
+              <button type="button" class="btn-blue" id="btnReceptionSearch" style="height: 44px; padding: 0 1.5rem; width: auto;">
+                <span>Buscar</span>
               </button>
               <button type="button" class="btn-hotel-secondary" id="btnReceptionRefresh"
                 style="height: 44px; padding: 0 1.2rem;">
-                <span>🔄</span> Todas las Llegadas
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                  <path d="M3 3v5h5"></path>
+                  <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+                  <path d="M16 16h5v5"></path>
+                </svg>
+                <span>Todas las Llegadas</span>
               </button>
             </div>
           </div>
@@ -621,7 +811,7 @@
                 <tr>
                   <th>Código</th>
                   <th>Huésped</th>
-                  <th>Hotel & Habitación</th>
+                  <th>Hotel &amp; Habitación</th>
                   <th>Entrada / Salida</th>
                   <th>Estado</th>
                   <th>Total</th>
@@ -630,8 +820,7 @@
               </thead>
               <tbody id="receptionTableBody">
                 <tr>
-                  <td colspan="7" style="text-align: center; color: var(--text-dim); padding: 2rem;">Cargando lista de
-                    huéspedes...</td>
+                  <td colspan="7" style="text-align: center; color: var(--editorial-text-muted); padding: 2rem;">Cargando lista de huéspedes...</td>
                 </tr>
               </tbody>
             </table>
@@ -642,59 +831,63 @@
              PESTAÑA 6: GESTIÓN DE CUENTAS (SOLO ADMINISTRADOR)
              =============================================================== -->
         <section class="dash-tab-content" id="view-usuarios">
-          <div
-            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+          <div class="editorial-panel-header">
             <div>
-              <h3 style="font-family: var(--font-heading); font-size: 1.2rem; font-weight: 800; color: #fff;">
-                👥 Gestión de Cuentas & Huéspedes
-              </h3>
-              <p style="font-size: 0.85rem; color: var(--text-dim);">
-                Crea cuentas de administración, supervisa y activa/desactiva cuentas de huéspedes.
+              <h3 class="editorial-section-title">Gestión de Cuentas &amp; Huéspedes</h3>
+              <p class="editorial-section-desc">
+                Crea cuentas de administración, supervisa y activa o desactiva cuentas de huéspedes.
               </p>
             </div>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-              <button id="btnDeleteGuests" class="btn-hotel-secondary"
-                style="color: #f87171; border-color: rgba(248, 113, 113, 0.4); background: rgba(248, 113, 113, 0.1);">
-                <span>🗑️</span> Purgar Huéspedes Demo
+              <button id="btnDeleteGuests" class="btn-hotel-secondary danger">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                <span>Purgar Huéspedes Demo</span>
               </button>
               <button id="refreshUsersBtn" class="btn-hotel-secondary">
-                <span>🔄</span> Actualizar Listado
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                  <path d="M3 3v5h5"></path>
+                  <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+                  <path d="M16 16h5v5"></path>
+                </svg>
+                <span>Actualizar Listado</span>
               </button>
             </div>
           </div>
 
-          <div
-            style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
-            <h4 style="font-size: 0.9rem; font-weight: 800; color: #38bdf8; margin-bottom: 1rem;">🛠️ Crear Cuenta de
-              Administrador</h4>
+          <div class="editorial-surface-card" style="margin-bottom: 1.5rem;">
+            <h4 class="editorial-card-heading">Crear Cuenta de Administrador</h4>
             <form id="createStaffForm"
-              style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; align-items: end;">
-              <div class="field-group">
+              style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.85rem; align-items: end;">
+              <div class="field-group" style="margin-bottom: 0;">
                 <label class="input-label" for="staffFirstName">Nombre</label>
                 <input type="text" id="staffFirstName" class="input-pill" placeholder="Laura" required>
               </div>
-              <div class="field-group">
+              <div class="field-group" style="margin-bottom: 0;">
                 <label class="input-label" for="staffLastName">Apellido</label>
                 <input type="text" id="staffLastName" class="input-pill" placeholder="Gómez" required>
               </div>
-              <div class="field-group">
+              <div class="field-group" style="margin-bottom: 0;">
                 <label class="input-label" for="staffEmail">Correo Corporativo</label>
                 <input type="email" id="staffEmail" class="input-pill" placeholder="admin2@travelresorts.com"
                   required>
               </div>
-              <div class="field-group">
+              <div class="field-group" style="margin-bottom: 0;">
                 <label class="input-label" for="staffPassword">Contraseña Temporal</label>
                 <input type="text" id="staffPassword" class="input-pill" placeholder="Mínimo 6 caracteres" minlength="6"
                   required>
               </div>
-              <div class="field-group">
+              <div class="field-group" style="margin-bottom: 0;">
                 <label class="input-label" for="staffRole">Rol Asignado</label>
                 <select id="staffRole" class="input-pill" style="cursor: pointer;">
-                  <option value="HOTEL_ADMIN" style="color: #000;">Administración Hotelera (HOTEL_ADMIN)</option>
+                  <option value="HOTEL_ADMIN">Administración Hotelera (HOTEL_ADMIN)</option>
                 </select>
               </div>
               <button type="submit" id="submitStaffBtn" class="btn-blue" style="height: 44px;">
-                <span>CREAR ADMIN</span>
+                <span>Crear Admin</span>
               </button>
             </form>
           </div>
@@ -713,8 +906,7 @@
               </thead>
               <tbody id="usersTableBody">
                 <tr>
-                  <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 2rem;">Cargando
-                    usuarios...</td>
+                  <td colspan="6" style="text-align: center; color: var(--editorial-text-muted); padding: 2rem;">Cargando usuarios...</td>
                 </tr>
               </tbody>
             </table>
@@ -725,25 +917,28 @@
              PESTAÑA 7: PAGOS & REEMBOLSOS (SOLO ADMINISTRADOR)
              =============================================================== -->
         <section class="dash-tab-content" id="view-pagos">
-          <div
-            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+          <div class="editorial-panel-header">
             <div>
-              <h3 style="font-family: var(--font-heading); font-size: 1.2rem; font-weight: 800; color: #fff;">
-                💳 Conciliación de Pagos & Reembolsos
-              </h3>
-              <p style="font-size: 0.85rem; color: var(--text-dim);">
+              <h3 class="editorial-section-title">Conciliación de Pagos &amp; Reembolsos</h3>
+              <p class="editorial-section-desc">
                 Módulo de transacciones, validación de transferencias bancarias y gestión de reembolsos.
               </p>
             </div>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-              <button id="filterPaymentsAllBtn" class="btn-hotel-secondary" style="border-color: #38bdf8; color: #38bdf8; background: rgba(56,189,248,0.12);">
-                <span>📋 Todas</span>
+              <button id="filterPaymentsAllBtn" class="btn-hotel-secondary active-filter">
+                <span>Todas</span>
               </button>
-              <button id="filterPaymentsPendingBtn" class="btn-hotel-secondary" style="border-color: #fbbf24; color: #fbbf24;">
-                <span>⏳ Pendientes de Aprobación</span>
+              <button id="filterPaymentsPendingBtn" class="btn-hotel-secondary">
+                <span>Pendientes de Aprobación</span>
               </button>
               <button id="refreshPaymentsBtn" class="btn-hotel-secondary">
-                <span>🔄</span> Actualizar
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                  <path d="M3 3v5h5"></path>
+                  <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+                  <path d="M16 16h5v5"></path>
+                </svg>
+                <span>Actualizar</span>
               </button>
             </div>
           </div>
@@ -763,8 +958,7 @@
               </thead>
               <tbody id="paymentsTableBody">
                 <tr>
-                  <td colspan="7" style="text-align: center; color: var(--text-dim); padding: 2rem;">Cargando
-                    transacciones...</td>
+                  <td colspan="7" style="text-align: center; color: var(--editorial-text-muted); padding: 2rem;">Cargando transacciones...</td>
                 </tr>
               </tbody>
             </table>
@@ -775,78 +969,79 @@
              PESTAÑA 8: NOTIFICACIONES & VOUCHERS (notification-service:3008)
              =============================================================== -->
         <section class="dash-tab-content" id="view-notifications">
-          <div class="notif-section" style="margin-top: 0;">
+          <div class="notif-section">
             <div class="notif-header-row">
               <div>
-                <h3 style="font-family: var(--font-heading); font-size: 1.2rem; font-weight: 800; color: #fff;">
-                  📨 Worker de Notificaciones & Vouchers PDF
-                </h3>
-                <p style="font-size: 0.85rem; color: var(--text-dim);">
+                <h3 class="editorial-section-title">Centro de Notificaciones &amp; Vouchers PDF</h3>
+                <p class="editorial-section-desc">
                   Consumidor asíncrono RabbitMQ, emisión de comprobantes PDF con código QR y envíos transaccionales.
                 </p>
               </div>
 
               <div class="notif-meta-pills">
                 <span class="notif-pill rmq" title="Broker RabbitMQ">
-                  <span>🐇</span> AMQP: hotel_notifications_queue
+                  <span>AMQP: hotel_notifications_queue</span>
                 </span>
                 <span class="notif-pill pdf" title="Motor PDFKit">
-                  <span>📄</span> PDFKit + QRCode
+                  <span>PDFKit + QRCode</span>
                 </span>
                 <span class="notif-pill mail" id="notifSmtpPill" title="Proveedor de Entrega SMTP">
-                  <span>✉️</span> <span id="notifSmtpPillText">Consultando SMTP...</span>
+                  <span id="notifSmtpPillText">Consultando SMTP...</span>
                 </span>
-                <button id="btnVoucherSampleHeader" class="btn-hotel-secondary"
-                  style="padding: 6px 14px; font-size: 0.8rem; border-color: #38bdf8; color: #38bdf8;" title="Descargar o previsualizar modelo de Voucher PDF oficial">
-                  <span>📄</span> Voucher Muestra (QR)
+                <button id="btnVoucherSampleHeader" class="btn-hotel-secondary" title="Descargar o previsualizar modelo de Voucher PDF oficial">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                  </svg>
+                  <span>Voucher Muestra (QR)</span>
                 </button>
-                <button id="refreshNotifHistoryBtn" class="btn-hotel-secondary"
-                  style="padding: 6px 14px; font-size: 0.8rem;" title="Recargar historial">
-                  <span>🔄</span> Refrescar Historial
+                <button id="refreshNotifHistoryBtn" class="btn-hotel-secondary" title="Recargar historial">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                    <path d="M3 3v5h5"></path>
+                    <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+                    <path d="M16 16h5v5"></path>
+                  </svg>
+                  <span>Refrescar Historial</span>
                 </button>
               </div>
             </div>
 
             <!-- SECCIÓN EXCLUSIVA (HOTEL_ADMIN): Disparadores de Pruebas -->
             <div id="staffNotifTriggers" style="display: none; margin-top: 1rem;">
-              <h4
-                style="font-size: 0.85rem; font-weight: 800; color: #38bdf8; margin-bottom: 0.75rem; text-transform: uppercase;">
-                ⚡ Disparadores de Eventos Transaccionales (Panel de Personal)
-              </h4>
+              <h4 class="editorial-card-heading">Disparadores de Eventos Transaccionales (Panel de Personal)</h4>
               <div class="notif-triggers-grid">
                 <button id="btnVoucherSample" class="btn-notif-action btn-notif-voucher"
                   title="Descargar o abrir Voucher PDF oficial de muestra">
-                  <span>📄</span> <strong>Descargar Voucher PDF (QR)</strong>
+                  <strong>Descargar Voucher PDF (QR)</strong>
                 </button>
                 <button id="btnTriggerWelcome" class="btn-notif-action" title="Disparar evento user.registered">
-                  <span>🎉</span> Bienvenida (user.registered)
+                  <span>Bienvenida (user.registered)</span>
                 </button>
                 <button id="btnTriggerBookingConfirm" class="btn-notif-action"
                   title="Disparar evento booking.confirmed con PDF adjunto">
-                  <span>🏨</span> Confirmar Reserva + PDF (QR)
+                  <span>Confirmar Reserva + PDF (QR)</span>
                 </button>
                 <button id="btnTriggerPaymentFailed" class="btn-notif-action" title="Disparar evento payment.failed">
-                  <span>⚠️</span> Pago Fallido & Expiración
+                  <span>Pago Fallido &amp; Expiración</span>
                 </button>
                 <button id="btnTriggerCheckinReminder" class="btn-notif-action"
                   title="Disparar evento booking.checkin.reminder">
-                  <span>⏰</span> Recordatorio Check-In 24h
+                  <span>Recordatorio Check-In 24h</span>
                 </button>
                 <button id="btnTriggerRefund" class="btn-notif-action" title="Disparar evento payment.refunded">
-                  <span>💵</span> Comprobante Reembolso
+                  <span>Comprobante Reembolso</span>
                 </button>
               </div>
             </div>
 
             <!-- BUZÓN PERSONAL Y REGISTRO DE AUDITORÍA -->
-            <div style="margin-top: 1.5rem;">
+            <div style="margin-top: 1.25rem;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-                <span id="notifAuditTitle"
-                  style="font-size: 0.82rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.5px;">
-                  📜 Historial de Notificaciones & Comprobantes
+                <span id="notifAuditTitle" class="editorial-eyebrow-label">
+                  Historial de Notificaciones &amp; Comprobantes
                 </span>
-                <span id="notifCountBadge" style="font-size: 0.72rem; color: var(--text-dim); font-family: monospace;">0
-                  notificación(es)</span>
+                <span id="notifCountBadge" style="font-size: 0.75rem; color: var(--editorial-text-subtle);">0 notificación(es)</span>
               </div>
               <div class="notif-history-box" id="notificationsHistoryList">
                 <div class="notif-history-empty">
@@ -862,155 +1057,147 @@
   </div>
 
   <!-- =====================================================================
-       3. MODALES DE INTERACCIÓN HOTELERA
+       3. MODALES EDITORIALES DE INTERACCIÓN HOTELERA
        ===================================================================== -->
 
   <!-- Modal 1: Detalle Completo de Hotel -->
   <div class="modal-overlay" id="hotelDetailModal" style="display: none;">
     <div class="modal-dialog">
-      <button class="modal-close-btn" id="closeDetailModalBtn">&times;</button>
+      <button class="modal-close-btn" id="closeDetailModalBtn" aria-label="Cerrar">&times;</button>
 
-      <div id="detailBannerWrap"
-        style="height: 240px; border-radius: var(--radius-md); overflow: hidden; position: relative;">
+      <div id="detailBannerWrap" class="modal-banner-wrap">
         <img id="detailImg" src="" alt="Hotel" style="width: 100%; height: 100%; object-fit: cover;">
         <div class="badge-stars" id="detailStars" style="top: 14px; left: 14px;"></div>
         <div class="badge-city" id="detailCity" style="top: 14px; right: 14px;"></div>
       </div>
 
       <div>
-        <h2 id="detailTitle"
-          style="font-family: var(--font-heading); font-size: 1.45rem; font-weight: 800; color: #fff;"></h2>
-        <div id="detailAddress" style="font-size: 0.85rem; color: #38bdf8; margin-top: 0.25rem;"></div>
+        <h2 id="detailTitle" class="modal-editorial-title"></h2>
+        <div id="detailAddress" class="modal-editorial-subtitle"></div>
       </div>
 
-      <div id="detailDescription" style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;"></div>
+      <div id="detailDescription" class="modal-editorial-body-text"></div>
 
       <div>
-        <div style="font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem; color: #fff;">Amenidades y Servicios
-        </div>
+        <div class="editorial-eyebrow-label" style="margin-bottom: 0.5rem;">Amenidades y Servicios</div>
         <div class="hotel-amenities-tags" id="detailAmenities"></div>
       </div>
 
       <!-- Mapa Interactivo & Puntos de Interés (Google Maps) -->
-      <div style="margin: 0.5rem 0;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-          <div style="font-size: 0.85rem; font-weight: 700; color: #38bdf8;">🗺️ Ubicación Exacta & Rutas de Llegada</div>
-          <a id="btnDetailDirections" href="#" target="_blank" rel="noopener" class="btn-hotel-secondary" style="padding: 5px 12px; font-size: 0.75rem; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);">
-            <span>🚗</span> Cómo llegar (Google Maps)
+      <div style="margin: 0.25rem 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; flex-wrap: wrap; gap: 0.5rem;">
+          <div class="editorial-eyebrow-label">Ubicación Exacta &amp; Rutas de Llegada</div>
+          <a id="btnDetailDirections" href="#" target="_blank" rel="noopener" class="btn-hotel-secondary" style="padding: 6px 12px; font-size: 0.76rem; text-decoration: none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+            </svg>
+            <span>Cómo llegar (Google Maps)</span>
           </a>
         </div>
-        <div style="height: 200px; border-radius: var(--radius-md); overflow: hidden; border: 1px solid rgba(255,255,255,0.15); background: #0f172a;">
+        <div class="modal-map-frame">
           <iframe id="detailMapIframe" src="" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
         </div>
         <!-- POIs -->
-        <div style="margin-top: 0.6rem; background: rgba(255,255,255,0.03); padding: 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
-          <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; margin-bottom: 0.35rem;">📍 Puntos de Interés Cercanos (POIs):</div>
-          <div id="detailNearbyPois" style="display: flex; flex-wrap: wrap; gap: 0.5rem; font-size: 0.78rem;"></div>
+        <div class="modal-pois-box">
+          <div class="editorial-eyebrow-label" style="margin-bottom: 0.45rem;">Puntos de Interés Cercanos:</div>
+          <div id="detailNearbyPois" style="display: flex; flex-wrap: wrap; gap: 0.45rem; font-size: 0.78rem;"></div>
         </div>
       </div>
 
-      <div
-        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-md); font-size: 0.82rem;">
+      <div class="modal-meta-grid">
         <div>
-          <div style="color: var(--text-dim);">Horarios</div>
-          <div style="color: #fff; font-weight: 600; margin-top: 0.2rem;">
-            Check-in: <span id="detailCheckIn" style="color: #34d399;">15:00</span> | Check-out: <span
-              id="detailCheckOut" style="color: #f87171;">12:00</span>
+          <div class="modal-meta-label">Horarios</div>
+          <div class="modal-meta-val">
+            Check-in: <span id="detailCheckIn">15:00</span> · Check-out: <span id="detailCheckOut">12:00</span>
           </div>
         </div>
         <div>
-          <div style="color: var(--text-dim);">Mascotas</div>
-          <div id="detailPetFriendly" style="font-weight: 600; margin-top: 0.2rem;"></div>
+          <div class="modal-meta-label">Política de Mascotas</div>
+          <div id="detailPetFriendly" class="modal-meta-val"></div>
         </div>
         <div>
-          <div style="color: var(--text-dim);">Contacto</div>
-          <div id="detailContact" style="color: #cbd5e1; margin-top: 0.2rem;"></div>
+          <div class="modal-meta-label">Concierge &amp; Contacto</div>
+          <div id="detailContact" class="modal-meta-val"></div>
         </div>
       </div>
 
       <div>
-        <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-dim); margin-bottom: 0.3rem;">Política de
-          Cancelación</div>
-        <div id="detailCancellation" style="font-size: 0.8rem; color: #cbd5e1; font-style: italic;"></div>
+        <div class="modal-meta-label">Política de Cancelación</div>
+        <div id="detailCancellation" style="font-size: 0.82rem; color: var(--editorial-text-muted); font-style: italic; margin-top: 0.2rem;"></div>
       </div>
 
-      <button type="button" class="btn-blue" id="btnBookFromHotelDetail" style="margin-top: 0.5rem;">
-        <span>VER DISPONIBILIDAD DE ESTE HOTEL</span>
+      <button type="button" class="btn-blue" id="btnBookFromHotelDetail" style="margin-top: 0.35rem;">
+        <span>Ver Disponibilidad de Este Hotel</span>
       </button>
     </div>
   </div>
 
-  <!-- Modal 2: CHECKOUT & PAGO CON TARJETA DE CRÉDITO -->
+  <!-- Modal 2: CHECKOUT & PAGO DIRECTO CON EL ENCARGADO -->
   <div class="modal-overlay" id="checkoutModal" style="display: none;">
     <div class="modal-dialog" style="max-width: 540px;">
-      <button class="modal-close-btn" id="closeCheckoutModalBtn">&times;</button>
+      <button class="modal-close-btn" id="closeCheckoutModalBtn" aria-label="Cerrar">&times;</button>
 
       <div>
-        <h2 style="font-family: var(--font-heading); font-size: 1.35rem; font-weight: 800; color: #fff;">
-          💳 Confirmar Estancia y Pago
-        </h2>
-        <p style="font-size: 0.82rem; color: var(--text-dim);">
-          Revisa el desglose de tu reserva y completa tu pago seguro.
+        <h2 class="modal-editorial-title">Confirmar Estancia &amp; Reserva</h2>
+        <p class="modal-editorial-subtitle">
+          Revisa el desglose de tu estancia y coordina el pago directamente con el encargado de la propiedad.
         </p>
       </div>
 
       <!-- Alerta de Bloqueo Temporal (15 minutos exactos) -->
       <div class="hold-timer-banner">
-        <span style="font-size: 1.75rem;">⏳</span>
-        <div>
-          <div style="font-size: 0.82rem; color: #fbbf24; font-weight: 800;">HABITACIÓN RESERVADA POR 15 MINUTOS</div>
-          <div style="font-size: 0.78rem; color: #cbd5e1;">La habitación está protegida para ti mientras coordinas el pago directo o transferencia:</div>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--editorial-gold); flex-shrink: 0;">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <div style="flex: 1;">
+          <div style="font-size: 0.78rem; color: var(--editorial-emerald); font-weight: 700; letter-spacing: 0.04em;">HABITACIÓN RESERVADA POR 15 MINUTOS</div>
+          <div style="font-size: 0.76rem; color: var(--editorial-text-muted);">Tu suite está asegurada mientras coordinas el pago o transferencia:</div>
         </div>
         <div class="hold-timer-digit" id="holdCountdownText">15:00</div>
       </div>
 
       <!-- Resumen de la Estancia -->
-      <div
-        style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 1rem; font-size: 0.85rem;">
-        <div style="font-weight: 700; color: #fff; font-size: 1rem; margin-bottom: 0.25rem;" id="checkoutRoomName">
-          Habitación Deluxe</div>
-        <div style="color: #38bdf8; margin-bottom: 0.75rem;" id="checkoutHotelName">Cartagena Luxury Beach & Spa Resort
-        </div>
+      <div class="editorial-checkout-summary">
+        <div class="checkout-room-title" id="checkoutRoomName">Habitación Deluxe</div>
+        <div class="checkout-hotel-subtitle" id="checkoutHotelName">Cartagena Luxury Beach &amp; Spa Resort</div>
 
-        <div
-          style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem; color: #cbd5e1; font-size: 0.82rem;">
-          <div>Check-in: <strong id="checkoutCheckIn" style="color: #fff;">--</strong></div>
-          <div>Check-out: <strong id="checkoutCheckOut" style="color: #fff;">--</strong></div>
-          <div>Noches: <strong id="checkoutNights" style="color: #fff;">--</strong></div>
-          <div>Huéspedes: <strong id="checkoutGuests" style="color: #fff;">--</strong></div>
+        <div class="checkout-dates-grid">
+          <div>Check-in: <strong id="checkoutCheckIn">--</strong></div>
+          <div>Check-out: <strong id="checkoutCheckOut">--</strong></div>
+          <div>Estancia: <strong id="checkoutNights">--</strong></div>
+          <div>Huéspedes: <strong id="checkoutGuests">--</strong></div>
         </div>
 
         <!-- Selector de Porcentaje: 100% Total o 50% Anticipo -->
-        <div style="background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 0.75rem; margin: 0.6rem 0;">
-          <div style="font-size: 0.78rem; font-weight: 700; color: #38bdf8; margin-bottom: 0.4rem;">
-            💵 Modalidad de Pago (Estilo Booking):
+        <div class="checkout-split-box">
+          <div class="editorial-eyebrow-label" style="margin-bottom: 0.5rem;">
+            Modalidad de Pago (Estilo Booking)
           </div>
           <div style="display: flex; gap: 0.5rem;">
-            <button type="button" id="payPercent100Btn" class="btn-hotel-secondary active"
-              style="flex: 1; border-color: #34d399; background: rgba(52, 211, 153, 0.18); color: #34d399; font-size: 0.78rem; padding: 7px; font-weight: 700;">
-              <span>💰 Pago Total (100%)</span>
+            <button type="button" id="payPercent100Btn" class="btn-hotel-secondary active-filter" style="flex: 1; justify-content: center;">
+              <span>Pago Total (100%)</span>
             </button>
-            <button type="button" id="payPercent50Btn" class="btn-hotel-secondary"
-              style="flex: 1; font-size: 0.78rem; padding: 7px; font-weight: 700;">
-              <span>⚡ Anticipo / Abono (50%)</span>
+            <button type="button" id="payPercent50Btn" class="btn-hotel-secondary" style="flex: 1; justify-content: center;">
+              <span>Anticipo / Abono (50%)</span>
             </button>
           </div>
-          <div id="paymentSplitNotice" style="font-size: 0.74rem; color: #94a3b8; margin-top: 0.4rem;">
+          <div id="paymentSplitNotice" style="font-size: 0.75rem; color: var(--editorial-text-muted); margin-top: 0.45rem;">
             Pagas el 100% de la estancia en este momento.
           </div>
         </div>
 
         <!-- Desglose de Totales -->
-        <div style="border-top: 1px dashed rgba(255,255,255,0.15); padding-top: 0.5rem; display: flex; flex-direction: column; gap: 0.3rem;">
-          <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-dim);">
+        <div class="checkout-totals-box">
+          <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--editorial-text-muted);">
             <span>Valor Total de la Estancia:</span>
-            <span id="checkoutTotalAmount" style="font-weight: 700; color: #fff;">$0 COP</span>
+            <span id="checkoutTotalAmount" style="font-weight: 600; color: var(--editorial-text-main);">$0 COP</span>
           </div>
           <div style="display: flex; justify-content: space-between; align-items: baseline;">
-            <span style="font-weight: 700; color: #fff; font-size: 0.9rem;">Monto a Pagar Ahora:</span>
-            <span style="font-size: 1.3rem; font-weight: 900; color: #34d399;" id="checkoutAmountToPay">$0 COP</span>
+            <span style="font-weight: 600; color: var(--editorial-text-main); font-size: 0.9rem;">Monto a Pagar Ahora:</span>
+            <span class="checkout-pay-now-amount" id="checkoutAmountToPay">$0 COP</span>
           </div>
-          <div id="checkoutBalanceRow" style="display: none; justify-content: space-between; font-size: 0.78rem; color: #fbbf24;">
+          <div id="checkoutBalanceRow" style="display: none; justify-content: space-between; font-size: 0.78rem; color: var(--editorial-gold);">
             <span>Saldo a Pagar al Check-In:</span>
             <span id="checkoutRemainingBalance" style="font-weight: 700;">$0 COP</span>
           </div>
@@ -1018,25 +1205,26 @@
       </div>
 
       <!-- Caja de Pago Directo con el Dueño / Encargado (Modelo Booking) -->
-      <div id="directOwnerBox" style="background: rgba(37, 211, 102, 0.08); border: 1px solid rgba(37, 211, 102, 0.35); border-radius: 12px; padding: 1rem; font-size: 0.85rem; margin-top: 0.85rem; color: #dcfce7;">
+      <div id="directOwnerBox" class="editorial-owner-box">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-          <div style="font-weight: 800; color: #4ade80; font-size: 0.92rem;">🏨 Gestión de Pago Directo con el Encargado:</div>
-          <span style="font-size: 0.68rem; background: #25D366; color: #fff; padding: 2px 8px; border-radius: 999px; font-weight: 700;">WHATSAPP</span>
+          <div style="font-weight: 700; color: var(--editorial-emerald); font-size: 0.88rem;">Gestión de Pago Directo con el Encargado</div>
+          <span class="editorial-wa-pill">CONCIERGE DIRECTO</span>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.82rem;">
-          <div><strong>Hotel:</strong> <span id="ownerHotelName" style="color: #fff;">Sede Hotelera</span></div>
-          <div><strong>Encargado / Línea WhatsApp:</strong> <span id="ownerPhoneText" style="color: #4ade80; font-weight: 700;">+57 (605) 650 1200</span></div>
+        <div style="display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.82rem; color: var(--editorial-text-main);">
+          <div><strong>Propiedad:</strong> <span id="ownerHotelName">Sede Hotelera</span></div>
+          <div><strong>Encargado / Línea Directa:</strong> <span id="ownerPhoneText" style="color: var(--editorial-emerald); font-weight: 700;">+57 (605) 650 1200</span></div>
           <div><strong>Medios Aceptados:</strong> Bancolombia / Nequi / Daviplata / Transferencia Directa</div>
         </div>
-        
-        <div style="margin-top: 0.65rem; padding: 0.65rem; background: rgba(15, 23, 42, 0.5); border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); color: #cbd5e1; font-size: 0.78rem; line-height: 1.4;">
-          💬 <strong>¿Cómo funciona?</strong> Al presionar el botón inferior, tu habitación quedará <strong>bloqueada y asegurada por 15 minutos</strong> en el sistema y se abrirá el chat de WhatsApp con el encargado. Allí coordinas el pago (50% de abono o 100% total) y le envías el comprobante. Una vez verificado por el encargado en el chat, el administrador autoriza y confirma tu reserva en la plataforma.
+
+        <div class="editorial-owner-note">
+          Al confirmar, tu habitación quedará <strong>bloqueada y asegurada por 15 minutos</strong> en el sistema y se abrirá el canal directo de WhatsApp con el encargado para coordinar el abono (50%) o pago total (100%).
         </div>
 
-        <!-- Botón Principal: Confirmar Pre-Reserva y Abrir Chat de WhatsApp -->
-        <button type="button" id="btnConfirmAndChatWhatsApp" class="btn-blue" style="width: 100%; padding: 13px; background: #25D366; color: #fff; font-weight: 800; border-radius: 8px; border: none; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 0.6rem; margin-top: 0.85rem; cursor: pointer; box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35); transition: all 0.2s;">
-          <span style="font-size: 1.25rem;">💬</span>
-          <span id="btnChatText">RESERVAR Y GESTIONAR PAGO POR WHATSAPP</span>
+        <button type="button" id="btnConfirmAndChatWhatsApp" class="btn-blue" style="margin-top: 0.85rem;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+          </svg>
+          <span id="btnChatText">Reservar y Gestionar Pago por WhatsApp</span>
         </button>
       </div>
     </div>
@@ -1045,39 +1233,40 @@
   <!-- Modal 2.5: PRE-RESERVA REGISTRADA & CHAT WHATSAPP -->
   <div class="modal-overlay" id="bookingPendingWaModal" style="display: none;">
     <div class="modal-dialog" style="max-width: 480px; text-align: center;">
-      <div style="font-size: 3.5rem; margin-bottom: 0.35rem;">📱</div>
-      <h2 style="font-family: var(--font-heading); font-size: 1.45rem; font-weight: 800; color: #fff;">
-        ¡Pre-Reserva Registrada!
-      </h2>
-      <p style="font-size: 0.88rem; color: #4ade80; margin-top: 0.25rem; font-weight: 700;">
-        ⏱️ Tu habitación está reservada por 15 minutos mientras gestionas el pago en WhatsApp
+      <div class="modal-icon-circle">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+      </div>
+      <h2 class="modal-editorial-title">Pre-Reserva Registrada</h2>
+      <p style="font-size: 0.85rem; color: var(--editorial-emerald); margin-top: 0.25rem; font-weight: 600;">
+        Tu habitación está reservada por 15 minutos mientras coordinas el pago en WhatsApp
       </p>
 
-      <div style="background: rgba(255, 255, 255, 0.05); border: 1px dashed rgba(37, 211, 102, 0.5); border-radius: 12px; padding: 1rem; margin: 1rem 0; text-align: left; font-size: 0.85rem; color: #e2e8f0;">
-        <div style="font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.2rem;">CÓDIGO DE RESERVA OFICIAL</div>
-        <div style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 900; color: #34d399; letter-spacing: 2px;" id="pendingWaBookingCode">
-          TR-2026-XXXXX
+      <div class="modal-code-box">
+        <div class="editorial-eyebrow-label">CÓDIGO DE RESERVA OFICIAL</div>
+        <div class="modal-booking-code" id="pendingWaBookingCode">TR-2026-XXXXX</div>
+        <div style="margin-top: 0.65rem; border-top: 1px solid var(--editorial-border); padding-top: 0.65rem; display: flex; justify-content: space-between; font-size: 0.84rem;">
+          <span style="color: var(--editorial-text-muted);">Monto a Transferir:</span>
+          <strong id="pendingWaAmountText" style="color: var(--editorial-text-main);">$0 COP</strong>
         </div>
-        <div style="margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 0.5rem; display: flex; justify-content: space-between;">
-          <span style="color: var(--text-dim);">Monto a Transferir:</span>
-          <strong id="pendingWaAmountText" style="color: #fff;">$0 COP</strong>
-        </div>
-        <div style="display: flex; justify-content: space-between; margin-top: 0.25rem;">
-          <span style="color: var(--text-dim);">Modalidad:</span>
-          <span id="pendingWaPercentText" style="color: #38bdf8; font-weight: 700;">100% Total</span>
+        <div style="display: flex; justify-content: space-between; margin-top: 0.3rem; font-size: 0.84rem;">
+          <span style="color: var(--editorial-text-muted);">Modalidad:</span>
+          <span id="pendingWaPercentText" style="color: var(--editorial-emerald); font-weight: 600;">100% Total</span>
         </div>
       </div>
 
-      <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem; line-height: 1.4;">
-        Envía el comprobante de transferencia al encargado en el chat de WhatsApp. Una vez recibido, el administrador autorizará tu reserva y podrás descargar tu Voucher oficial con QR en "Mis Reservas".
+      <p style="font-size: 0.8rem; color: var(--editorial-text-muted); margin-bottom: 1rem; line-height: 1.5;">
+        Envía el comprobante al encargado en el chat de WhatsApp. Una vez verificado, el administrador autorizará tu reserva y podrás descargar tu Voucher oficial con QR en "Mis Reservas".
       </p>
 
       <div style="display: flex; flex-direction: column; gap: 0.65rem;">
-        <a id="btnReopenWhatsAppChat" href="#" target="_blank" rel="noopener" class="btn-blue" style="background: #25D366; color: #fff; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 11px; font-weight: 800; border-radius: 8px;">
-          <span>💬</span> Reabrir Chat de WhatsApp
+        <a id="btnReopenWhatsAppChat" href="#" target="_blank" rel="noopener" class="btn-blue" style="text-decoration: none;">
+          <span>Reabrir Chat de WhatsApp</span>
         </a>
-        <button type="button" class="btn-hotel-secondary" id="btnClosePendingWaModal">
-          <span>💼</span> Ir a Mis Reservas
+        <button type="button" class="btn-hotel-secondary" id="btnClosePendingWaModal" style="justify-content: center;">
+          <span>Ir a Mis Reservas</span>
         </button>
       </div>
     </div>
@@ -1086,31 +1275,28 @@
   <!-- Modal 3: RESERVA CONFIRMADA EXITOSAMENTE -->
   <div class="modal-overlay" id="bookingSuccessModal" style="display: none;">
     <div class="modal-dialog" style="max-width: 480px; text-align: center;">
-      <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">🎉</div>
-      <h2 style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 800; color: #fff;">
-        ¡Reserva Confirmada!
-      </h2>
-      <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 0.25rem;">
+      <div class="modal-icon-circle">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+      </div>
+      <h2 class="modal-editorial-title">Reserva Confirmada</h2>
+      <p class="modal-editorial-subtitle">
         Tu pago ha sido procesado exitosamente y tus fechas han quedado aseguradas en el hotel.
       </p>
 
-      <div
-        style="background: rgba(255, 255, 255, 0.05); border: 1px dashed rgba(56, 189, 248, 0.4); border-radius: 12px; padding: 1.25rem; margin: 1.25rem 0;">
-        <div style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px;">CÓDIGO
-          DE RESERVA OFICIAL</div>
-        <div
-          style="font-family: var(--font-heading); font-size: 1.6rem; font-weight: 900; color: #38bdf8; letter-spacing: 2px; margin-top: 0.25rem;"
-          id="successBookingCode">
-          TR-2026-XXXXX
-        </div>
+      <div class="modal-code-box">
+        <div class="editorial-eyebrow-label">CÓDIGO DE RESERVA OFICIAL</div>
+        <div class="modal-booking-code" id="successBookingCode">TR-2026-XXXXX</div>
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 0.65rem;">
         <button type="button" class="btn-blue" id="btnDownloadVoucherPdf">
-          <span>📄</span> DESCARGAR VOUCHER PDF OFICIAL (CON QR)
+          <span>Descargar Voucher PDF Oficial (QR)</span>
         </button>
-        <button type="button" class="btn-hotel-secondary" id="btnGoToMyBookingsAfterSuccess">
-          <span>💼</span> Ver Mis Reservas
+        <button type="button" class="btn-hotel-secondary" id="btnGoToMyBookingsAfterSuccess" style="justify-content: center;">
+          <span>Ver Mis Reservas</span>
         </button>
       </div>
     </div>
@@ -1119,88 +1305,80 @@
   <!-- Modal 4: Registro / Edición de Hotel (Admin) -->
   <div class="modal-overlay" id="hotelFormModal" style="display: none;">
     <div class="modal-dialog">
-      <button class="modal-close-btn" id="closeFormModalBtn">&times;</button>
+      <button class="modal-close-btn" id="closeFormModalBtn" aria-label="Cerrar">&times;</button>
       <div>
-        <h2 id="hotelFormTitle"
-          style="font-family: var(--font-heading); font-size: 1.35rem; font-weight: 800; color: #fff;">
-          🏢 Registrar Nueva Sede Hotelera
-        </h2>
-        <p style="font-size: 0.82rem; color: var(--text-dim);">Ingresa los detalles para publicar el hotel en la
-          plataforma.</p>
+        <h2 id="hotelFormTitle" class="modal-editorial-title">Registrar Nueva Sede Hotelera</h2>
+        <p class="modal-editorial-subtitle">Ingresa los detalles para publicar el hotel en la colección.</p>
       </div>
 
       <form id="hotelUpsertForm" style="display: flex; flex-direction: column; gap: 0.85rem;">
         <input type="hidden" id="formHotelId">
-        <div class="field-group">
+        <div class="field-group" style="margin-bottom: 0;">
           <label class="input-label" for="formHotelName">Nombre del Hotel *</label>
-          <input type="text" id="formHotelName" class="input-pill" placeholder="Ej. Cartagena Paradise Beach Resort"
-            required>
+          <input type="text" id="formHotelName" class="input-pill" placeholder="Ej. Cartagena Paradise Beach Resort" required>
         </div>
-        <div class="field-group">
+        <div class="field-group" style="margin-bottom: 0;">
           <label class="input-label" for="formHotelDesc">Descripción *</label>
-          <textarea id="formHotelDesc" class="input-pill" rows="3" required
-            style="resize: vertical; min-height: 70px; border-radius: var(--radius-md);"></textarea>
+          <textarea id="formHotelDesc" class="input-pill" rows="3" required style="resize: vertical; min-height: 70px;"></textarea>
         </div>
         <div style="display: flex; gap: 0.75rem;">
-          <div class="field-group" style="flex: 1;">
+          <div class="field-group" style="flex: 1; margin-bottom: 0;">
             <label class="input-label" for="formHotelAddress">Dirección *</label>
             <input type="text" id="formHotelAddress" class="input-pill" placeholder="Bocagrande Carrera 1" required>
           </div>
-          <div class="field-group" style="flex: 1;">
+          <div class="field-group" style="flex: 1; margin-bottom: 0;">
             <label class="input-label" for="formHotelCity">Ciudad *</label>
             <input type="text" id="formHotelCity" class="input-pill" placeholder="Cartagena" required>
           </div>
         </div>
         <div style="display: flex; gap: 0.75rem;">
-          <div class="field-group" style="flex: 1;">
+          <div class="field-group" style="flex: 1; margin-bottom: 0;">
             <label class="input-label" for="formHotelStars">Estrellas (1 - 5) *</label>
             <input type="number" id="formHotelStars" class="input-pill" min="1" max="5" value="5" required>
           </div>
-          <div class="field-group" style="flex: 1;">
+          <div class="field-group" style="flex: 1; margin-bottom: 0;">
             <label class="input-label" for="formHotelPhone">Teléfono</label>
             <input type="text" id="formHotelPhone" class="input-pill" placeholder="+57 605 1234567">
           </div>
         </div>
-        <div class="field-group">
+        <div class="field-group" style="margin-bottom: 0;">
           <label class="input-label" for="formHotelEmail">Correo de Contacto</label>
           <input type="email" id="formHotelEmail" class="input-pill" placeholder="recepcion@hotel.com">
         </div>
-        <div class="field-group">
+        <div class="field-group" style="margin-bottom: 0;">
           <label class="input-label" for="formHotelImg">URL de Foto Principal</label>
           <input type="url" id="formHotelImg" class="input-pill" placeholder="https://images.unsplash.com/...">
         </div>
-        <div class="field-group">
+        <div class="field-group" style="margin-bottom: 0;">
           <label class="input-label" for="formHotelAmenities">Amenidades (separadas por comas)</label>
-          <input type="text" id="formHotelAmenities" class="input-pill"
-            placeholder="Piscina Infinita, Spa, Wi-Fi 6, Playa Privada">
+          <input type="text" id="formHotelAmenities" class="input-pill" placeholder="Piscina Infinita, Spa, Wi-Fi 6, Playa Privada">
         </div>
         <div style="display: flex; gap: 0.75rem;">
-          <div class="field-group" style="flex: 1;">
+          <div class="field-group" style="flex: 1; margin-bottom: 0;">
             <label class="input-label" for="formHotelCheckIn">Hora Check-in</label>
             <input type="text" id="formHotelCheckIn" class="input-pill" value="15:00">
           </div>
-          <div class="field-group" style="flex: 1;">
+          <div class="field-group" style="flex: 1; margin-bottom: 0;">
             <label class="input-label" for="formHotelCheckOut">Hora Check-out</label>
             <input type="text" id="formHotelCheckOut" class="input-pill" value="12:00">
           </div>
         </div>
-        <div class="field-group">
+        <div class="field-group" style="margin-bottom: 0;">
           <label class="input-label" for="formHotelCancel">Política de Cancelación</label>
-          <input type="text" id="formHotelCancel" class="input-pill"
-            value="Cancelación gratuita hasta 48 horas antes de la llegada.">
+          <input type="text" id="formHotelCancel" class="input-pill" value="Cancelación gratuita hasta 48 horas antes de la llegada.">
         </div>
         <div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
-          <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <input type="checkbox" id="formHotelPetFriendly" style="cursor: pointer; width: 18px; height: 18px;">
-            <label for="formHotelPetFriendly" style="font-size: 0.85rem; color: #fff; cursor: pointer;">Admite Mascotas (Pet-friendly)</label>
-          </div>
-          <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <input type="checkbox" id="formHotelIsActive" checked style="cursor: pointer; width: 18px; height: 18px;">
-            <label for="formHotelIsActive" style="font-size: 0.85rem; color: #34d399; cursor: pointer;">Establecimiento Activo</label>
-          </div>
+          <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.84rem; color: var(--editorial-text-main); cursor: pointer;">
+            <input type="checkbox" id="formHotelPetFriendly" style="accent-color: var(--editorial-emerald); width: 16px; height: 16px;">
+            <span>Admite Mascotas (Pet-friendly)</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.84rem; color: var(--editorial-emerald); font-weight: 600; cursor: pointer;">
+            <input type="checkbox" id="formHotelIsActive" checked style="accent-color: var(--editorial-emerald); width: 16px; height: 16px;">
+            <span>Establecimiento Activo</span>
+          </label>
         </div>
         <button type="submit" class="btn-blue" id="submitHotelFormBtn" style="margin-top: 0.5rem;">
-          <span>GUARDAR HOTEL</span>
+          <span>Guardar Hotel</span>
         </button>
       </form>
     </div>
@@ -1209,29 +1387,28 @@
   <!-- Modal 5: Registro / Edición de Habitación (Admin) -->
   <div class="modal-overlay" id="roomFormModal" style="display: none;">
     <div class="modal-dialog">
-      <button class="modal-close-btn" id="closeRoomModalBtn">&times;</button>
+      <button class="modal-close-btn" id="closeRoomModalBtn" aria-label="Cerrar">&times;</button>
       <div>
-        <h2 id="roomFormTitle" style="font-family: var(--font-heading); font-size: 1.35rem; font-weight: 800; color: #fff;">🛏️ Registrar
-          Nueva Habitación</h2>
-        <p style="font-size: 0.82rem; color: var(--text-dim);">Asigna o actualiza la habitación en el inventario del catálogo.</p>
+        <h2 id="roomFormTitle" class="modal-editorial-title">Registrar Nueva Habitación</h2>
+        <p class="modal-editorial-subtitle">Asigna o actualiza la habitación en el inventario del catálogo.</p>
       </div>
 
       <form id="roomUpsertForm" style="display: flex; flex-direction: column; gap: 0.85rem;">
         <input type="hidden" id="formRoomId" value="">
-        <div class="field-group">
+        <div class="field-group" style="margin-bottom: 0;">
           <label class="input-label" for="formRoomHotel">Hotel *</label>
           <select id="formRoomHotel" class="input-pill" required></select>
         </div>
         <div style="display: flex; gap: 0.75rem;">
-          <div class="field-group" style="flex: 1;">
+          <div class="field-group" style="flex: 1; margin-bottom: 0;">
             <label class="input-label" for="formRoomNumber">Número *</label>
             <input type="text" id="formRoomNumber" class="input-pill" placeholder="304" required>
           </div>
-          <div class="field-group" style="flex: 1;">
+          <div class="field-group" style="flex: 1; margin-bottom: 0;">
             <label class="input-label" for="formRoomFloor">Piso</label>
             <input type="number" id="formRoomFloor" class="input-pill" min="0" value="1">
           </div>
-          <div class="field-group" style="flex: 1;">
+          <div class="field-group" style="flex: 1; margin-bottom: 0;">
             <label class="input-label" for="formRoomTypeSel">Tipo *</label>
             <select id="formRoomTypeSel" class="input-pill">
               <option value="STANDARD">Standard</option>
@@ -1241,32 +1418,30 @@
             </select>
           </div>
         </div>
-        <div class="field-group">
+        <div class="field-group" style="margin-bottom: 0;">
           <label class="input-label" for="formRoomName">Nombre Comercial *</label>
-          <input type="text" id="formRoomName" class="input-pill" placeholder="Junior Suite con Balcón Frente al Mar"
-            required>
+          <input type="text" id="formRoomName" class="input-pill" placeholder="Junior Suite con Balcón Frente al Mar" required>
         </div>
-        <div class="field-group">
+        <div class="field-group" style="margin-bottom: 0;">
           <label class="input-label" for="formRoomDesc">Descripción *</label>
-          <textarea id="formRoomDesc" class="input-pill" rows="3" required
-            style="resize: vertical; min-height: 70px; border-radius: var(--radius-md);"></textarea>
+          <textarea id="formRoomDesc" class="input-pill" rows="3" required style="resize: vertical; min-height: 70px;"></textarea>
         </div>
         <div style="display: flex; gap: 0.75rem;">
-          <div class="field-group" style="flex: 1;">
+          <div class="field-group" style="flex: 1; margin-bottom: 0;">
             <label class="input-label" for="formRoomPrice">Precio por Noche (COP) *</label>
             <input type="number" id="formRoomPrice" class="input-pill" min="10000" step="5000" value="450000" placeholder="Ej. 450000" required>
           </div>
-          <div class="field-group" style="flex: 1;">
+          <div class="field-group" style="flex: 1; margin-bottom: 0;">
             <label class="input-label" for="formRoomAdults">Adultos Máx.</label>
             <input type="number" id="formRoomAdults" class="input-pill" min="1" value="2">
           </div>
-          <div class="field-group" style="flex: 1;">
+          <div class="field-group" style="flex: 1; margin-bottom: 0;">
             <label class="input-label" for="formRoomChildren">Niños Máx.</label>
             <input type="number" id="formRoomChildren" class="input-pill" min="0" value="1">
           </div>
         </div>
         <div style="display: flex; gap: 0.75rem;">
-          <div class="field-group" style="flex: 1;">
+          <div class="field-group" style="flex: 1; margin-bottom: 0;">
             <label class="input-label" for="formRoomSeason">Temporada Tarifaria</label>
             <select id="formRoomSeason" class="input-pill">
               <option value="REGULAR">Regular (Tarifa Estándar)</option>
@@ -1274,26 +1449,25 @@
               <option value="BAJA">Baja (-10% Promo)</option>
             </select>
           </div>
-          <div class="field-group" style="flex: 1;">
+          <div class="field-group" style="flex: 1; margin-bottom: 0;">
             <label class="input-label" for="formRoomDiscount">Descuento Promocional (%)</label>
             <input type="number" id="formRoomDiscount" class="input-pill" min="0" max="90" value="0" placeholder="0">
           </div>
         </div>
-        <div class="field-group">
+        <div class="field-group" style="margin-bottom: 0;">
           <label class="input-label" for="formRoomOfferDesc">Oferta Especial / Promoción (Opcional)</label>
           <input type="text" id="formRoomOfferDesc" class="input-pill" placeholder="Ej. Escapada Romántica 15% OFF">
         </div>
-        <div class="field-group">
+        <div class="field-group" style="margin-bottom: 0;">
           <label class="input-label" for="formRoomAmenities">Amenidades (separadas por comas)</label>
-          <input type="text" id="formRoomAmenities" class="input-pill"
-            placeholder="Jacuzzi, Balcón, Smart TV, Caja Fuerte">
+          <input type="text" id="formRoomAmenities" class="input-pill" placeholder="Jacuzzi, Balcón, Smart TV, Caja Fuerte">
         </div>
-        <div class="field-group">
+        <div class="field-group" style="margin-bottom: 0;">
           <label class="input-label" for="formRoomImg">URL de Imagen</label>
           <input type="url" id="formRoomImg" class="input-pill" placeholder="https://images.unsplash.com/...">
         </div>
         <button type="submit" class="btn-blue" id="submitRoomFormBtn" style="margin-top: 0.5rem;">
-          <span>GUARDAR HABITACIÓN</span>
+          <span>Guardar Habitación</span>
         </button>
       </form>
     </div>
@@ -1302,47 +1476,43 @@
   <!-- Modal: Modificar Reserva de Huésped -->
   <div class="modal-overlay" id="modifyBookingModal" style="display: none;">
     <div class="modal-dialog">
-      <button class="modal-close-btn" id="closeModifyBookingModalBtn">&times;</button>
+      <button class="modal-close-btn" id="closeModifyBookingModalBtn" aria-label="Cerrar">&times;</button>
       <div>
-        <h2 style="font-family: var(--font-heading); font-size: 1.35rem; font-weight: 800; color: #fff;">✏️ Modificar Reserva</h2>
-        <p style="font-size: 0.82rem; color: var(--text-dim);">Ajusta los detalles de tu estancia o agrega solicitudes especiales.</p>
+        <h2 class="modal-editorial-title">Modificar Reserva</h2>
+        <p class="modal-editorial-subtitle">Ajusta los detalles de tu estancia o agrega solicitudes especiales.</p>
       </div>
 
-      <form id="modifyBookingForm" style="display: flex; flex-direction: column; gap: 0.85rem; margin-top: 1rem;">
+      <form id="modifyBookingForm" style="display: flex; flex-direction: column; gap: 0.85rem; margin-top: 0.5rem;">
         <input type="hidden" id="modifyBookingCode" value="">
-        <div class="field-group">
+        <div class="field-group" style="margin-bottom: 0;">
           <label class="input-label" for="modifyGuestName">Nombre del Titular de la Reserva</label>
           <input type="text" id="modifyGuestName" class="input-pill" required>
         </div>
-        <div class="field-group">
+        <div class="field-group" style="margin-bottom: 0;">
           <label class="input-label" for="modifyGuestsCount">Número de Huéspedes</label>
           <input type="number" id="modifyGuestsCount" class="input-pill" min="1" max="10" required>
         </div>
-        <div class="field-group">
+        <div class="field-group" style="margin-bottom: 0;">
           <label class="input-label" for="modifySpecialRequests">Solicitudes Especiales / Preferencias de Estancia</label>
-          <textarea id="modifySpecialRequests" class="input-pill" rows="3" placeholder="Ej. Cama King, piso alto, llegada tardía a las 18:00..." style="resize: vertical; min-height: 80px; border-radius: var(--radius-md);"></textarea>
+          <textarea id="modifySpecialRequests" class="input-pill" rows="3" placeholder="Ej. Cama King, piso alto, llegada tardía a las 18:00..." style="resize: vertical; min-height: 80px;"></textarea>
         </div>
         <button type="submit" class="btn-blue" id="submitModifyBookingBtn" style="margin-top: 0.5rem;">
-          <span>GUARDAR MODIFICACIÓN</span>
+          <span>Guardar Modificación</span>
         </button>
       </form>
     </div>
   </div>
 
-  <!-- Modal 6: Login con Google Mockup -->
+  <!-- Modal 6: Login con Google -->
   <div class="modal-overlay" id="googleAuthModal" style="display: none;">
     <div class="modal-dialog google-modal-dialog">
-      <button class="modal-close-btn" id="closeGoogleModalBtn">✕</button>
+      <button class="modal-close-btn" id="closeGoogleModalBtn" aria-label="Cerrar">&times;</button>
       <div class="google-modal-header">
         <svg class="google-icon-large" viewBox="0 0 24 24">
-          <path fill="#4285F4"
-            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-          <path fill="#34A853"
-            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-          <path fill="#FBBC05"
-            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-          <path fill="#EA4335"
-            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
         </svg>
         <h3 class="google-modal-title">Iniciar sesión con Google</h3>
         <p class="google-modal-sub">Accede con tu cuenta de correo de Gmail</p>
@@ -1350,117 +1520,96 @@
 
       <div class="google-account-list">
         <form id="googleCustomForm" class="google-custom-box">
-          <div class="field-group" style="margin-bottom: 0.6rem;">
-            <label class="input-label" for="googleCustomEmail" style="color: #cbd5e1;">Correo Google (Gmail)</label>
-            <input type="email" id="googleCustomEmail" class="input-pill" placeholder="tu.nombre@gmail.com" required
-              style="padding: 10px 14px;">
+          <div class="field-group" style="margin-bottom: 0.75rem;">
+            <label class="input-label" for="googleCustomEmail">Correo Google (Gmail)</label>
+            <input type="email" id="googleCustomEmail" class="input-pill" placeholder="tu.nombre@gmail.com" required>
           </div>
-          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+          <div style="display: flex; gap: 0.65rem; margin-bottom: 0.9rem;">
             <div style="flex: 1;">
-              <label class="input-label" for="googleCustomFirst" style="color: #cbd5e1;">Nombre</label>
-              <input type="text" id="googleCustomFirst" class="input-pill" placeholder="Carlos" required
-                style="padding: 10px 14px;">
+              <label class="input-label" for="googleCustomFirst">Nombre</label>
+              <input type="text" id="googleCustomFirst" class="input-pill" placeholder="Carlos" required>
             </div>
             <div style="flex: 1;">
-              <label class="input-label" for="googleCustomLast" style="color: #cbd5e1;">Apellido</label>
-              <input type="text" id="googleCustomLast" class="input-pill" placeholder="Valderrama" required
-                style="padding: 10px 14px;">
+              <label class="input-label" for="googleCustomLast">Apellido</label>
+              <input type="text" id="googleCustomLast" class="input-pill" placeholder="Valderrama" required>
             </div>
           </div>
-          <button type="submit" class="btn-blue" id="submitGoogleCustomBtn" style="padding: 10px;">
-            <span>CONTINUAR CON ESTA CUENTA</span>
+          <button type="submit" class="btn-blue" id="submitGoogleCustomBtn">
+            <span>Continuar con Esta Cuenta</span>
           </button>
         </form>
       </div>
     </div>
   </div>
 
-  <!-- Modal 7: CALENDARIO DE DISPONIBILIDAD & GESTIÓN DE FECHAS (ADMIN & STAFF) -->
+  <!-- Modal 7: CALENDARIO DE DISPONIBILIDAD & GESTIÓN DE FECHAS -->
   <div class="modal-overlay" id="roomCalendarModal" style="display: none;">
-    <div class="modal-dialog" style="max-width: 620px;">
-      <button class="modal-close-btn" id="closeCalModalBtn">&times;</button>
+    <div class="modal-dialog" style="max-width: 640px;">
+      <button class="modal-close-btn" id="closeCalModalBtn" aria-label="Cerrar">&times;</button>
 
-      <div
-        style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.75rem;">
+      <div class="cal-modal-header">
         <div>
-          <h2 style="font-family: var(--font-heading); font-size: 1.35rem; font-weight: 800; color: #fff;">
-            📅 Calendario & Ocupación de Fechas
-          </h2>
-          <div style="font-size: 0.85rem; color: #38bdf8;" id="calRoomTitle">Habitación Deluxe 304</div>
-          <div style="font-size: 0.75rem; color: var(--text-dim);" id="calHotelTitle">Cartagena Paradise Beach Resort
-          </div>
+          <h2 class="modal-editorial-title">Calendario &amp; Ocupación de Fechas</h2>
+          <div style="font-size: 0.88rem; color: var(--editorial-emerald); font-weight: 600;" id="calRoomTitle">Habitación Deluxe 304</div>
+          <div style="font-size: 0.78rem; color: var(--editorial-text-muted);" id="calHotelTitle">Cartagena Paradise Beach Resort</div>
         </div>
 
         <div style="display: flex; align-items: center; gap: 0.5rem;">
-          <button type="button" class="btn-hotel-secondary" id="calPrevMonthBtn"
-            style="padding: 4px 10px; font-size: 0.75rem;">◀ Mes</button>
-          <span style="font-weight: 700; color: #fff; font-size: 0.85rem;" id="calCurrentMonthLabel">Noviembre
-            2026</span>
-          <button type="button" class="btn-hotel-secondary" id="calNextMonthBtn"
-            style="padding: 4px 10px; font-size: 0.75rem;">Mes ▶</button>
+          <button type="button" class="btn-hotel-secondary" id="calPrevMonthBtn" style="padding: 6px 12px; font-size: 0.76rem;">Anterior</button>
+          <span style="font-family: var(--editorial-font-serif); font-weight: 600; color: var(--editorial-text-main); font-size: 0.95rem;" id="calCurrentMonthLabel">Noviembre 2026</span>
+          <button type="button" class="btn-hotel-secondary" id="calNextMonthBtn" style="padding: 6px 12px; font-size: 0.76rem;">Siguiente</button>
         </div>
       </div>
 
       <!-- Leyenda de Estados del Calendario -->
-      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; font-size: 0.72rem; margin: 0.5rem 0;">
-        <span style="display: flex; align-items: center; gap: 0.3rem; color: #34d399;">
-          <span style="width: 10px; height: 10px; border-radius: 50%; background: #34d399;"></span> Disponible
+      <div class="cal-legend-row">
+        <span class="cal-legend-item">
+          <span class="cal-dot available"></span> Disponible
         </span>
-        <span style="display: flex; align-items: center; gap: 0.3rem; color: #fbbf24;">
-          <span style="width: 10px; height: 10px; border-radius: 50%; background: #fbbf24;"></span> Bloqueo Temporal
-          (Hold 10m)
+        <span class="cal-legend-item">
+          <span class="cal-dot hold"></span> Bloqueo Temporal (15m)
         </span>
-        <span style="display: flex; align-items: center; gap: 0.3rem; color: #f87171;">
-          <span style="width: 10px; height: 10px; border-radius: 50%; background: #f87171;"></span> Reservada / Agotada
-          (Cliente)
+        <span class="cal-legend-item">
+          <span class="cal-dot booked"></span> Reservada
         </span>
-        <span style="display: flex; align-items: center; gap: 0.3rem; color: #cbd5e1;">
-          <span style="width: 10px; height: 10px; border-radius: 50%; background: #94a3b8;"></span> Bloqueo Admin
+        <span class="cal-legend-item">
+          <span class="cal-dot blocked"></span> Bloqueo Admin
         </span>
       </div>
 
       <!-- Cuadrícula de Días del Mes -->
       <div id="calDaysGrid"
-        style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 0.75rem 0; text-align: center;">
+        style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 0.5rem 0; text-align: center;">
       </div>
 
       <!-- Panel de Selección de Reserva para Huéspedes / Clientes -->
-      <div id="clientBookingControls"
-        style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 12px; padding: 1rem; margin-top: 0.5rem;">
-        <div
-          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
-          <div
-            style="font-size: 0.85rem; font-weight: 800; color: #38bdf8; display: flex; align-items: center; gap: 0.4rem;">
-            <span>✨</span> Selección de Estancia para Reserva
+      <div id="clientBookingControls" class="cal-booking-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+          <div style="font-size: 0.84rem; font-weight: 700; color: var(--editorial-emerald);">
+            Selección de Estancia para Reserva
           </div>
-          <div style="font-size: 0.72rem; color: var(--text-dim);">
+          <div style="font-size: 0.74rem; color: var(--editorial-text-muted);">
             Haz clic en el día de llegada y de salida en el calendario
           </div>
         </div>
 
-        <div
-          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.5rem; margin-bottom: 0.75rem;">
-          <div
-            style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 0.5rem 0.65rem;">
-            <div style="font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase;">Llegada (Check-In)</div>
-            <div id="calClientCheckInText"
-              style="font-size: 0.85rem; font-weight: 700; color: #34d399; margin-top: 2px;">2026-11-20</div>
+        <div class="cal-selection-grid">
+          <div class="cal-selection-cell">
+            <div class="cal-selection-label">Llegada (Check-In)</div>
+            <div id="calClientCheckInText" class="cal-selection-val">2026-11-20</div>
           </div>
 
-          <div
-            style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 0.5rem 0.65rem;">
-            <div style="font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase;">Salida (Check-Out)</div>
-            <div id="calClientCheckOutText"
-              style="font-size: 0.85rem; font-weight: 700; color: #38bdf8; margin-top: 2px;">2026-11-22</div>
+          <div class="cal-selection-cell">
+            <div class="cal-selection-label">Salida (Check-Out)</div>
+            <div id="calClientCheckOutText" class="cal-selection-val">2026-11-22</div>
           </div>
 
-          <div
-            style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 0.5rem 0.65rem;">
-            <div style="font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase;">Noches / Personas</div>
+          <div class="cal-selection-cell">
+            <div class="cal-selection-label">Noches / Personas</div>
             <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 2px;">
-              <span id="calClientNightsText" style="font-size: 0.8rem; font-weight: 700; color: #fff;">2 noches</span>
+              <span id="calClientNightsText" style="font-size: 0.82rem; font-weight: 700; color: var(--editorial-text-main);">2 noches</span>
               <select id="calClientGuestsSel" class="input-pill"
-                style="padding: 1px 4px; font-size: 0.72rem; height: 24px; width: 60px; border-radius: 4px;">
+                style="padding: 2px 6px; font-size: 0.75rem; height: 26px; width: 58px;">
                 <option value="1">1</option>
                 <option value="2" selected>2</option>
                 <option value="3">3</option>
@@ -1469,28 +1618,24 @@
             </div>
           </div>
 
-          <div
-            style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 0.5rem 0.65rem; text-align: right;">
-            <div style="font-size: 0.65rem; color: #7dd3fc; text-transform: uppercase;">Total Estimado</div>
-            <div id="calClientTotalText" style="font-size: 1rem; font-weight: 800; color: #38bdf8; margin-top: 2px;">
-              $ 900.000 COP</div>
+          <div class="cal-selection-cell highlight">
+            <div class="cal-selection-label">Total Estimado</div>
+            <div id="calClientTotalText" class="cal-selection-total">$ 900.000 COP</div>
           </div>
         </div>
 
-        <button type="button" id="btnProceedBookingFromCalendar" class="btn-blue"
-          style="width: 100%; height: 42px; font-size: 0.82rem; font-weight: 800; letter-spacing: 0.3px;">
-          <span>✨ RESERVAR HABITACIÓN (PROCEDER AL CHECKOUT)</span>
+        <button type="button" id="btnProceedBookingFromCalendar" class="btn-blue" style="width: 100%; height: 44px;">
+          <span>Reservar Habitación (Proceder al Checkout)</span>
         </button>
       </div>
 
       <!-- Sección Exclusiva de Administración: Bloquear / Habilitar Fechas -->
-      <div id="adminDateControls"
-        style="display: none; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 1rem; margin-top: 0.5rem;">
-        <div style="font-size: 0.8rem; font-weight: 700; color: #f59e0b; margin-bottom: 0.5rem;">
-          ⚙️ GESTIÓN ADMINISTRATIVA DE FECHAS (HOTEL_ADMIN)
+      <div id="adminDateControls" class="cal-admin-panel" style="display: none;">
+        <div class="editorial-eyebrow-label" style="margin-bottom: 0.35rem; color: var(--editorial-gold);">
+          GESTIÓN ADMINISTRATIVA DE FECHAS (HOTEL_ADMIN)
         </div>
-        <p style="font-size: 0.72rem; color: var(--text-dim); margin-bottom: 0.75rem;">
-          Puedes inhabilitar fechas por remodelación/mantenimiento o rehabilitarlas para venta a los clientes.
+        <p style="font-size: 0.75rem; color: var(--editorial-text-muted); margin-bottom: 0.75rem;">
+          Puedes inhabilitar fechas por mantenimiento o rehabilitarlas para venta a los huéspedes.
         </p>
 
         <form id="adminBlockForm" style="display: flex; flex-direction: column; gap: 0.65rem;">
@@ -1499,28 +1644,24 @@
           <div style="display: flex; gap: 0.5rem;">
             <div style="flex: 1;">
               <label class="input-label" for="adminBlockStart" style="font-size: 0.72rem;">Fecha Desde</label>
-              <input type="date" id="adminBlockStart" class="input-pill" style="padding: 6px 10px; font-size: 0.75rem;"
-                required>
+              <input type="date" id="adminBlockStart" class="input-pill" style="padding: 6px 10px; font-size: 0.78rem;" required>
             </div>
             <div style="flex: 1;">
               <label class="input-label" for="adminBlockEnd" style="font-size: 0.72rem;">Fecha Hasta</label>
-              <input type="date" id="adminBlockEnd" class="input-pill" style="padding: 6px 10px; font-size: 0.75rem;"
-                required>
+              <input type="date" id="adminBlockEnd" class="input-pill" style="padding: 6px 10px; font-size: 0.78rem;" required>
             </div>
           </div>
           <div>
             <label class="input-label" for="adminBlockReason" style="font-size: 0.72rem;">Motivo del Bloqueo</label>
             <input type="text" id="adminBlockReason" class="input-pill"
-              placeholder="Mantenimiento preventivo / Remodelación" style="padding: 6px 10px; font-size: 0.75rem;">
+              placeholder="Mantenimiento preventivo / Remodelación" style="padding: 6px 10px; font-size: 0.78rem;">
           </div>
           <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
-            <button type="button" class="btn-hotel-secondary" id="btnAdminUnblock"
-              style="flex: 1; padding: 8px; font-size: 0.75rem; border-color: #34d399; color: #34d399;">
-              ✅ Habilitar Fechas (Abrir Venta)
+            <button type="button" class="btn-hotel-secondary" id="btnAdminUnblock" style="flex: 1; justify-content: center;">
+              <span>Habilitar Fechas (Abrir Venta)</span>
             </button>
-            <button type="submit" class="btn-blue" id="btnAdminBlock"
-              style="flex: 1; padding: 8px; font-size: 0.75rem; background: #dc2626;">
-              🚫 Bloquear Fechas (Cerrar Venta)
+            <button type="submit" class="btn-hotel-secondary danger" id="btnAdminBlock" style="flex: 1; justify-content: center;">
+              <span>Bloquear Fechas (Cerrar Venta)</span>
             </button>
           </div>
         </form>
@@ -1529,12 +1670,12 @@
     </div>
   </div>
 
-  <!-- Contenedor Toast -->
-  <div class="toast-shelf" id="toastShelf"></div>
+  <!-- Contenedor Toast Flotante Editorial -->
+  <div class="toast-shelf" id="toastShelf" aria-live="polite"></div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=6.2"></script>
-  <script src="js/app.js?v=6.2"></script>
+  <script src="js/api.js?v=7.0"></script>
+  <script src="js/app.js?v=7.0"></script>
 </body>
 
 </html>

@@ -189,22 +189,49 @@ document.addEventListener('DOMContentLoaded', () => {
   let activeHold = null; // { holdId, roomId, hotelId, hotelName, roomName, checkIn, checkOut, guestsCount, quote, timerId, remainingSeconds }
   let lastConfirmedBooking = null;
 
+  // Iconos Vectoriales Lineales Minimalistas (Lucide / Phosphor, trazo 1.5px)
+  const SVG_ICONS = {
+    star: '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>',
+    mapPin: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>',
+    paw: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="4" r="2"></circle><circle cx="18" cy="8" r="2"></circle><circle cx="20" cy="16" r="2"></circle><path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"></path></svg>',
+    noPet: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>',
+    compass: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>',
+    edit: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>',
+    trash: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>',
+    calendar: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>',
+    fileText: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>',
+    checkCircle: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
+    alertCircle: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
+    infoCircle: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>',
+    building: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path></svg>',
+    shieldCheck: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>',
+  };
+
+  function renderGoldStars(count = 5) {
+    const n = Math.max(1, Math.min(5, Number(count) || 5));
+    return Array.from({ length: n }, () => SVG_ICONS.star).join('');
+  }
+
   const TAB_METADATA = {
     hotels: {
-      title: 'Catálogo de Hoteles & Destinos',
-      desc: 'Explora nuestras exclusivas propiedades en los destinos más paradisíacos de Colombia.',
+      title: 'Nuestras Sedes & Santuarios',
+      desc: 'Descubre nuestras exclusivas propiedades en los destinos más emblemáticos de Colombia.',
     },
     availability: {
-      title: 'Buscador de Disponibilidad & Cotización en Tiempo Real',
-      desc: 'Consulta tarifas dinámicas, recargos transparentes y bloqueo garantizado de habitaciones.',
+      title: 'Disponibilidad & Cotización en Tiempo Real',
+      desc: 'Consulta tarifas dinámicas, desglose transparente y bloqueo garantizado de habitaciones.',
     },
     rooms: {
       title: 'Nuestras Habitaciones & Suites',
-      desc: 'Conoce los detalles, capacidades, amenidades y confort de cada categoría de habitación.',
+      desc: 'Conoce la arquitectura interior, capacidades, vistas y amenidades de cada categoría.',
     },
     'my-bookings': {
       title: 'Mis Reservas & Vouchers Oficiales',
       desc: 'Gestiona tus estancias, descarga comprobantes oficiales en PDF con código QR y consulta estados.',
+    },
+    'admin-dashboard': {
+      title: 'Panel Ejecutivo & Aprobaciones',
+      desc: 'Supervisión de ocupación, ingresos confirmados y validación de reservas pendientes.',
     },
     reception: {
       title: 'Portal de Recepción & Fast Check-In',
@@ -212,15 +239,15 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     usuarios: {
       title: 'Gestión de Cuentas & Personal',
-      desc: 'Creación de cuentas de personal, activación/desactivación de accesos y administración de huéspedes.',
+      desc: 'Creación de cuentas de administración, supervisión de accesos y directorio de huéspedes.',
     },
     pagos: {
       title: 'Conciliación de Pagos & Reembolsos',
       desc: 'Visión financiera global de las transacciones y gestión oficial de reembolsos.',
     },
     notifications: {
-      title: 'Worker de Notificaciones & Vouchers PDF',
-      desc: 'Monitoreo de eventos en RabbitMQ, emisión de comprobantes con código QR y entrega de correos transaccionales.',
+      title: 'Centro de Notificaciones & Vouchers PDF',
+      desc: 'Monitoreo de eventos en RabbitMQ, emisión de comprobantes con código QR y entrega de correos.',
     },
   };
 
@@ -237,7 +264,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // --------------------------------------------------------------------------
   function getCOPPrice(amount) {
     const val = Number(amount) || 0;
-    // Si el valor proviene de base de datos en escala USD (< 1000), se proyecta a COP (x 4.000)
     return val < 1000 ? Math.round(val * 4000) : Math.round(val);
   }
 
@@ -251,27 +277,31 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --------------------------------------------------------------------------
-  // SISTEMA DE NOTIFICACIONES TOAST ELEGANTE
+  // SISTEMA DE NOTIFICACIONES TOAST EDITORIAL (CREMA / VERDE ESMERALDA)
   // --------------------------------------------------------------------------
   function showToast(message, type = 'info') {
     if (!toastShelf) return;
     const toast = document.createElement('div');
     toast.className = `toast-msg ${type}`;
-    
-    let icon = 'ℹ️';
-    if (type === 'success') icon = '✅';
-    if (type === 'error') icon = '🛑';
-    if (type === 'warning') icon = '⚠️';
 
-    toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
-    toastShelf.appendChild(toast);
+    let iconSvg = SVG_ICONS.infoCircle;
+    if (type === 'success') iconSvg = SVG_ICONS.checkCircle;
+    if (type === 'error' || type === 'warning') iconSvg = SVG_ICONS.alertCircle;
+
+    const cleanMessage = String(message || '').replace(/^[✅🛑⚠️ℹ️🎉📅🔒🔓🗑️⏳💬✨🏨]+\s*/g, '');
+    toast.innerHTML = `<span class="toast-icon">${iconSvg}</span><span>${cleanMessage}</span>`;
+    if (typeof toastShelf.appendChild === 'function') {
+      toastShelf.appendChild(toast);
+    }
 
     setTimeout(() => {
       toast.style.opacity = '0';
-      toast.style.transform = 'translateY(12px)';
-      toast.style.transition = 'all 0.3s ease';
-      setTimeout(() => toast.remove(), 300);
-    }, 4500);
+      toast.style.transform = 'translateY(10px)';
+      toast.style.transition = 'all 0.3s cubic-bezier(0.22, 1, 0.36, 1)';
+      setTimeout(() => {
+        if (typeof toast.remove === 'function') toast.remove();
+      }, 300);
+    }, 4200);
   }
 
   // --------------------------------------------------------------------------
@@ -285,27 +315,33 @@ document.addEventListener('DOMContentLoaded', () => {
       authCanvas.style.display = 'none';
       dashboardCanvas.classList.add('active');
 
-      const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Huésped Exclusivo';
+      const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Carlos Valderrama';
       if (dashUserName) dashUserName.textContent = fullName;
-      if (dashUserEmail) dashUserEmail.textContent = user.email || 'correo@hotel.com';
+      if (dashUserEmail) dashUserEmail.textContent = user.email || 'guest@hotel.com';
 
       const role = user.role || 'GUEST';
       const isAdmin = role === 'HOTEL_ADMIN';
 
       if (dashRoleBadge) {
         if (isAdmin) {
-          dashRoleBadge.textContent = 'ADMINISTRADOR GENERAL';
+          dashRoleBadge.textContent = 'Administrador General';
           dashRoleBadge.className = 'dash-badge admin';
           dashRoleBadge.title = 'Rol HOTEL_ADMIN: Gestión operativa, comercial, de tarifas, control de inventario y supervisión general';
         } else {
-          dashRoleBadge.textContent = 'HUÉSPED / VIAJERO';
+          dashRoleBadge.textContent = 'Huésped / Viajero';
           dashRoleBadge.className = 'dash-badge guest';
           dashRoleBadge.title = 'Rol GUEST: Búsqueda avanzada, mapas, reservas, cotizaciones y gestión de estancias';
         }
       }
 
       if (dashAvatar) {
-        dashAvatar.textContent = isAdmin ? '👑' : '🌴';
+        const initials = fullName
+          .split(' ')
+          .filter(Boolean)
+          .slice(0, 2)
+          .map(part => part[0].toUpperCase())
+          .join('');
+        dashAvatar.textContent = initials || (isAdmin ? 'AD' : 'HV');
       }
 
       // Ocultar opciones de cliente al Administrador (Admin no realiza reservas)
@@ -313,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
         el.style.display = isAdmin ? 'none' : '';
       });
 
-      // Panel exclusivo del Administrador (Check-In/Out, Cuentas, Pagos)
+      // Panel exclusivo del Administrador (Panel & Métricas, Check-In/Out, Cuentas, Pagos)
       if (adminSidebarGroup) {
         adminSidebarGroup.style.display = isAdmin ? 'block' : 'none';
       }
@@ -325,8 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
         staffNotifTriggers.style.display = isAdmin ? 'block' : 'none';
       }
 
-
-      // 2. Registro de Hoteles y Sembrado Demo: Exclusivo de Administradores.
+      // Registro de Hoteles y Sembrado Demo: Exclusivo de Administradores.
       if (openCreateHotelBtn) {
         openCreateHotelBtn.style.display = isAdmin ? 'inline-flex' : 'none';
       }
@@ -334,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (btnSeedHotels) {
         btnSeedHotels.style.display = isAdmin ? 'inline-flex' : 'none';
       }
-      // 3. Registro de Habitaciones y Sembrado Demo: Exclusivo de Administradores.
+      // Registro de Habitaciones y Sembrado Demo: Exclusivo de Administradores.
       if (openCreateRoomBtn) {
         openCreateRoomBtn.style.display = isAdmin ? 'inline-flex' : 'none';
       }
@@ -358,15 +393,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const role = user ? (user.role || 'GUEST') : 'GUEST';
     const isStaff = role === 'HOTEL_ADMIN';
 
-    // Protección de ruta: Solo personal del hotel puede ver Recepción
     if (tabId === 'reception' && !isStaff) {
-      showToast('Acceso Denegado: El Portal de Recepción es exclusivo para Recepcionistas y Administradores', 'warning');
+      showToast('Acceso restringido: El Portal de Recepción es exclusivo para Administradores', 'warning');
       tabId = 'hotels';
     }
 
-    // Protección de ruta: Solo el Administrador gestiona cuentas y pagos
-    if ((tabId === 'usuarios' || tabId === 'pagos') && role !== 'HOTEL_ADMIN') {
-      showToast('Acceso Denegado: esta sección es exclusiva del Administrador General', 'warning');
+    if ((tabId === 'usuarios' || tabId === 'pagos' || tabId === 'admin-dashboard') && role !== 'HOTEL_ADMIN') {
+      showToast('Acceso restringido: esta sección es exclusiva del Administrador General', 'warning');
       tabId = 'hotels';
     }
 
@@ -391,6 +424,8 @@ document.addEventListener('DOMContentLoaded', () => {
       loadRoomHotels().then(loadRooms);
     } else if (tabId === 'my-bookings') {
       loadMyBookings();
+    } else if (tabId === 'admin-dashboard') {
+      loadAdminDashboard();
     } else if (tabId === 'reception') {
       loadReceptionBookings();
     } else if (tabId === 'usuarios') {
@@ -718,7 +753,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (hotelsGrid) {
         hotelsGrid.innerHTML = `
           <div class="empty-hotels-box">
-            <span style="color: #f87171;">Error al consultar catálogo: ${err.message}</span>
+            <span style="color: #B42318;">Error al consultar catálogo: ${err.message}</span>
           </div>
         `;
       }
@@ -731,8 +766,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (hotels.length === 0) {
       hotelsGrid.innerHTML = `
         <div class="empty-hotels-box">
-          <span>No se encontraron hoteles con los criterios seleccionados.</span>
-          <span style="font-size: 0.75rem; margin-top: 0.5rem;">Intenta limpiar los filtros de búsqueda.</span>
+          <span>No se encontraron propiedades con los criterios seleccionados.</span>
+          <span style="font-size: 0.78rem; color: var(--editorial-text-subtle);">Intenta limpiar o ajustar los filtros de búsqueda.</span>
         </div>
       `;
       return;
@@ -741,45 +776,50 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentUser = api.getCurrentUser();
     const isAdmin = currentUser && currentUser.role === 'HOTEL_ADMIN';
 
-    hotelsGrid.innerHTML = hotels.map(h => {
-      const starsStr = '⭐'.repeat(h.stars || 5);
+    hotelsGrid.innerHTML = hotels.map((h, idx) => {
+      const starsHtml = renderGoldStars(h.stars || 5);
       const isPet = h.petFriendly ?? h.isPetFriendly;
-      const petStr = isPet ? '🐾 Pet-friendly' : '🚫 No mascotas';
+      const petHtml = isPet
+        ? `<div class="hotel-policy-pill pet-yes">${SVG_ICONS.paw}<span>Pet-friendly</span></div>`
+        : `<div class="hotel-policy-pill">${SVG_ICONS.noPet}<span>Sin mascotas</span></div>`;
+
       const amenitiesStr = Array.isArray(h.amenities)
-        ? h.amenities.slice(0, 3).map(a => `<span class="hotel-amenity-tag">${a}</span>`).join('')
+        ? h.amenities.slice(0, 4).map(a => `<span class="hotel-amenity-tag">${a}</span>`).join('')
         : '';
       const hotelImg = extractHotelImg(h);
 
       const adminButtons = isAdmin ? `
         <div class="hotel-admin-actions">
-          <button class="btn-card-edit" data-id="${h.id}" title="Editar Sede">✏️</button>
-          <button class="btn-card-delete" data-id="${h.id}" data-name="${h.name}" title="Desactivar Sede">🗑️</button>
+          <button class="btn-card-edit" data-id="${h.id}" title="Editar Sede">${SVG_ICONS.edit}</button>
+          <button class="btn-card-delete" data-id="${h.id}" data-name="${h.name}" title="Desactivar Sede">${SVG_ICONS.trash}</button>
         </div>
       ` : '';
 
       return `
-        <div class="hotel-card" data-id="${h.id}">
+        <article class="hotel-card" data-id="${h.id}" style="--card-idx: ${idx};">
           <div class="hotel-card-media">
             <img src="${hotelImg}" alt="${h.name}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80';">
-            <div class="badge-stars">${starsStr}</div>
             <div class="badge-city">${h.city || 'Colombia'}</div>
+            <div class="badge-stars" aria-label="${h.stars || 5} estrellas">${starsHtml}</div>
             ${adminButtons}
           </div>
           <div class="hotel-card-body">
             <h3 class="hotel-card-title">${h.name}</h3>
-            <div class="hotel-card-location">📍 ${h.address}, ${h.city}</div>
-            <p class="hotel-card-desc">${h.description ? h.description.substring(0, 115) + '...' : ''}</p>
+            <div class="hotel-card-location">${SVG_ICONS.mapPin}<span>${h.address}, ${h.city}</span></div>
+            <p class="hotel-card-desc">${h.description || ''}</p>
             <div class="hotel-amenities-tags">${amenitiesStr}</div>
           </div>
           <div class="hotel-card-footer">
-            <div class="hotel-policy-pill">${petStr}</div>
-            <div style="display: flex; gap: 0.4rem; align-items: center;">
-              <a href="https://www.google.com/maps/dir/?api=1&destination=${h.latitude || 10.4042},${h.longitude || -75.5562}" target="_blank" rel="noopener" class="btn-hotel-secondary" style="padding: 7px 10px; font-size: 0.78rem;" title="Calcular ruta en Google Maps">🗺️</a>
-              <button class="btn-hotel-detail" data-id="${h.id}" style="padding: 7px 12px; font-size: 0.78rem;">Ver Ficha</button>
-              <button class="btn-blue btn-quick-book" data-id="${h.id}" data-name="${h.name}" style="padding: 7px 12px; font-size: 0.78rem;">Reservar</button>
+            ${petHtml}
+            <div class="hotel-card-actions">
+              <a href="https://www.google.com/maps/dir/?api=1&destination=${h.latitude || 10.4042},${h.longitude || -75.5562}" target="_blank" rel="noopener" class="btn-hotel-secondary" style="height: 38px; padding: 0 0.7rem;" title="Calcular ruta en Google Maps">
+                ${SVG_ICONS.compass}
+              </a>
+              <button type="button" class="btn-hotel-detail" data-id="${h.id}">Ver Ficha</button>
+              <button type="button" class="btn-blue btn-quick-book" data-id="${h.id}" data-name="${h.name}">Reservar</button>
             </div>
           </div>
-        </div>
+        </article>
       `;
     }).join('');
 
@@ -834,22 +874,22 @@ document.addEventListener('DOMContentLoaded', () => {
       const isPet = hotel.petFriendly ?? hotel.isPetFriendly;
 
       document.getElementById('detailTitle').textContent = hotel.name;
-      document.getElementById('detailAddress').textContent = `📍 ${hotel.address}, ${hotel.city}`;
+      document.getElementById('detailAddress').innerHTML = `<span style="display:inline-flex; align-items:center; gap:0.35rem;">${SVG_ICONS.mapPin}<span>${hotel.address}, ${hotel.city}</span></span>`;
       document.getElementById('detailDescription').textContent = hotel.description;
-      document.getElementById('detailStars').textContent = '⭐'.repeat(hotel.stars || 5);
+      document.getElementById('detailStars').innerHTML = renderGoldStars(hotel.stars || 5);
       document.getElementById('detailCity').textContent = hotel.city;
       document.getElementById('detailImg').src = hotelImg;
       document.getElementById('detailCheckIn').textContent = hotel.checkInTime || '15:00';
       document.getElementById('detailCheckOut').textContent = hotel.checkOutTime || '11:00';
-      document.getElementById('detailPetFriendly').textContent = isPet ? '🐾 Sí, hotel pet-friendly' : '🚫 No se admiten mascotas';
-      document.getElementById('detailPetFriendly').style.color = isPet ? '#34d399' : '#f87171';
-      document.getElementById('detailContact').textContent = `${hotel.phone || hotel.contactPhone || 'N/A'} | ${hotel.email || hotel.contactEmail || 'N/A'}`;
+      document.getElementById('detailPetFriendly').textContent = isPet ? 'Sí, propiedad pet-friendly' : 'No se admiten mascotas';
+      document.getElementById('detailPetFriendly').style.color = isPet ? 'var(--editorial-emerald)' : 'var(--editorial-danger)';
+      document.getElementById('detailContact').textContent = `${hotel.phone || hotel.contactPhone || 'N/A'} · ${hotel.email || hotel.contactEmail || 'N/A'}`;
       document.getElementById('detailCancellation').textContent = hotel.cancellationPolicy || 'Cancelación gratuita hasta 48 horas antes de la llegada.';
 
       const amenitiesBox = document.getElementById('detailAmenities');
       amenitiesBox.innerHTML = Array.isArray(hotel.amenities)
         ? hotel.amenities.map(a => `<span class="hotel-amenity-tag">${a}</span>`).join('')
-        : '<span style="color: var(--text-dim);">Sin amenidades registradas</span>';
+        : '<span style="color: var(--editorial-text-subtle);">Sin amenidades registradas</span>';
 
       // Coordenadas y Mapa Interactivo de Google Maps
       const lat = hotel.latitude || 10.4042;
@@ -870,44 +910,42 @@ document.addEventListener('DOMContentLoaded', () => {
         let pois = [];
         if (city.includes('cartagena')) {
           pois = [
-            '✈️ Aeropuerto Int. Rafael Núñez (15 min)',
-            '🏰 Ciudad Amurallada & Torre del Reloj (10 min)',
-            '🏖️ Playa Bocagrande (Acceso directo)',
-            '🍽️ Restaurante Carmen & Candé (12 min)'
+            'Aeropuerto Int. Rafael Núñez (15 min)',
+            'Ciudad Amurallada & Torre del Reloj (10 min)',
+            'Playa Bocagrande (Acceso directo)',
+            'Restaurantes de Autor Carmen & Candé (12 min)'
           ];
         } else if (city.includes('medell')) {
           pois = [
-            '✈️ Aeropuerto Olaya Herrera (12 min)',
-            '🌳 Parque Lleras & Provenza (5 min a pie)',
-            '🎨 Plaza Botero & Museo de Antioquia (20 min)',
-            '🍸 Rooftop Bar Panorámico (En el hotel)'
+            'Aeropuerto Olaya Herrera (12 min)',
+            'Parque Lleras & Provenza (5 min a pie)',
+            'Plaza Botero & Museo de Antioquia (20 min)',
+            'Rooftop Bar Panorámico (En la propiedad)'
           ];
         } else if (city.includes('santa marta')) {
           pois = [
-            '🌿 Parque Nacional Tayrona (40 min)',
-            '⛵ Marina Internacional de Santa Marta (10 min)',
-            '🏖️ Playa El Rodadero (15 min)',
-            '✈️ Aeropuerto Simón Bolívar (25 min)'
+            'Parque Nacional Tayrona (40 min)',
+            'Marina Internacional de Santa Marta (10 min)',
+            'Playa El Rodadero (15 min)',
+            'Aeropuerto Simón Bolívar (25 min)'
           ];
         } else if (city.includes('san andr')) {
           pois = [
-            '🏝️ Cayo Johnny Cay & Acuario (15 min en lancha)',
-            '🏖️ Playa Spratt Bight (5 min)',
-            '🌊 El Hoyo Soplador (20 min)',
-            '✈️ Aeropuerto Gustavo Rojas Pinilla (8 min)'
+            'Cayo Johnny Cay & Acuario (15 min en lancha)',
+            'Playa Spratt Bight (5 min)',
+            'El Hoyo Soplador (20 min)',
+            'Aeropuerto Gustavo Rojas Pinilla (8 min)'
           ];
         } else {
           pois = [
-            '✈️ Aeropuerto Principal (20 min)',
-            '🏛️ Centro Histórico & Comercial (10 min)',
-            '🍽️ Distrito Gastronómico Recomendado (5 min)'
+            'Aeropuerto Internacional (20 min)',
+            'Centro Histórico & Financiero (10 min)',
+            'Distrito Gastronómico de Autor (5 min)'
           ];
         }
 
         poisBox.innerHTML = pois.map(p => `
-          <span style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); color: #7dd3fc; padding: 3px 8px; border-radius: 6px;">
-            ${p}
-          </span>
+          <span class="hotel-amenity-tag">${p}</span>
         `).join('');
       }
 
@@ -942,7 +980,7 @@ document.addEventListener('DOMContentLoaded', () => {
     hotelUpsertForm.reset();
     document.getElementById('formHotelId').value = '';
     const chkActive = document.getElementById('formHotelIsActive'); if (chkActive) chkActive.checked = true;
-    hotelFormTitle.textContent = '🏢 Registrar Nueva Sede Hotelera';
+    hotelFormTitle.textContent = 'Registrar Nueva Sede Hotelera';
     hotelFormModal.style.display = 'flex';
   });
 
@@ -981,7 +1019,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('formHotelPetFriendly').checked = !!isPet;
       const chkActive = document.getElementById('formHotelIsActive'); if (chkActive) chkActive.checked = hotel.isActive !== false;
 
-      hotelFormTitle.textContent = `✏️ Editar Sede: ${hotel.name}`;
+      hotelFormTitle.textContent = `Editar Sede: ${hotel.name}`;
       hotelFormModal.style.display = 'flex';
     } catch (err) {
       showToast(`Error preparando formulario: ${err.message}`, 'error');
@@ -1155,7 +1193,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (availRoomsGrid) {
         availRoomsGrid.innerHTML = `
           <div class="empty-hotels-box">
-            <span style="color: #f87171;">Error al consultar disponibilidad: ${err.message}</span>
+            <span style="color: #B42318;">Error al consultar disponibilidad: ${err.message}</span>
           </div>
         `;
       }
@@ -1180,13 +1218,13 @@ document.addEventListener('DOMContentLoaded', () => {
       availRoomsGrid.innerHTML = `
         <div class="empty-hotels-box">
           <span>No encontramos habitaciones disponibles para las fechas o cantidad de huéspedes seleccionados.</span>
-          <span style="font-size: 0.78rem; margin-top: 0.4rem; color: var(--text-dim);">Prueba con otras fechas o reduce el número de personas.</span>
+          <span style="font-size: 0.78rem; margin-top: 0.3rem; color: var(--editorial-text-subtle);">Prueba con otras fechas o reduce el número de personas.</span>
         </div>
       `;
       return;
     }
 
-    availRoomsGrid.innerHTML = rooms.map(r => {
+    availRoomsGrid.innerHTML = rooms.map((r, idx) => {
       const img = (Array.isArray(r.images) && r.images[0]) || 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80';
       const typeLabel = ROOM_TYPE_NAMES[r.roomType] || r.roomType;
       const quote = r.quote || {};
@@ -1196,42 +1234,42 @@ document.addEventListener('DOMContentLoaded', () => {
       const totalAmount = getCOPPrice(quote.totalAmount || (baseRate * nights));
 
       const weekendNotice = surcharges > 0
-        ? `<div style="font-size: 0.72rem; color: #fbbf24; margin-top: 2px;">⚡ Incluye +${formatCOP(surcharges)} (Recargo fin de semana)</div>`
+        ? `<div style="font-size: 0.74rem; color: var(--editorial-gold); margin-top: 3px;">Incluye +${formatCOP(surcharges)} (Tarifa fin de semana)</div>`
         : '';
 
-      const amenitiesHtml = (r.amenities || []).slice(0, 3).map(a => `<span class="hotel-amenity-tag">${a}</span>`).join('');
+      const amenitiesHtml = (r.amenities || []).slice(0, 4).map(a => `<span class="hotel-amenity-tag">${a}</span>`).join('');
 
       return `
-        <div class="hotel-card" data-room-id="${r.id}">
+        <article class="hotel-card" data-room-id="${r.id}" style="--card-idx: ${idx};">
           <div class="hotel-card-media">
             <img src="${img}" alt="${r.name}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80';">
-            <div class="badge-stars">${typeLabel}</div>
             <div class="badge-city">#${r.roomNumber} · Vista ${r.viewType || 'Panorámica'}</div>
+            <div class="badge-stars">${typeLabel}</div>
           </div>
           <div class="hotel-card-body">
             <h3 class="hotel-card-title">${r.name}</h3>
-            <div class="hotel-card-location">🏨 ${r.hotelName || 'Sede Principal'}</div>
-            <div style="font-size: 0.8rem; color: var(--text-muted); margin: 0.5rem 0;">
-              👥 Hasta ${r.maxAdults} adultos · 🛏️ ${r.bedType || 'Cama King'} · 📐 ${r.sizeSqm || 35} m²
+            <div class="hotel-card-location">${SVG_ICONS.building}<span>${r.hotelName || 'Sede Principal'}</span></div>
+            <div style="font-size: 0.8rem; color: var(--editorial-text-muted); margin: 0.25rem 0;">
+              Hasta ${r.maxAdults} adultos · ${r.bedType || 'Cama King'} · ${r.sizeSqm || 35} m²
             </div>
             <div class="hotel-amenities-tags">${amenitiesHtml}</div>
 
             <!-- Desglose de Cotización Transparente -->
-            <div class="quote-breakdown-card" style="margin-top: 0.85rem; padding: 0.75rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px;">
-              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim);">
+            <div style="margin-top: 0.75rem; padding: 0.85rem; background: var(--editorial-bg); border: 1px solid var(--editorial-border); border-radius: 10px;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.76rem; color: var(--editorial-text-muted);">
                 <span>Tarifa base (${nights} ${nights === 1 ? 'noche' : 'noches'}):</span>
                 <span>${formatCOP(baseRate * nights)}</span>
               </div>
               ${weekendNotice}
-              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.4rem; padding-top: 0.4rem; border-top: 1px dashed rgba(255,255,255,0.1);">
-                <span style="font-size: 0.78rem; font-weight: 700; color: #fff;">Total Estancia:</span>
-                <span style="font-size: 1.15rem; font-weight: 900; color: #34d399;">${formatCOP(totalAmount)}</span>
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.45rem; padding-top: 0.45rem; border-top: 1px dashed var(--editorial-border-hover);">
+                <span style="font-size: 0.8rem; font-weight: 600; color: var(--editorial-text-main);">Total Estancia:</span>
+                <span style="font-family: var(--editorial-font-serif); font-size: 1.2rem; font-weight: 600; color: var(--editorial-emerald);">${formatCOP(totalAmount)}</span>
               </div>
             </div>
           </div>
           <div class="hotel-card-footer">
-            <div style="font-size: 0.72rem; color: #38bdf8;">✨ Bloqueo garantizado 10 min</div>
-            <button class="btn-blue btn-start-booking"
+            <div class="hotel-policy-pill pet-yes">${SVG_ICONS.shieldCheck}<span>Bloqueo garantizado 15 min</span></div>
+            <button type="button" class="btn-blue btn-start-booking"
               data-room-id="${r.id}"
               data-room-name="${r.name}"
               data-hotel-id="${r.hotelId || searchParams.hotelId}"
@@ -1240,12 +1278,11 @@ document.addEventListener('DOMContentLoaded', () => {
               data-nights="${nights}"
               data-checkin="${searchParams.checkIn}"
               data-checkout="${searchParams.checkOut}"
-              data-guests="${searchParams.guests}"
-              style="padding: 8px 16px; font-size: 0.82rem;">
-              <span>RESERVAR AHORA</span>
+              data-guests="${searchParams.guests}">
+              <span>Reservar</span>
             </button>
           </div>
-        </div>
+        </article>
       `;
     }).join('');
 
@@ -1563,7 +1600,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const waMessage = `¡Hola! Acabo de hacer la pre-reserva de la habitación *${activeHold.roomName || 'Habitación'}* en *${activeHold.hotelName || hotel.name || 'su hotel'}*.
 
 📋 *Código de Reserva:* ${booking.bookingCode}
-📅 *Estancia:* ${activeHold.checkIn} al ${activeHold.checkOut} (${activeHold.nights} noches)
+*Estancia:* ${activeHold.checkIn} al ${activeHold.checkOut} (${activeHold.nights} noches)
 👥 *Huéspedes:* ${activeHold.guestsCount} persona(s)
 💵 *Modalidad elegida:* ${percentLabel}
 💰 *Monto a Pagar:* ${formatCOP(amountToPay)}
@@ -1646,18 +1683,18 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       myBookingsList.innerHTML = `
         <div class="empty-hotels-box">
-          <span style="color: #f87171;">Error al consultar reservas: ${err.message}</span>
+          <span style="color: #B42318;">Error al consultar reservas: ${err.message}</span>
         </div>
       `;
     }
   }
 
   const BOOKING_STATUS_MAP = {
-    CONFIRMED: { label: 'Confirmada', color: '#34d399', bg: 'rgba(52, 211, 153, 0.15)' },
-    CHECKED_IN: { label: 'En Estancia (Check-In)', color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.15)' },
-    COMPLETED: { label: 'Finalizada (Check-Out)', color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.15)' },
-    CANCELLED: { label: 'Cancelada', color: '#f87171', bg: 'rgba(248, 113, 113, 0.15)' },
-    PENDING_PAYMENT: { label: 'Pendiente de Pago', color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.15)' },
+    CONFIRMED: { label: 'Confirmada', color: '#13332E', bg: 'rgba(19, 51, 46, 0.09)' },
+    CHECKED_IN: { label: 'En Estancia (Check-In)', color: '#1F6E58', bg: 'rgba(31, 110, 88, 0.12)' },
+    COMPLETED: { label: 'Finalizada (Check-Out)', color: '#66635B', bg: '#F2EFE9' },
+    CANCELLED: { label: 'Cancelada', color: '#9E3B33', bg: 'rgba(158, 59, 51, 0.1)' },
+    PENDING_PAYMENT: { label: 'Pendiente de Aprobación', color: '#8C6D32', bg: 'rgba(166, 138, 86, 0.16)' },
   };
 
   function renderMyBookings(bookings = []) {
@@ -1667,8 +1704,8 @@ document.addEventListener('DOMContentLoaded', () => {
       myBookingsList.innerHTML = `
         <div class="empty-hotels-box">
           <span>Aún no tienes estancias reservadas.</span>
-          <span style="font-size: 0.8rem; margin-top: 0.5rem; color: var(--text-dim);">
-            Utiliza la pestaña "Buscar Disponibilidad" para elegir tus próximas vacaciones.
+          <span style="font-size: 0.8rem; margin-top: 0.35rem; color: var(--editorial-text-subtle);">
+            Utiliza la sección "Buscar Disponibilidad" para elegir tu próximo destino.
           </span>
         </div>
       `;
@@ -1676,57 +1713,57 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     myBookingsList.innerHTML = bookings.map(b => {
-      const st = BOOKING_STATUS_MAP[b.status] || { label: b.status, color: '#fff', bg: 'rgba(255,255,255,0.1)' };
+      const st = BOOKING_STATUS_MAP[b.status] || { label: b.status, color: '#1C1B18', bg: '#F2EFE9' };
       const canCancel = b.status === 'CONFIRMED' || b.status === 'PENDING_PAYMENT';
 
       return `
-        <div class="booking-card" data-booking-id="${b.id}" style="background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.85rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 0.75rem;">
+        <div class="booking-card" data-booking-id="${b.id}">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; border-bottom: 1px solid var(--editorial-border); padding-bottom: 0.85rem;">
             <div style="display: flex; align-items: center; gap: 0.75rem;">
-              <span style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; color: #38bdf8; letter-spacing: 1px;">
+              <span style="font-family: var(--editorial-font-serif); font-size: 1.2rem; font-weight: 600; color: var(--editorial-emerald); letter-spacing: 0.04em;">
                 ${b.bookingCode}
               </span>
-              <span style="font-size: 0.75rem; padding: 3px 10px; border-radius: 999px; background: ${st.bg}; color: ${st.color}; font-weight: 700; border: 1px solid ${st.color}44;">
+              <span style="font-size: 0.73rem; padding: 3px 11px; border-radius: 999px; background: ${st.bg}; color: ${st.color}; font-weight: 600; border: 1px solid ${st.color}33;">
                 ${st.label}
               </span>
             </div>
-            <div style="font-size: 0.85rem; color: var(--text-dim);">
-              Reservado el: <span style="color: #cbd5e1;">${new Date(b.createdAt).toLocaleDateString()}</span>
+            <div style="font-size: 0.82rem; color: var(--editorial-text-subtle);">
+              Reservado el: <span style="color: var(--editorial-text-main); font-weight: 500;">${new Date(b.createdAt).toLocaleDateString()}</span>
             </div>
           </div>
 
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; font-size: 0.85rem;">
             <div>
-              <div style="color: var(--text-dim); font-size: 0.75rem;">HOTEL & DESTINO</div>
-              <div style="font-weight: 700; color: #fff; margin-top: 2px;">${b.hotelName}</div>
-              <div style="color: #38bdf8; font-size: 0.8rem;">${b.roomName}</div>
+              <div class="editorial-eyebrow-label" style="font-size: 0.68rem;">PROPIEDAD &amp; SUITE</div>
+              <div style="font-family: var(--editorial-font-serif); font-weight: 600; font-size: 1.02rem; color: var(--editorial-text-main); margin-top: 3px;">${b.hotelName}</div>
+              <div style="color: var(--editorial-gold); font-size: 0.82rem; font-weight: 500;">${b.roomName}</div>
             </div>
 
             <div>
-              <div style="color: var(--text-dim); font-size: 0.75rem;">FECHAS DE ESTANCIA</div>
-              <div style="color: #fff; margin-top: 2px;">
-                📅 <strong>${b.checkIn}</strong> al <strong>${b.checkOut}</strong>
+              <div class="editorial-eyebrow-label" style="font-size: 0.68rem;">FECHAS DE ESTANCIA</div>
+              <div style="color: var(--editorial-text-main); margin-top: 3px; display: inline-flex; align-items: center; gap: 0.35rem;">
+                ${SVG_ICONS.calendar}
+                <span><strong>${b.checkIn}</strong> al <strong>${b.checkOut}</strong></span>
               </div>
-              <div style="color: var(--text-dim); font-size: 0.78rem;">${b.nights} noche(s) · ${b.guestsCount} huésped(es)</div>
+              <div style="color: var(--editorial-text-muted); font-size: 0.78rem; margin-top: 2px;">${b.nights} noche(s) · ${b.guestsCount} huésped(es)</div>
             </div>
 
             <div>
-              <div style="color: var(--text-dim); font-size: 0.75rem;">TOTAL PAGADO / A PAGAR</div>
-              <div style="font-size: 1.15rem; font-weight: 800; color: #34d399; margin-top: 2px;">
+              <div class="editorial-eyebrow-label" style="font-size: 0.68rem;">VALOR ESTANCIA</div>
+              <div style="font-family: var(--editorial-font-serif); font-size: 1.2rem; font-weight: 600; color: var(--editorial-emerald); margin-top: 3px;">
                 ${formatCOP(b.totalAmount)}
               </div>
             </div>
           </div>
 
           ${b.status === 'PENDING_PAYMENT' ? `
-            <div style="background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.35); border-radius: 8px; padding: 0.6rem 0.85rem; font-size: 0.78rem; color: #fde68a; display: flex; align-items: center; gap: 0.5rem;">
-              <span style="font-size: 1.1rem;">⏳</span>
-              <span><strong>En Revisión Administrativa:</strong> Tu comprobante de transferencia bancaria está siendo validado por el Administrador. Tus fechas se encuentran protegidas en el inventario.</span>
+            <div style="background: var(--editorial-pill-sand); border: 1px solid rgba(166, 138, 86, 0.4); border-radius: 8px; padding: 0.7rem 0.95rem; font-size: 0.8rem; color: var(--editorial-text-main);">
+              <strong>En Revisión Administrativa:</strong> Tu pago directo o transferencia está siendo verificado por el Administrador. Tus fechas se encuentran protegidas en el inventario.
             </div>
           ` : ''}
 
-          <div style="display: flex; justify-content: flex-end; gap: 0.65rem; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.75rem; flex-wrap: wrap;">
-            <button class="btn-hotel-secondary btn-download-voucher"
+          <div style="display: flex; justify-content: flex-end; gap: 0.65rem; border-top: 1px solid var(--editorial-border); padding-top: 0.85rem; flex-wrap: wrap;">
+            <button type="button" class="btn-hotel-secondary btn-download-voucher"
               data-code="${b.bookingCode}"
               data-hotel="${b.hotelName}"
               data-room="${b.roomName}"
@@ -1735,16 +1772,14 @@ document.addEventListener('DOMContentLoaded', () => {
               data-nights="${b.nights}"
               data-guests="${b.guestsCount}"
               data-total="${getCOPPrice(b.totalAmount)}"
-              data-currency="${b.currency || 'COP'}"
-              style="padding: 6px 14px; font-size: 0.8rem;">
-              <span>📄</span> Descargar Voucher PDF (QR)
+              data-currency="${b.currency || 'COP'}">
+              ${SVG_ICONS.fileText}
+              <span>Descargar Voucher PDF (QR)</span>
             </button>
 
             ${canCancel ? `
-              <button class="btn-cancel-booking" data-id="${b.id}" data-code="${b.bookingCode}"
-                style="padding: 6px 14px; font-size: 0.8rem; border-radius: 8px; background: rgba(248, 113, 113, 0.15); border: 1px solid rgba(248, 113, 113, 0.35); color: #f87171; cursor: pointer; transition: all 0.2s;"
-                onmouseover="this.style.background='rgba(248,113,113,0.3)'" onmouseout="this.style.background='rgba(248,113,113,0.15)'">
-                <span>❌</span> Cancelar Reserva
+              <button type="button" class="btn-hotel-secondary danger btn-cancel-booking" data-id="${b.id}" data-code="${b.bookingCode}">
+                <span>Cancelar Reserva</span>
               </button>
             ` : ''}
           </div>
@@ -1782,7 +1817,7 @@ document.addEventListener('DOMContentLoaded', () => {
           totalAmount: parseFloat(btn.getAttribute('data-total')),
           currency: btn.getAttribute('data-currency') || 'COP',
           paymentId: `PAY-${Date.now().toString(36).toUpperCase()}`,
-          paymentMethod: 'Tarjeta de Crédito Verificada',
+          paymentMethod: 'Reserva Verificada Travel & Resorts',
         };
         showToast('Generando voucher oficial en PDF con QR...', 'info');
         api.downloadVoucherPdf(voucherData);
@@ -1835,7 +1870,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       receptionTableBody.innerHTML = `
         <tr>
-          <td colspan="7" style="text-align: center; color: #f87171; padding: 2rem;">
+          <td colspan="7" style="text-align: center; color: #B42318; padding: 2rem;">
             Error cargando información de recepción: ${err.message}
           </td>
         </tr>
@@ -1864,32 +1899,32 @@ document.addEventListener('DOMContentLoaded', () => {
       if (b.status === 'CONFIRMED') {
         actionsHtml = `
           <button class="btn-checkin-action" data-id="${b.id}" data-code="${b.bookingCode}"
-            style="padding: 5px 10px; font-size: 0.75rem; border-radius: 6px; background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; color: #38bdf8; cursor: pointer; font-weight: 700;">
-            🛎️ Check-In
+            style="padding: 5px 10px; font-size: 0.75rem; border-radius: 6px; background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; color: var(--editorial-emerald); cursor: pointer; font-weight: 700;">
+            Check-In
           </button>
         `;
       } else if (b.status === 'CHECKED_IN') {
         actionsHtml = `
           <button class="btn-checkout-action" data-id="${b.id}" data-code="${b.bookingCode}"
-            style="padding: 5px 10px; font-size: 0.75rem; border-radius: 6px; background: rgba(251, 191, 36, 0.2); border: 1px solid #fbbf24; color: #fbbf24; cursor: pointer; font-weight: 700;">
-            🚪 Check-Out
+            style="padding: 5px 10px; font-size: 0.75rem; border-radius: 6px; background: rgba(251, 191, 36, 0.2); border: 1px solid #fbbf24; color: var(--editorial-gold); cursor: pointer; font-weight: 700;">
+            Check-Out
           </button>
         `;
       } else if (b.status === 'PENDING_PAYMENT') {
         actionsHtml = `
           <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
             <button class="btn-approve-booking-action" data-code="${b.bookingCode}" data-id="${b.id}"
-              style="padding: 5px 9px; font-size: 0.74rem; border-radius: 6px; background: rgba(52, 211, 153, 0.2); border: 1px solid #34d399; color: #34d399; cursor: pointer; font-weight: 700;" title="Aceptar y autorizar reserva">
-              Aceptar ✅
+              style="padding: 5px 9px; font-size: 0.74rem; border-radius: 6px; background: rgba(52, 211, 153, 0.2); border: 1px solid #34d399; color: var(--editorial-emerald); cursor: pointer; font-weight: 700;" title="Aceptar y autorizar reserva">
+              Aceptar
             </button>
             <button class="btn-reject-booking-action" data-code="${b.bookingCode}" data-id="${b.id}"
-              style="padding: 5px 9px; font-size: 0.74rem; border-radius: 6px; background: rgba(248, 113, 113, 0.2); border: 1px solid #f87171; color: #f87171; cursor: pointer; font-weight: 700;" title="Rechazar y liberar habitación">
-              Rechazar ❌
+              style="padding: 5px 9px; font-size: 0.74rem; border-radius: 6px; background: rgba(248, 113, 113, 0.2); border: 1px solid #f87171; color: #B42318; cursor: pointer; font-weight: 700;" title="Rechazar y liberar habitación">
+              Rechazar
             </button>
             <a href="https://api.whatsapp.com/send?phone=573001234567&text=Hola%20${encodeURIComponent(b.userName || 'huésped')},%20nos%20comunicamos%20del%20hotel%20respecto%20a%20su%20reserva%20${b.bookingCode}"
               target="_blank" rel="noopener"
               style="padding: 5px 9px; font-size: 0.74rem; border-radius: 6px; background: rgba(37, 211, 102, 0.2); border: 1px solid #25D366; color: #4ade80; text-decoration: none; font-weight: 700;" title="Contactar al huésped por WhatsApp">
-              💬 WA
+              WhatsApp
             </a>
           </div>
         `;
@@ -1898,26 +1933,26 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       return `
-        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
-          <td style="padding: 0.75rem; font-weight: 800; color: #38bdf8;">${b.bookingCode}</td>
+        <tr style="border-bottom: 1px solid var(--editorial-border);">
+          <td style="padding: 0.75rem; font-weight: 800; color: var(--editorial-emerald);">${b.bookingCode}</td>
           <td style="padding: 0.75rem;">
-            <div style="font-weight: 600; color: #fff;">${b.userName || 'Huésped'}</div>
+            <div style="font-weight: 600; color: var(--editorial-text-main);">${b.userName || 'Huésped'}</div>
             <div style="font-size: 0.72rem; color: var(--text-dim);">${b.userEmail}</div>
           </td>
           <td style="padding: 0.75rem;">
-            <div style="font-size: 0.85rem; color: #fff;">${b.hotelName}</div>
-            <div style="font-size: 0.75rem; color: #cbd5e1;">${b.roomName}</div>
+            <div style="font-size: 0.85rem; color: var(--editorial-text-main);">${b.hotelName}</div>
+            <div style="font-size: 0.75rem; color: var(--editorial-text-muted);">${b.roomName}</div>
           </td>
-          <td style="padding: 0.75rem; font-size: 0.8rem; color: #cbd5e1;">
-            <div>In: <strong style="color: #34d399;">${b.checkIn}</strong></div>
-            <div>Out: <strong style="color: #f87171;">${b.checkOut}</strong></div>
+          <td style="padding: 0.75rem; font-size: 0.8rem; color: var(--editorial-text-muted);">
+            <div>In: <strong style="color: var(--editorial-emerald);">${b.checkIn}</strong></div>
+            <div>Out: <strong style="color: #B42318;">${b.checkOut}</strong></div>
           </td>
           <td style="padding: 0.75rem;">
             <span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: ${st.bg}; color: ${st.color}; font-weight: 700; border: 1px solid ${st.color}44;">
               ${st.label}
             </span>
           </td>
-          <td style="padding: 0.75rem; font-weight: 700; color: #34d399;">
+          <td style="padding: 0.75rem; font-weight: 700; color: var(--editorial-emerald);">
             ${formatCOP(b.totalAmount)}
           </td>
           <td style="padding: 0.75rem;">
@@ -2078,8 +2113,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (pendingList.length === 0) {
       box.innerHTML = `
-        <div style="text-align: center; padding: 1.5rem; color: #34d399; background: rgba(52, 211, 153, 0.05); border-radius: 8px; border: 1px dashed rgba(52, 211, 153, 0.2);">
-          <span>✅ No hay transferencias bancarias pendientes por aprobar en este momento. Todas las reservas están al día.</span>
+        <div style="text-align: center; padding: 1.5rem; color: var(--editorial-emerald); background: rgba(52, 211, 153, 0.05); border-radius: 8px; border: 1px dashed rgba(52, 211, 153, 0.2);">
+          <span>No hay transferencias bancarias pendientes por aprobar en este momento. Todas las reservas están al día.</span>
         </div>
       `;
       return;
@@ -2098,29 +2133,29 @@ document.addEventListener('DOMContentLoaded', () => {
         </thead>
         <tbody>
           ${pendingList.map(p => `
-            <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+            <tr style="border-bottom: 1px solid var(--editorial-border);">
               <td style="padding: 0.75rem;">
-                <div style="font-weight: 700; color: #38bdf8;">${p.bookingCode || p.id?.substring(0,8)}</div>
+                <div style="font-weight: 700; color: var(--editorial-emerald);">${p.bookingCode || p.id?.substring(0,8)}</div>
                 <div style="font-size: 0.72rem; color: var(--text-dim);">ID: ${p.id}</div>
               </td>
-              <td style="padding: 0.75rem; font-weight: 800; color: #34d399;">
+              <td style="padding: 0.75rem; font-weight: 800; color: var(--editorial-emerald);">
                 ${formatCOP(p.amount)}
               </td>
               <td style="padding: 0.75rem; font-size: 0.75rem; color: var(--text-dim);">
                 ${new Date(p.createdAt).toLocaleDateString()}
               </td>
-              <td style="padding: 0.75rem; font-size: 0.8rem; color: #fbbf24; font-family: monospace;">
+              <td style="padding: 0.75rem; font-size: 0.8rem; color: var(--editorial-gold); font-family: monospace;">
                 ${p.transferReference || 'Pendiente'}
               </td>
               <td style="padding: 0.75rem;">
                 <div style="display: flex; gap: 0.4rem;">
                   <button class="btn-dash-approve" data-id="${p.id}"
-                    style="padding: 4px 10px; font-size: 0.75rem; border-radius: 6px; background: rgba(52, 211, 153, 0.2); border: 1px solid #34d399; color: #34d399; cursor: pointer; font-weight: 700;">
-                    Aprobar ✅
+                    style="padding: 4px 10px; font-size: 0.75rem; border-radius: 6px; background: rgba(52, 211, 153, 0.2); border: 1px solid #34d399; color: var(--editorial-emerald); cursor: pointer; font-weight: 700;">
+                    Aprobar
                   </button>
                   <button class="btn-dash-reject" data-id="${p.id}"
-                    style="padding: 4px 10px; font-size: 0.75rem; border-radius: 6px; background: rgba(248, 113, 113, 0.2); border: 1px solid #f87171; color: #f87171; cursor: pointer; font-weight: 700;">
-                    Rechazar ❌
+                    style="padding: 4px 10px; font-size: 0.75rem; border-radius: 6px; background: rgba(248, 113, 113, 0.2); border: 1px solid #f87171; color: #B42318; cursor: pointer; font-weight: 700;">
+                    Rechazar
                   </button>
                 </div>
               </td>
@@ -2180,7 +2215,7 @@ document.addEventListener('DOMContentLoaded', () => {
       renderUsersTable(Array.isArray(users) ? users : (users.data || []));
     } catch (err) {
       usersTableBody.innerHTML = `
-        <tr><td colspan="6" style="text-align: center; color: #f87171; padding: 2rem;">Error cargando usuarios: ${err.message}</td></tr>
+        <tr><td colspan="6" style="text-align: center; color: #B42318; padding: 2rem;">Error cargando usuarios: ${err.message}</td></tr>
       `;
     }
   }
@@ -2198,16 +2233,16 @@ document.addEventListener('DOMContentLoaded', () => {
     usersTableBody.innerHTML = users.map(u => {
       const rl = ROLE_LABELS[u.role] || { label: u.role, color: '#fff', bg: 'rgba(255,255,255,0.1)' };
       const activeBadge = u.isActive
-        ? `<span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: rgba(52, 211, 153, 0.15); color: #34d399; font-weight: 700;">Activa</span>`
-        : `<span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: rgba(248, 113, 113, 0.15); color: #f87171; font-weight: 700;">Desactivada</span>`;
+        ? `<span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: rgba(52, 211, 153, 0.15); color: var(--editorial-emerald); font-weight: 700;">Activa</span>`
+        : `<span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: rgba(248, 113, 113, 0.15); color: #B42318; font-weight: 700;">Desactivada</span>`;
 
       let actions = '';
       if (u.role !== 'HOTEL_ADMIN') {
         actions += `
           <button class="btn-user-toggle" data-id="${u.id}" data-active="${u.isActive}"
             style="padding: 4px 10px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; font-weight: 700;
-              background: rgba(251, 191, 36, 0.15); border: 1px solid #fbbf24; color: #fbbf24;">
-            ${u.isActive ? '🔒 Desactivar' : '🔓 Activar'}
+              background: rgba(251, 191, 36, 0.15); border: 1px solid #fbbf24; color: var(--editorial-gold);">
+            ${u.isActive ? 'Desactivar' : 'Activar'}
           </button>
         `;
       }
@@ -2215,19 +2250,19 @@ document.addEventListener('DOMContentLoaded', () => {
         actions += `
           <button class="btn-user-delete" data-id="${u.id}" data-email="${u.email}"
             style="padding: 4px 10px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; font-weight: 700;
-              background: rgba(248, 113, 113, 0.15); border: 1px solid #f87171; color: #f87171;">
-            🗑️ Eliminar
+              background: rgba(248, 113, 113, 0.15); border: 1px solid #f87171; color: #B42318;">
+            Eliminar
           </button>
         `;
       }
 
       return `
-        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+        <tr style="border-bottom: 1px solid var(--editorial-border);">
           <td style="padding: 0.75rem;">
-            <div style="font-weight: 600; color: #fff;">${u.firstName} ${u.lastName}</div>
+            <div style="font-weight: 600; color: var(--editorial-text-main);">${u.firstName} ${u.lastName}</div>
             <div style="font-size: 0.72rem; color: var(--text-dim);">ID: ${u.id?.substring(0, 8)}…</div>
           </td>
-          <td style="padding: 0.75rem; font-size: 0.82rem; color: #cbd5e1;">${u.email}</td>
+          <td style="padding: 0.75rem; font-size: 0.82rem; color: var(--editorial-text-muted);">${u.email}</td>
           <td style="padding: 0.75rem;">
             <span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: ${rl.bg}; color: ${rl.color}; font-weight: 700; border: 1px solid ${rl.color}44;">
               ${rl.label}
@@ -2287,7 +2322,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       const res = await api.createStaff(staffData);
-      showToast(`✅ Cuenta ${res.user?.role} creada para ${res.user?.email}`, 'success');
+      showToast(`Cuenta ${res.user?.role} creada para ${res.user?.email}`, 'success');
       createStaffForm.reset();
       loadUsers();
     } catch (err) {
@@ -2341,7 +2376,7 @@ document.addEventListener('DOMContentLoaded', () => {
       renderPaymentsTable(res.data || []);
     } catch (err) {
       paymentsTableBody.innerHTML = `
-        <tr><td colspan="7" style="text-align: center; color: #f87171; padding: 2rem;">Error cargando pagos: ${err.message}</td></tr>
+        <tr><td colspan="7" style="text-align: center; color: #B42318; padding: 2rem;">Error cargando pagos: ${err.message}</td></tr>
       `;
     }
   }
@@ -2361,11 +2396,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const canRefund = p.status === 'COMPLETED';
 
       return `
-        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
-          <td style="padding: 0.75rem; font-weight: 800; color: #38bdf8;">${p.paymentReference || p.reference || p.id?.substring(0, 8)}</td>
-          <td style="padding: 0.75rem; font-size: 0.8rem; color: #cbd5e1;">${p.bookingCode || p.bookingId || '—'}</td>
-          <td style="padding: 0.75rem; font-size: 0.8rem; color: #cbd5e1;">${p.method || p.paymentMethod || '—'}</td>
-          <td style="padding: 0.75rem; font-weight: 700; color: #34d399;">
+        <tr style="border-bottom: 1px solid var(--editorial-border);">
+          <td style="padding: 0.75rem; font-weight: 800; color: var(--editorial-emerald);">${p.paymentReference || p.reference || p.id?.substring(0, 8)}</td>
+          <td style="padding: 0.75rem; font-size: 0.8rem; color: var(--editorial-text-muted);">${p.bookingCode || p.bookingId || '—'}</td>
+          <td style="padding: 0.75rem; font-size: 0.8rem; color: var(--editorial-text-muted);">${p.method || p.paymentMethod || '—'}</td>
+          <td style="padding: 0.75rem; font-weight: 700; color: var(--editorial-emerald);">
             ${formatCOP(p.amount || p.totalAmount || 0)}
           </td>
           <td style="padding: 0.75rem;">
@@ -2379,7 +2414,7 @@ document.addEventListener('DOMContentLoaded', () => {
               ? `<button class="btn-refund-action" data-ref="${p.paymentReference || p.reference || p.id}"
                   style="padding: 4px 10px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; font-weight: 700;
                     background: rgba(167, 139, 250, 0.15); border: 1px solid #a78bfa; color: #a78bfa;">
-                  ↩️ Reembolsar
+                  Reembolsar
                 </button>`
               : '<span style="font-size: 0.72rem; color: var(--text-dim);">—</span>'}
           </td>
@@ -2395,7 +2430,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           showToast(`Procesando reembolso de ${ref}...`, 'info');
           await api.refundPayment(ref, reason);
-          showToast(`✅ Reembolso procesado para ${ref}`, 'success');
+          showToast(`Reembolso procesado para ${ref}`, 'success');
           loadPayments();
         } catch (err) {
           showToast(`Error: ${err.message}`, 'error');
@@ -2508,20 +2543,20 @@ document.addEventListener('DOMContentLoaded', () => {
     notificationsHistoryList.innerHTML = history.map(item => {
       const timeStr = item.timestamp ? new Date(item.timestamp).toLocaleTimeString() : '—';
       const deliveryBadge = item.status === 'SENT' && !item.previewUrl
-        ? `<span style="color:#34d399; font-size: 0.72rem; font-weight:600;">✓ Entregado a Gmail</span>`
+        ? `<span style="color: var(--editorial-emerald); font-size: 0.72rem; font-weight:600;">✓ Entregado a Gmail</span>`
         : '';
       const previewLink = item.previewUrl
-        ? `<a href="${item.previewUrl}" target="_blank" class="notif-link-btn" title="Abrir correo renderizado en Ethereal">🔗 Ver Email</a>`
+        ? `<a href="${item.previewUrl}" target="_blank" class="notif-link-btn" title="Abrir correo renderizado en Ethereal">Ver Email</a>`
         : deliveryBadge;
       const attachmentBadge = item.hasAttachment
-        ? `<span style="color:#6ee7b7; font-size: 0.72rem;">📎 Voucher PDF</span>`
+        ? `<span style="color:#6ee7b7; font-size: 0.72rem;">Voucher PDF</span>`
         : '';
 
       return `
         <div class="notif-history-item">
           <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
             <span class="notif-badge-tag ${item.type || ''}">${item.type || 'EVENT'}</span>
-            <strong style="color: #f8fafc;">${item.recipient || '—'}</strong>
+            <strong style="color: var(--editorial-text-main);">${item.recipient || '—'}</strong>
             <span style="color: var(--text-dim); font-size: 0.75rem;">${item.subject || ''}</span>
           </div>
           <div style="display: flex; align-items: center; gap: 0.6rem; margin-left: auto;">
@@ -2714,7 +2749,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       roomsGrid.innerHTML = `
         <div class="empty-hotels-box">
-          <span style="color: #f87171;">Error al consultar habitaciones: ${err.message}</span>
+          <span style="color: #B42318;">Error al consultar habitaciones: ${err.message}</span>
         </div>
       `;
     }
@@ -2734,79 +2769,77 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const currentUser = api.getCurrentUser();
     const isAdmin = currentUser && currentUser.role === 'HOTEL_ADMIN';
-    const isStaff = currentUser && currentUser.role === 'HOTEL_ADMIN';
 
-    roomsGrid.innerHTML = rooms.map(r => {
+    roomsGrid.innerHTML = rooms.map((r, idx) => {
       const img = (Array.isArray(r.images) && r.images[0]) || 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80';
       const typeLabel = ROOM_TYPE_NAMES[r.roomType] || r.roomType;
-      const amenities = (r.amenities || []).slice(0, 3).map(a => `<span class="hotel-amenity-tag">${a}</span>`).join('');
+      const amenities = (r.amenities || []).slice(0, 4).map(a => `<span class="hotel-amenity-tag">${a}</span>`).join('');
 
-      // Botón de dar de baja: Exclusivo de HOTEL_ADMIN
       const adminButtons = isAdmin ? `
         <div class="hotel-admin-actions">
-          <button class="btn-card-delete btn-room-delete" data-id="${r.id}" data-name="${r.name}" title="Dar de baja habitación">🗑️</button>
+          <button class="btn-card-delete btn-room-delete" data-id="${r.id}" data-name="${r.name}" title="Dar de baja habitación">${SVG_ICONS.trash}</button>
         </div>
       ` : '';
 
-      // Selector de estado operativo: Disponible exclusivamente para HOTEL_ADMIN
-      // Para Huéspedes (GUEST): Solo lectura estática de disponibilidad
-      const statusControl = isStaff ? `
+      const statusControl = isAdmin ? `
         <div style="display:flex; align-items:center; gap:0.35rem;">
-          <span style="font-size:0.7rem; color:var(--text-dim);">Estado:</span>
-          <select class="room-status-select" data-id="${r.id}" style="padding: 3px 6px; font-size: 0.72rem; border-radius: 6px; background: rgba(15,23,42,0.85); color: #fff; border: 1px solid rgba(255,255,255,0.2); cursor: pointer;">
-            <option value="AVAILABLE" ${r.status === 'AVAILABLE' ? 'selected' : ''}>🟢 Disponible</option>
-            <option value="OCCUPIED" ${r.status === 'OCCUPIED' ? 'selected' : ''}>🔴 Ocupada</option>
-            <option value="MAINTENANCE" ${r.status === 'MAINTENANCE' ? 'selected' : ''}>🟠 Mantenimiento</option>
-            <option value="INACTIVE" ${r.status === 'INACTIVE' ? 'selected' : ''}>⚫ Inactiva</option>
+          <span style="font-size:0.72rem; color:var(--editorial-text-subtle);">Estado:</span>
+          <select class="room-status-select filter-select" data-id="${r.id}" style="height: 32px; padding: 0 0.65rem; font-size: 0.75rem;">
+            <option value="AVAILABLE" ${r.status === 'AVAILABLE' ? 'selected' : ''}>Disponible</option>
+            <option value="OCCUPIED" ${r.status === 'OCCUPIED' ? 'selected' : ''}>Ocupada</option>
+            <option value="MAINTENANCE" ${r.status === 'MAINTENANCE' ? 'selected' : ''}>Mantenimiento</option>
+            <option value="INACTIVE" ${r.status === 'INACTIVE' ? 'selected' : ''}>Inactiva</option>
           </select>
         </div>
       ` : `
-        <span style="font-size: 0.75rem; font-weight: 700; color: ${r.status === 'AVAILABLE' ? '#34d399' : '#f87171'};">
-          ${r.status === 'AVAILABLE' ? '🟢 Disponible' : '🔴 Ocupada'}
+        <span class="hotel-policy-pill ${r.status === 'AVAILABLE' ? 'pet-yes' : ''}">
+          <span class="dot ${r.status === 'AVAILABLE' ? 'online' : ''}" style="${r.status !== 'AVAILABLE' ? 'background: var(--editorial-danger);' : ''}"></span>
+          <span>${r.status === 'AVAILABLE' ? 'Disponible' : 'Ocupada'}</span>
         </span>
       `;
 
       return `
-        <div class="hotel-card" data-id="${r.id}">
+        <article class="hotel-card" data-id="${r.id}" style="--card-idx: ${idx};">
           <div class="hotel-card-media">
             <img src="${img}" alt="${r.name}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80';">
-            <div class="badge-stars">${typeLabel}</div>
             <div class="badge-city">#${r.roomNumber} · Piso ${r.floor}</div>
+            <div class="badge-stars">${typeLabel}</div>
             ${adminButtons}
           </div>
           <div class="hotel-card-body">
             <h3 class="hotel-card-title">${r.name}</h3>
-            <div class="hotel-card-location">🏨 ${r.hotelName}</div>
-            <p class="hotel-card-desc">${r.description ? r.description.substring(0, 100) + '...' : ''}</p>
-            <div style="font-size: 0.78rem; color: var(--text-muted); margin: 0.4rem 0;">
-              👥 ${r.maxAdults} adultos · 🛏️ ${r.bedType} · 📐 ${r.sizeSqm} m² · 🌅 ${r.viewType}
+            <div class="hotel-card-location">${SVG_ICONS.building}<span>${r.hotelName}</span></div>
+            <p class="hotel-card-desc">${r.description || ''}</p>
+            <div style="font-size: 0.78rem; color: var(--editorial-text-muted); margin: 0.25rem 0;">
+              ${r.maxAdults} adultos · ${r.bedType} · ${r.sizeSqm} m² · ${r.viewType}
             </div>
             <div class="hotel-amenities-tags">${amenities}</div>
           </div>
           <div class="hotel-card-footer">
             <div>
-              <div style="font-size: 1.15rem; font-weight: 800; color: #fff;">
-                ${formatCOP(r.pricePerNight)} <span style="font-size: 0.7rem; font-weight: 400; color: var(--text-dim);">/ noche</span>
+              <div style="font-family: var(--editorial-font-serif); font-size: 1.15rem; font-weight: 600; color: var(--editorial-emerald);">
+                ${formatCOP(r.pricePerNight)} <span style="font-family: var(--editorial-font-sans); font-size: 0.72rem; font-weight: 400; color: var(--editorial-text-subtle);">/ noche</span>
               </div>
+              ${statusControl}
             </div>
-            ${statusControl}
-            <div style="display: flex; gap: 0.4rem; align-items: center;">
-              <button class="btn-hotel-secondary btn-open-calendar"
+            <div class="hotel-card-actions">
+              <button type="button" class="btn-hotel-detail btn-open-calendar"
                 data-room-id="${r.id}"
                 data-room-name="${r.name} #${r.roomNumber}"
                 data-hotel-name="${r.hotelName}"
                 data-hotel-id="${r.hotelId}"
                 data-price="${getCOPPrice(r.pricePerNight)}"
                 data-max-adults="${r.maxAdults || 2}"
-                style="padding: 6px 10px; font-size: 0.75rem;" title="Consultar calendario mensual de fechas y reservar">
-                📅 Calendario & Reserva
+                title="Consultar calendario mensual de fechas y reservar">
+                ${SVG_ICONS.calendar}
+                <span>Calendario</span>
               </button>
-              <button class="btn-blue btn-book-from-rooms" data-hotel-id="${r.hotelId}" style="padding: 6px 12px; font-size: 0.75rem;">
-                Reservar
+              <button type="button" class="btn-blue btn-book-from-rooms" data-hotel-id="${r.hotelId}">
+                <span>Reservar</span>
               </button>
             </div>
           </div>
-        </div>
+        </article>
       `;
     }).join('');
 
@@ -2914,7 +2947,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const firstImg = Array.isArray(room.images) ? room.images[0] : (room.images || '');
       document.getElementById('formRoomImg').value = firstImg;
       const rTitle = document.getElementById('roomFormTitle');
-      if (rTitle) rTitle.textContent = `✏️ Editar Habitación ${room.name} (#${room.roomNumber})`;
+      if (rTitle) rTitle.textContent = `Editar Habitación ${room.name} (#${room.roomNumber})`;
       roomFormModal.style.display = 'flex';
     } catch (err) {
       showToast(`Error cargando habitación: ${err.message}`, 'error');
@@ -3012,7 +3045,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnProceedBookingFromCalendar.disabled = false;
         btnProceedBookingFromCalendar.style.opacity = '1';
         btnProceedBookingFromCalendar.style.cursor = 'pointer';
-        btnProceedBookingFromCalendar.innerHTML = `<span>✨ RESERVAR HABITACIÓN (${nights} ${nights === 1 ? 'NOCHE' : 'NOCHES'} — ${formatCOP(total)})</span>`;
+        btnProceedBookingFromCalendar.innerHTML = `<span>RESERVAR HABITACIÓN (${nights} ${nights === 1 ? 'NOCHE' : 'NOCHES'} — ${formatCOP(total)})</span>`;
       }
     } else if (calBookingCheckIn && !calBookingCheckOut) {
       if (calClientNightsText) calClientNightsText.textContent = 'Elige salida';
@@ -3021,7 +3054,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnProceedBookingFromCalendar.disabled = true;
         btnProceedBookingFromCalendar.style.opacity = '0.6';
         btnProceedBookingFromCalendar.style.cursor = 'not-allowed';
-        btnProceedBookingFromCalendar.innerHTML = `<span>👈 SELECCIONA EL DÍA DE SALIDA EN EL CALENDARIO</span>`;
+        btnProceedBookingFromCalendar.innerHTML = `<span>SELECCIONA EL DÍA DE SALIDA EN EL CALENDARIO</span>`;
       }
     } else {
       if (calClientNightsText) calClientNightsText.textContent = '—';
@@ -3030,7 +3063,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnProceedBookingFromCalendar.disabled = true;
         btnProceedBookingFromCalendar.style.opacity = '0.6';
         btnProceedBookingFromCalendar.style.cursor = 'not-allowed';
-        btnProceedBookingFromCalendar.innerHTML = `<span>👈 SELECCIONA FECHA DE LLEGADA EN EL CALENDARIO</span>`;
+        btnProceedBookingFromCalendar.innerHTML = `<span>SELECCIONA FECHA DE LLEGADA EN EL CALENDARIO</span>`;
       }
     }
   }
@@ -3153,12 +3186,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isCheckIn) {
           cellBg = 'rgba(52, 211, 153, 0.35)';
           cellBorder = '#34d399';
-          badgeHtml = `<span style="font-size: 0.62rem; font-weight: 800; color: #fff; background: #059669; padding: 1px 6px; border-radius: 4px; margin-top: 2px;">Llegada 🟢</span>`;
+          badgeHtml = `<span style="font-size: 0.62rem; font-weight: 800; color: var(--editorial-text-main); background: #059669; padding: 1px 6px; border-radius: 4px; margin-top: 2px;">Llegada</span>`;
           extraStyle = 'box-shadow: 0 0 10px rgba(52, 211, 153, 0.4); transform: scale(1.02);';
         } else if (isCheckOut) {
           cellBg = 'rgba(56, 189, 248, 0.35)';
           cellBorder = '#38bdf8';
-          badgeHtml = `<span style="font-size: 0.62rem; font-weight: 800; color: #fff; background: #0284c7; padding: 1px 6px; border-radius: 4px; margin-top: 2px;">Salida 🔵</span>`;
+          badgeHtml = `<span style="font-size: 0.62rem; font-weight: 800; color: var(--editorial-text-main); background: #0284c7; padding: 1px 6px; border-radius: 4px; margin-top: 2px;">Salida</span>`;
           extraStyle = 'box-shadow: 0 0 10px rgba(56, 189, 248, 0.4); transform: scale(1.02);';
         } else if (isInRange) {
           cellBg = 'rgba(56, 189, 248, 0.18)';
@@ -3173,7 +3206,7 @@ document.addEventListener('DOMContentLoaded', () => {
             style="background: ${cellBg}; border: 2px solid ${cellBorder}; border-radius: 8px; padding: 6px 2px; min-height: 52px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: ${isAvailable ? 'pointer' : 'not-allowed'}; transition: all 0.2s; ${extraStyle}"
             title="${d.date}: ${st.label}${isCheckIn ? ' (Llegada)' : ''}${isCheckOut ? ' (Salida)' : ''}"
             onmouseover="if('${isAvailable}' === 'true') this.style.transform='scale(1.05)'" onmouseout="if('${isCheckIn || isCheckOut}' !== 'true') this.style.transform='scale(1)'">
-            <span style="font-weight: 800; font-size: 0.82rem; color: #fff;">${d.day}</span>
+            <span style="font-weight: 800; font-size: 0.82rem; color: var(--editorial-text-main);">${d.day}</span>
             ${badgeHtml}
             ${refInfo}
           </div>
@@ -3212,13 +3245,13 @@ document.addEventListener('DOMContentLoaded', () => {
             calBookingCheckIn = selectedDate;
             calBookingCheckOut = null;
             calSelectionStep = 1;
-            showToast(`📅 Check-In: ${selectedDate}. Ahora haz clic en tu fecha de salida (Check-Out).`, 'info');
+            showToast(`Check-In: ${selectedDate}. Ahora haz clic en tu fecha de salida (Check-Out).`, 'info');
           } else if (calSelectionStep === 1) {
             if (selectedDate <= calBookingCheckIn) {
               calBookingCheckIn = selectedDate;
               calBookingCheckOut = null;
               calSelectionStep = 1;
-              showToast(`📅 Nueva fecha de Check-In: ${selectedDate}. Selecciona tu fecha de salida.`, 'info');
+              showToast(`Nueva fecha de Check-In: ${selectedDate}. Selecciona tu fecha de salida.`, 'info');
             } else {
               const hasUnavailable = calendarDays.some(cd =>
                 cd.date >= calBookingCheckIn && cd.date < selectedDate && cd.status !== 'AVAILABLE'
@@ -3233,7 +3266,7 @@ document.addEventListener('DOMContentLoaded', () => {
               const dIn = new Date(calBookingCheckIn);
               const dOut = new Date(calBookingCheckOut);
               const nights = Math.max(1, Math.round((dOut.getTime() - dIn.getTime()) / (1000 * 60 * 60 * 24)));
-              showToast(`✅ Estancia seleccionada: ${calBookingCheckIn} al ${calBookingCheckOut} (${nights} noches). ¡Listo para reservar!`, 'success');
+              showToast(`Estancia seleccionada: ${calBookingCheckIn} al ${calBookingCheckOut} (${nights} noches). ¡Listo para reservar!`, 'success');
             }
           }
 
@@ -3243,7 +3276,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
     } catch (err) {
-      calDaysGrid.innerHTML = `<div style="grid-column: span 7; color: #f87171; padding: 1.5rem;">Error al consultar calendario: ${err.message}</div>`;
+      calDaysGrid.innerHTML = `<div style="grid-column: span 7; color: #B42318; padding: 1.5rem;">Error al consultar calendario: ${err.message}</div>`;
     }
   }
 
