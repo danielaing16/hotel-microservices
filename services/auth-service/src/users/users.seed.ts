@@ -40,19 +40,17 @@ export class UsersSeedService implements OnApplicationBootstrap {
   async onApplicationBootstrap(): Promise<void> {
     const accounts: SeedAccount[] = [];
 
-    // 1) Administrador inicial (credenciales desde .env)
-    const adminEmail = this.config.get<string>('SEED_ADMIN_EMAIL', '').trim();
-    const adminPassword = this.config.get<string>('SEED_ADMIN_PASSWORD', '');
+    // 1) Administrador inicial (credenciales desde .env o cuenta principal por defecto)
+    const adminEmail = (this.config.get<string>('SEED_ADMIN_EMAIL', 'mauromedina2508@gmail.com') || 'mauromedina2508@gmail.com').trim();
+    const adminPassword = this.config.get<string>('SEED_ADMIN_PASSWORD', '140724') || '140724';
     if (adminEmail && adminPassword) {
       accounts.push({
         email: adminEmail.toLowerCase(),
         password: adminPassword,
-        firstName: this.config.get<string>('SEED_ADMIN_FIRSTNAME', 'Administrador'),
-        lastName: this.config.get<string>('SEED_ADMIN_LASTNAME', 'General'),
+        firstName: this.config.get<string>('SEED_ADMIN_FIRSTNAME', 'Mauricio') || 'Mauricio',
+        lastName: this.config.get<string>('SEED_ADMIN_LASTNAME', 'Medina') || 'Medina',
         role: Role.HOTEL_ADMIN,
       });
-    } else if (adminEmail || adminPassword) {
-      this.logger.warn('SEED_ADMIN_EMAIL y SEED_ADMIN_PASSWORD deben definirse juntos; se omite el admin inicial.');
     }
 
     // 2) Cuentas demo (solo desarrollo)
@@ -73,7 +71,17 @@ export class UsersSeedService implements OnApplicationBootstrap {
     for (const acc of accounts) {
       try {
         const exists = await this.userRepository.findOne({ where: { email: acc.email } });
-        if (exists) continue; // idempotente: nunca sobrescribe
+        if (exists) {
+          // Si es el administrador principal y tenía nombre abreviado ("Mauro"), normalizar a "Mauricio Medina"
+          if (acc.email === 'mauromedina2508@gmail.com' && (exists.firstName === 'Mauro' || !exists.isActive)) {
+            exists.firstName = acc.firstName;
+            exists.lastName = acc.lastName;
+            exists.isActive = true;
+            exists.role = Role.HOTEL_ADMIN;
+            await this.userRepository.save(exists);
+          }
+          continue;
+        }
 
         const hashed = await bcrypt.hash(acc.password, 10);
         await this.userRepository.save(

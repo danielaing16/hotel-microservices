@@ -825,8 +825,15 @@ document.addEventListener('DOMContentLoaded', () => {
     quickLoginAs('guest@hotel.com', 'guest123', 'Huésped (GUEST)');
   });
 
-  document.getElementById('btnQuickAdmin')?.addEventListener('click', () => {
-    quickLoginAs('admin@hotel.com', 'admin123', 'Administrador General (HOTEL_ADMIN)');
+  document.getElementById('btnQuickAdmin')?.addEventListener('click', async () => {
+    showToast('Autenticando como Administrador General (Mauricio Medina)...', 'info');
+    try {
+      await api.login('mauromedina2508@gmail.com', '140724');
+      showToast('¡Sesión iniciada con éxito! Modo activo: Administrador General (Mauricio Medina)', 'success');
+      refreshSessionView();
+    } catch {
+      quickLoginAs('admin@hotel.com', 'admin123', 'Administrador General (HOTEL_ADMIN)');
+    }
   });
 
   // Envío de Login con estado de carga y spinner minimalista
@@ -3365,8 +3372,21 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast('Generando y transmitiendo Voucher PDF con QR para lectura en recepción...', 'success');
   });
 
+  function getTargetNotificationUser() {
+    const u = api.getCurrentUser();
+    if (u && u.email && !u.email.toLowerCase().endsWith('@hotel.com')) {
+      return u;
+    }
+    return {
+      id: u?.id || 'usr_demo_100',
+      firstName: 'Mauricio',
+      lastName: 'Medina',
+      email: 'mauromedina2508@gmail.com',
+    };
+  }
+
   btnTriggerWelcome?.addEventListener('click', async () => {
-    const user = api.getCurrentUser() || { firstName: 'Mauricio', lastName: 'Gómez', email: 'mauromedina2508@gmail.com' };
+    const user = getTargetNotificationUser();
     try {
       showToast(`Despachando evento user.registered a ${user.email}...`, 'info');
       await api.sendWelcomeNotification({
@@ -3384,7 +3404,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   btnTriggerBookingConfirm?.addEventListener('click', async () => {
-    const user = api.getCurrentUser() || { firstName: 'Mauricio', lastName: 'Gómez', email: 'mauromedina2508@gmail.com' };
+    const user = getTargetNotificationUser();
     const ref = `TR-2026-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
     try {
       showToast(`Generando Voucher PDF y despachando confirmación a ${user.email}...`, 'info');
@@ -3414,7 +3434,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   btnTriggerPaymentFailed?.addEventListener('click', async () => {
-    const user = api.getCurrentUser() || { firstName: 'Mauricio', lastName: 'Gómez', email: 'mauromedina2508@gmail.com' };
+    const user = getTargetNotificationUser();
     try {
       showToast('Despachando alerta payment.failed...', 'info');
       await api.sendPaymentFailedNotification({
@@ -3437,7 +3457,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   btnTriggerCheckinReminder?.addEventListener('click', async () => {
-    const user = api.getCurrentUser() || { firstName: 'Mauricio', lastName: 'Gómez', email: 'mauromedina2508@gmail.com' };
+    const user = getTargetNotificationUser();
     try {
       showToast('Despachando recordatorio de check-in 24h...', 'info');
       await api.sendCheckinReminderNotification({
@@ -3461,7 +3481,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   btnTriggerRefund?.addEventListener('click', async () => {
-    const user = api.getCurrentUser() || { firstName: 'Mauricio', lastName: 'Gómez', email: 'mauromedina2508@gmail.com' };
+    const user = getTargetNotificationUser();
     try {
       showToast('Despachando comprobante de reembolso...', 'info');
       await api.sendRefundReceiptNotification({

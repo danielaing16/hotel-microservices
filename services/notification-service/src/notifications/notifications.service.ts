@@ -156,7 +156,7 @@ export class NotificationsService {
     const log = this.recordLog(
       NotificationType.BOOKING_CONFIRMATION,
       userEmail,
-      `Pago Aceptado y Reserva Confirmada [${bookingReference}] - ${hotelName}`,
+      `🏨 Confirmación de Reserva [${bookingReference}] - ${hotelName}`,
       result,
       Date.now() - start,
       true,
@@ -194,7 +194,7 @@ export class NotificationsService {
       'Comprobante bancario no recibido o fondos no acreditados';
 
     this.logger.warn(
-      `[Event: payment.failed] Notificando rechazo de pago para la reserva ${bookingRef} (${userEmail})`,
+      `[Event: payment.failed] Notificando fallo de pago para la reserva ${bookingRef} (${userEmail})`,
     );
 
     const result = await this.mailService.sendPaymentFailedEmail(userEmail, {
@@ -203,7 +203,7 @@ export class NotificationsService {
       hotelName,
       roomTypeName,
       totalAmount,
-      currency: 'COP',
+      currency: rawEvent?.currency || 'COP',
       failureReason,
       retryPaymentUrl: rawEvent?.retryPaymentUrl || 'http://localhost:5173',
       expiresAt: rawEvent?.expiresAt || 'Fechas liberadas en inventario',
@@ -212,7 +212,7 @@ export class NotificationsService {
     const log = this.recordLog(
       NotificationType.PAYMENT_FAILED,
       userEmail,
-      `Pago No Aprobado — Reserva [${bookingRef}] en ${hotelName}`,
+      `⚠️ Pago no completado para tu reserva en ${hotelName}`,
       result,
       Date.now() - start,
       false,

@@ -78,10 +78,10 @@ services:
       RABBITMQ_QUEUE: ${RABBITMQ_QUEUE:-hotel_notifications_queue}
       # Seed idempotente de cuentas (solo crea si no existen)
       SEED_DEMO_USERS: ${SEED_DEMO_USERS:-true}
-      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-}
-      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
-      SEED_ADMIN_FIRSTNAME: ${SEED_ADMIN_FIRSTNAME:-Administrador}
-      SEED_ADMIN_LASTNAME: ${SEED_ADMIN_LASTNAME:-General}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-mauromedina2508@gmail.com}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-140724}
+      SEED_ADMIN_FIRSTNAME: ${SEED_ADMIN_FIRSTNAME:-Mauricio}
+      SEED_ADMIN_LASTNAME: ${SEED_ADMIN_LASTNAME:-Medina}
     ports:
       - "3001:3001"
     volumes:
@@ -397,10 +397,10 @@ services:
       SMTP_SERVICE: ${SMTP_SERVICE:-gmail}
       SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
       SMTP_PORT: ${SMTP_PORT:-465}
-      SMTP_USER: ${SMTP_USER:-}
+      SMTP_USER: ${SMTP_USER:-mauromedina2508@gmail.com}
       SMTP_PASS: ${SMTP_PASS:-}
       SMTP_SECURE: ${SMTP_SECURE:-true}
-      SMTP_FROM: ${SMTP_FROM:-reservas@travel-resorts.com}
+      SMTP_FROM: ${SMTP_FROM:-Travel & Resorts <mauromedina2508@gmail.com>}
       FRONTEND_URL: http://frontend:80
       API_GATEWAY_URL: http://api-gateway:3000
     ports:
