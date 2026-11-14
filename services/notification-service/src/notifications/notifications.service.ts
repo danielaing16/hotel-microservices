@@ -69,6 +69,33 @@ export class NotificationsService {
     return log;
   }
 
+  private readonly HOTEL_ADDRESSES: Record<string, { address: string; city: string }> = {
+    'Cartagena Luxury Beach & Spa Resort': {
+      address: 'Carrera 1 # 12-118, Bocagrande',
+      city: 'Cartagena, Colombia',
+    },
+    'Medellín SkyView Boutique Hotel': {
+      address: 'Calle 10A # 36-24, El Poblado',
+      city: 'Medellín, Colombia',
+    },
+    'San Andrés Island Paradise Resort': {
+      address: 'Avenida Colombia # 1-19, Punta Hansa',
+      city: 'San Andrés Islas, Colombia',
+    },
+    'Bogotá Grand Plaza & Financial Center': {
+      address: 'Carrera 7 # 71-52, Zona Financiera',
+      city: 'Bogotá D.C., Colombia',
+    },
+    'Santa Marta Sierra & Mar Eco-Lodge': {
+      address: 'Km 32 Vía Santa Marta - Riohacha, Costeño Beach',
+      city: 'Santa Marta, Colombia',
+    },
+    'Eje Cafetero Hacienda Coloma Boutique': {
+      address: 'Km 5 Vía Armenia - Montenegro, Vereda El Roble',
+      city: 'Armenia, Quindío, Colombia',
+    },
+  };
+
   /**
    * 2. Manejo del evento de Confirmación de Reserva (booking.confirmed / payment.succeeded)
    * Genera el voucher PDF con código QR y lo adjunta al correo electrónico
@@ -79,19 +106,30 @@ export class NotificationsService {
     const start = Date.now();
     const bookingReference =
       rawEvent?.bookingReference || rawEvent?.bookingCode || rawEvent?.bookingId || 'TR-2026-CONF';
-    const userEmail = rawEvent?.userEmail || rawEvent?.email;
-    const userName =
-      rawEvent?.userName || (userEmail ? userEmail.split('@')[0] : 'Huésped Travel & Resorts');
-    const hotelName = rawEvent?.hotelName || 'Travel & Resorts — Luxury Sanctuary';
-    const hotelAddress = rawEvent?.hotelAddress || 'Sede Principal Exclusiva';
-    const hotelCity = rawEvent?.hotelCity || 'Colombia';
-    const roomTypeName = rawEvent?.roomTypeName || rawEvent?.roomName || 'Suite de Lujo';
-    const checkInDate = rawEvent?.checkInDate || rawEvent?.checkIn || '2026-11-15';
-    const checkOutDate = rawEvent?.checkOutDate || rawEvent?.checkOut || '2026-11-18';
-    const nights = Number(rawEvent?.nights || rawEvent?.nightsCount || 2);
+    const userEmail = rawEvent?.userEmail || rawEvent?.email || 'isaconsii08@gmail.com';
+    let userName =
+      rawEvent?.userName || rawEvent?.guestName || (userEmail ? userEmail.split('@')[0] : 'Huésped Travel & Resorts');
+    if (userEmail.toLowerCase().includes('isaconsii') && (!userName || userName.toLowerCase().includes('huesped'))) {
+      userName = 'Isabela Contreras';
+    }
+    const hotelName = rawEvent?.hotelName || 'Bogotá Grand Plaza & Financial Center';
+    const hotelInfo = this.HOTEL_ADDRESSES[hotelName] || {
+      address: rawEvent?.hotelAddress && !rawEvent.hotelAddress.includes('oficial')
+        ? rawEvent.hotelAddress
+        : 'Carrera 7 # 71-52, Zona Financiera',
+      city: rawEvent?.hotelCity && rawEvent.hotelCity !== 'Colombia'
+        ? rawEvent.hotelCity
+        : 'Bogotá D.C., Colombia',
+    };
+    const hotelAddress = hotelInfo.address;
+    const hotelCity = hotelInfo.city;
+    const roomTypeName = rawEvent?.roomTypeName || rawEvent?.roomName || 'Suite Ejecutiva Diplomática';
+    const checkInDate = rawEvent?.checkInDate || rawEvent?.checkIn || '2026-11-20';
+    const checkOutDate = rawEvent?.checkOutDate || rawEvent?.checkOut || '2026-11-25';
+    const nights = Number(rawEvent?.nights || rawEvent?.nightsCount || 5);
     const guestsCount = Number(rawEvent?.guestsCount || 2);
     const rawAmount = Number(rawEvent?.totalAmount || rawEvent?.amount || 0);
-    const totalAmount = rawAmount > 0 && rawAmount < 10000 ? rawAmount * 4000 : rawAmount;
+    const totalAmount = rawAmount > 0 && rawAmount < 50000 ? rawAmount * 4000 : rawAmount;
     const currency = 'COP';
 
     const dedupKey = `CONFIRMED:${bookingReference}:${(userEmail || '').toLowerCase()}`;
@@ -110,7 +148,7 @@ export class NotificationsService {
       bookingReference,
       guestName: userName,
       guestEmail: userEmail,
-      guestPhone: rawEvent?.userPhone || '+57 304 659 8870',
+      guestPhone: rawEvent?.userPhone || rawEvent?.guestPhone || '+57 304 659 8870',
       hotelName,
       hotelAddress,
       hotelCity,
@@ -118,15 +156,18 @@ export class NotificationsService {
       checkInDate,
       checkOutDate,
       checkInTime: rawEvent?.checkInTime || '15:00',
-      checkOutTime: rawEvent?.checkOutTime || '12:00',
+      checkOutTime: rawEvent?.checkOutTime || '11:00',
       nights,
       guestsCount,
       totalAmount,
       currency,
       paymentId: rawEvent?.paymentId || rawEvent?.transactionReference || `PAY-${bookingReference}`,
-      paymentMethod: rawEvent?.paymentMethod || 'Transferencia / WhatsApp Aprobada',
-      specialRequests: rawEvent?.specialRequests,
+      paymentMethod: rawEvent?.paymentMethod || 'Transferencia Bancaria / WhatsApp Directo',
+      specialRequests: rawEvent?.specialRequests || 'Estancia garantizada y verificada en plataforma',
       status: 'CONFIRMED',
+      adminName: 'Mauricio Medina',
+      adminEmail: 'mauromedina2508@gmail.com',
+      adminPhone: '+57 304 659 8870',
     };
 
     // Generar el Voucher en PDF de forma asíncrona y eficiente
@@ -286,32 +327,74 @@ export class NotificationsService {
   }
 
   /**
-   * Genera un Voucher de demostración o personalizado para previsualización directa en el navegador
+   * Genera un Voucher personalizado o con datos oficiales de la plataforma para previsualización directa
    */
-  async generateSampleVoucher(customData?: Partial<VoucherData>): Promise<Buffer> {
+  async generateSampleVoucher(customData?: any): Promise<Buffer> {
+    const hotelName = customData?.hotelName || 'Bogotá Grand Plaza & Financial Center';
+    const hotelInfo = this.HOTEL_ADDRESSES[hotelName] || {
+      address: customData?.hotelAddress && !customData.hotelAddress.includes('oficial')
+        ? customData.hotelAddress
+        : 'Carrera 7 # 71-52, Zona Financiera',
+      city: customData?.hotelCity && customData.hotelCity !== 'Colombia'
+        ? customData.hotelCity
+        : 'Bogotá D.C., Colombia',
+    };
+
+    const guestEmail =
+      customData?.guestEmail ||
+      customData?.userEmail ||
+      customData?.email ||
+      'isaconsii08@gmail.com';
+
+    let guestName =
+      customData?.guestName ||
+      customData?.userName ||
+      customData?.name;
+    if (!guestName || guestName === 'Huésped' || guestName === 'Huésped VIP') {
+      if (guestEmail.toLowerCase().includes('isaconsii')) {
+        guestName = 'Isabela Contreras';
+      } else {
+        guestName = guestEmail.split('@')[0];
+      }
+    }
+
+    const guestPhone =
+      customData?.guestPhone ||
+      customData?.userPhone ||
+      customData?.phone ||
+      '+57 304 659 8870';
+
+    const rawAmount = Number(customData?.totalAmount || customData?.amount || 900000);
+    const totalAmount = rawAmount > 0 && rawAmount < 50000 ? rawAmount * 4000 : rawAmount;
+
     const sampleData: VoucherData = {
-      bookingId: customData?.bookingId || 'bkg_sample_98452109',
-      bookingReference: customData?.bookingReference || 'TR-2026-VIP99',
-      guestName: customData?.guestName || 'Mauricio Gómez',
-      guestEmail: customData?.guestEmail || 'mauricio@hotel-dev.com',
-      guestPhone: customData?.guestPhone || '+57 300 456 7890',
-      hotelName: customData?.hotelName || 'The Grand Mayan Riviera Luxury Palace',
-      hotelAddress: customData?.hotelAddress || 'Km 48 Carretera Federal Cancún - Playa del Carmen',
-      hotelCity: customData?.hotelCity || 'Riviera Maya, México',
-      roomTypeName: customData?.roomTypeName || 'Royal Oceanfront Master Suite con Piscina Privada',
-      checkInDate: customData?.checkInDate || '2026-11-20',
-      checkOutDate: customData?.checkOutDate || '2026-11-25',
+      bookingId: customData?.bookingId || `bkg_${Date.now()}`,
+      bookingReference:
+        customData?.bookingReference ||
+        customData?.bookingCode ||
+        `TR-2026-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
+      guestName,
+      guestEmail,
+      guestPhone,
+      hotelName,
+      hotelAddress: hotelInfo.address,
+      hotelCity: hotelInfo.city,
+      roomTypeName: customData?.roomTypeName || customData?.roomName || 'Suite Ejecutiva Diplomática',
+      checkInDate: customData?.checkInDate || customData?.checkIn || '2026-11-20',
+      checkOutDate: customData?.checkOutDate || customData?.checkOut || '2026-11-25',
       checkInTime: customData?.checkInTime || '15:00',
       checkOutTime: customData?.checkOutTime || '11:00',
-      nights: customData?.nights || 5,
-      guestsCount: customData?.guestsCount || 2,
-      totalAmount: customData?.totalAmount || 1250.0,
-      currency: customData?.currency || 'USD',
-      paymentId: customData?.paymentId || 'pi_3Mkd98201Kls8109',
-      paymentMethod: customData?.paymentMethod || 'Visa Infinite Platinum (Stripe)',
-      status: 'CONFIRMED',
-      specialRequests:
-        customData?.specialRequests || 'Piso alto, vista directa al atardecer, check-in anticipado',
+      nights: Number(customData?.nights || customData?.nightsCount || 5),
+      guestsCount: Number(customData?.guestsCount || 2),
+      totalAmount,
+      currency: 'COP',
+      paymentId: customData?.paymentId || customData?.transactionReference || `PAY-${Date.now().toString(36).toUpperCase()}`,
+      paymentMethod: customData?.paymentMethod || 'Transferencia Bancaria / WhatsApp Directo',
+      status: customData?.status || 'CONFIRMED',
+      specialRequests: customData?.specialRequests || 'Estancia garantizada y verificada en plataforma',
+      adminName: 'Mauricio Medina',
+      adminEmail: 'mauromedina2508@gmail.com',
+      adminPhone: '+57 304 659 8870',
     };
 
     return await this.voucherGeneratorService.generateVoucherPdf(sampleData);

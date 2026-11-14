@@ -21,5 +21,8 @@ export interface VoucherData {
   status?: string;
   specialRequests?: string;
   qrPayload?: string;
+  adminName?: string;
+  adminEmail?: string;
+  adminPhone?: string;
 }
 
