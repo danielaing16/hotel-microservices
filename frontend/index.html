@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css?v=7.2">
+  <link rel="stylesheet" href="css/styles.css?v=7.3">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2313332E%22 stroke-width=%221.5%22><polygon points=%2212 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2%22/><circle cx=%2212%22 cy=%2212%22 r=%222%22/></svg>">
 </head>
 
@@ -250,6 +250,8 @@
       <footer class="editorial-footer stagger-item" style="--stagger-idx: 10;">
         <span>© 2026 Travel &amp; Resorts Collection</span>
         <span class="editorial-footer-sep">·</span>
+        <a href="#" class="about-us-link" style="color: inherit; text-decoration: none;">Quiénes Somos</a>
+        <span class="editorial-footer-sep">·</span>
         <span>Privacidad &amp; Concierge</span>
       </footer>
     </div>
@@ -407,7 +409,7 @@
                 <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
               </svg>
             </span>
-            <span class="dash-nav-label">Notif. &amp; Vouchers</span>
+            <span class="dash-nav-label" id="notifSidebarLabel">Notificaciones</span>
           </button>
 
           <!-- SECCIÓN EXCLUSIVA DEL ADMINISTRADOR -->
@@ -966,35 +968,21 @@
         </section>
 
         <!-- ===============================================================
-             PESTAÑA 8: NOTIFICACIONES & VOUCHERS (notification-service:3008)
+             PESTAÑA 8: NOTIFICACIONES (notification-service:3008)
+             Vista por rol: ADMIN = centro operativo | HUÉSPED = buzón personal
              =============================================================== -->
         <section class="dash-tab-content" id="view-notifications">
           <div class="notif-section">
-            <div class="notif-header-row">
-              <div>
-                <h3 class="editorial-section-title">Centro de Notificaciones &amp; Vouchers PDF</h3>
-                <p class="editorial-section-desc">
-                  Consumidor asíncrono RabbitMQ, emisión de comprobantes PDF con código QR y envíos transaccionales.
-                </p>
-              </div>
 
-              <div class="notif-meta-pills">
-                <span class="notif-pill rmq" title="Broker RabbitMQ">
-                  <span>AMQP: hotel_notifications_queue</span>
-                </span>
-                <span class="notif-pill pdf" title="Motor PDFKit">
-                  <span>PDFKit + QRCode</span>
-                </span>
-                <span class="notif-pill mail" id="notifSmtpPill" style="cursor: pointer;" title="Haz clic para configurar envío real por Gmail SMTP">
-                  <span id="notifSmtpPillText">Consultando SMTP...</span>
-                </span>
-                <button id="btnOpenSmtpConfig" class="btn-hotel-primary" style="display: none; padding: 0.45rem 0.9rem; font-size: 0.78rem;" title="Configurar cuenta Gmail para entrega de correos reales">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                    <polyline points="22,6 12,13 2,6"></polyline>
-                  </svg>
-                  <span>Activar Gmail Real</span>
-                </button>
+            <!-- ================= SOLO ADMINISTRADOR: OPERACIÓN ================= -->
+            <div id="adminNotifOps" style="display: none;">
+              <div class="notif-header-row">
+                <div>
+                  <h3 class="editorial-section-title">Centro de Notificaciones</h3>
+                  <p class="editorial-section-desc">
+                    Monitoreo del servicio de mensajería transaccional, herramientas de envío y auditoría completa de entregas.
+                  </p>
+                </div>
                 <button id="btnVoucherSampleHeader" class="btn-hotel-secondary" title="Descargar o previsualizar modelo de Voucher PDF oficial">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -1002,64 +990,169 @@
                   </svg>
                   <span>Voucher Muestra (QR)</span>
                 </button>
-                <button id="refreshNotifHistoryBtn" class="btn-hotel-secondary" title="Recargar historial">
+              </div>
+
+              <!-- Estado del Servicio -->
+              <h4 class="editorial-card-heading" style="margin-top: 1.1rem;">Estado del Servicio</h4>
+              <div class="admin-status-grid">
+                <div class="admin-status-card">
+                  <span class="admin-status-label">Mensajería</span>
+                  <strong class="admin-status-value" id="notifWorkerStatus">En línea</strong>
+                  <span class="admin-status-hint">Cola de eventos asincrónica (RabbitMQ)</span>
+                </div>
+                <div class="admin-status-card">
+                  <span class="admin-status-label">Comprobantes</span>
+                  <strong class="admin-status-value">PDF + Código QR</strong>
+                  <span class="admin-status-hint">Vouchers oficiales generados al confirmar</span>
+                </div>
+                <div class="admin-status-card admin-status-card--clickable" id="notifSmtpPill" title="Haz clic para configurar el envío real por Gmail SMTP">
+                  <span class="admin-status-label">Proveedor de Correo</span>
+                  <strong class="admin-status-value" id="notifSmtpPillText">Consultando…</strong>
+                  <span class="admin-status-hint" id="notifSmtpHint">Verificando conexión…</span>
+                </div>
+                <div class="admin-status-card">
+                  <span class="admin-status-label">Eventos Soportados</span>
+                  <div class="admin-status-events">
+                    <span>Bienvenida</span><span>Confirmación de Reserva</span><span>Pago Rechazado</span><span>Recordatorio Check-In</span><span>Reembolsos</span>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-top: 0.6rem; display: flex; justify-content: flex-end;">
+                <button id="btnOpenSmtpConfig" class="btn-hotel-primary" style="display: none; padding: 0.45rem 0.9rem; font-size: 0.78rem;" title="Configurar cuenta Gmail para entrega de correos reales">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                  </svg>
+                  <span>Configurar Gmail de Envío</span>
+                </button>
+              </div>
+
+              <!-- Herramientas de Envío -->
+              <h4 class="editorial-card-heading" style="margin-top: 1rem;">Herramientas de Envío</h4>
+              <p class="editorial-section-desc" style="margin-bottom: 0.6rem;">
+                Dispara manualmente los correos transaccionales para verificar la entrega en bandeja real.
+              </p>
+              <div class="notif-triggers-grid">
+                <button id="btnVoucherSample" class="btn-notif-action btn-notif-voucher"
+                  title="Descargar o abrir Voucher PDF oficial de muestra">
+                  <strong>Voucher PDF con QR</strong>
+                </button>
+                <button id="btnTriggerWelcome" class="btn-notif-action" title="Enviar correo de bienvenida">
+                  <span>Correo de Bienvenida</span>
+                </button>
+                <button id="btnTriggerBookingConfirm" class="btn-notif-action"
+                  title="Enviar confirmación de reserva con voucher PDF adjunto">
+                  <span>Confirmación de Reserva</span>
+                </button>
+                <button id="btnTriggerPaymentFailed" class="btn-notif-action" title="Enviar alerta de pago rechazado">
+                  <span>Pago Rechazado</span>
+                </button>
+                <button id="btnTriggerCheckinReminder" class="btn-notif-action"
+                  title="Enviar recordatorio de check-in">
+                  <span>Recordatorio Check-In</span>
+                </button>
+                <button id="btnTriggerRefund" class="btn-notif-action" title="Enviar comprobante de reembolso">
+                  <span>Comprobante de Reembolso</span>
+                </button>
+              </div>
+
+              <!-- Historial de Auditoría -->
+              <div style="margin-top: 1.25rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                  <span class="editorial-eyebrow-label">Historial de Auditoría · Todas las Entregas</span>
+                  <span id="notifCountBadge" style="font-size: 0.75rem; color: var(--editorial-text-subtle);">0 notificación(es)</span>
+                </div>
+                <div class="notif-history-box" id="notificationsHistoryList">
+                  <div class="notif-history-empty">Consultando registro de entregas…</div>
+                </div>
+                <div style="margin-top: 0.5rem; display: flex; justify-content: flex-end;">
+                  <button id="refreshNotifHistoryBtn" class="btn-hotel-secondary" title="Recargar historial" style="padding: 0.4rem 0.85rem; font-size: 0.76rem;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                      <path d="M3 3v5h5"></path>
+                      <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+                      <path d="M16 16h5v5"></path>
+                    </svg>
+                    <span>Actualizar</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- ================= SOLO HUÉSPED: BUZÓN PERSONAL ================= -->
+            <div id="guestNotifHeader" style="display: none;">
+              <div class="notif-header-row">
+                <div>
+                  <h3 class="editorial-section-title">Mis Notificaciones</h3>
+                  <p class="editorial-section-desc">
+                    Todos los mensajes que te hemos enviado: confirmaciones, vouchers con código QR y avisos de tu estancia.
+                  </p>
+                </div>
+                <button id="refreshGuestNotifBtn" class="btn-hotel-secondary" title="Recargar mis notificaciones" style="padding: 0.45rem 0.9rem; font-size: 0.78rem;">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
                     <path d="M3 3v5h5"></path>
                     <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
                     <path d="M16 16h5v5"></path>
                   </svg>
-                  <span>Refrescar Historial</span>
+                  <span>Actualizar</span>
                 </button>
               </div>
-            </div>
 
-            <!-- SECCIÓN EXCLUSIVA (HOTEL_ADMIN): Disparadores de Pruebas -->
-            <div id="staffNotifTriggers" style="display: none; margin-top: 1rem;">
-              <h4 class="editorial-card-heading">Disparadores de Eventos Transaccionales (Panel de Personal)</h4>
-              <div class="notif-triggers-grid">
-                <button id="btnVoucherSample" class="btn-notif-action btn-notif-voucher"
-                  title="Descargar o abrir Voucher PDF oficial de muestra">
-                  <strong>Descargar Voucher PDF (QR)</strong>
-                </button>
-                <button id="btnTriggerWelcome" class="btn-notif-action" title="Disparar evento user.registered">
-                  <span>Bienvenida (user.registered)</span>
-                </button>
-                <button id="btnTriggerBookingConfirm" class="btn-notif-action"
-                  title="Disparar evento booking.confirmed con PDF adjunto">
-                  <span>Confirmar Reserva + PDF (QR)</span>
-                </button>
-                <button id="btnTriggerPaymentFailed" class="btn-notif-action" title="Disparar evento payment.failed">
-                  <span>Pago Fallido &amp; Expiración</span>
-                </button>
-                <button id="btnTriggerCheckinReminder" class="btn-notif-action"
-                  title="Disparar evento booking.checkin.reminder">
-                  <span>Recordatorio Check-In 24h</span>
-                </button>
-                <button id="btnTriggerRefund" class="btn-notif-action" title="Disparar evento payment.refunded">
-                  <span>Comprobante Reembolso</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- BUZÓN PERSONAL Y REGISTRO DE AUDITORÍA -->
-            <div style="margin-top: 1.25rem;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-                <span id="notifAuditTitle" class="editorial-eyebrow-label">
-                  Historial de Notificaciones &amp; Comprobantes
-                </span>
-                <span id="notifCountBadge" style="font-size: 0.75rem; color: var(--editorial-text-subtle);">0 notificación(es)</span>
-              </div>
-              <div class="notif-history-box" id="notificationsHistoryList">
-                <div class="notif-history-empty">
-                  No se han procesado notificaciones en esta sesión.
+              <div style="margin-top: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                  <span class="editorial-eyebrow-label">Bandeja Personal</span>
+                  <span id="guestNotifCountBadge" style="font-size: 0.75rem; color: var(--editorial-text-subtle);">0 mensajes</span>
+                </div>
+                <div class="guest-mail-list" id="guestMailList">
+                  <div class="notif-history-empty">Cargando tus notificaciones…</div>
                 </div>
               </div>
             </div>
+
           </div>
         </section>
 
       </main>
+
+      <!-- =====================================================================
+           FOOTER INSTITUCIONAL DEL DASHBOARD
+           ===================================================================== -->
+      <footer class="site-footer">
+        <div class="site-footer-grid">
+          <div class="site-footer-brand">
+            <span class="site-footer-logo">T&amp;R</span>
+            <div>
+              <strong>Travel &amp; Resorts Collection</strong>
+              <p>Hospitalidad colombiana de lujo: seis santuarios en los destinos más emblemáticos del país.</p>
+            </div>
+          </div>
+          <div class="site-footer-col">
+            <span class="site-footer-heading">Compañía</span>
+            <a href="#" class="about-us-link">Quiénes Somos</a>
+            <a href="#" data-tab="hotels">Hoteles &amp; Sedes</a>
+          </div>
+          <div class="site-footer-col">
+            <span class="site-footer-heading">Contacto</span>
+            <a href="https://wa.me/573046598870" target="_blank" rel="noopener">WhatsApp +57 304 659 8870</a>
+            <span>reservas@travelresorts.com</span>
+            <span>Central de reservas 24/7</span>
+          </div>
+          <div class="site-footer-col">
+            <span class="site-footer-heading">Nuestras Sedes</span>
+            <span>Cartagena de Indias</span>
+            <span>Medellín</span>
+            <span>San Andrés Islas</span>
+            <span>Bogotá</span>
+            <span>Santa Marta</span>
+            <span>Armenia · Eje Cafetero</span>
+          </div>
+        </div>
+        <div class="site-footer-legal">
+          <span>© 2026 Travel &amp; Resorts Collection. Todos los derechos reservados.</span>
+          <span>Términos &amp; Privacidad · Turismo responsable</span>
+        </div>
+      </footer>
     </div>
   </div>
 
@@ -1772,12 +1865,65 @@
     </div>
   </div>
 
+  <!-- Modal 11: QUIÉNES SOMOS -->
+  <div class="modal-overlay" id="aboutUsModal" style="display: none; z-index: 1200;">
+    <div class="modal-dialog" style="max-width: 720px;">
+      <button type="button" class="modal-close-btn" id="closeAboutUsBtn" aria-label="Cerrar">&times;</button>
+
+      <div style="text-align: center;">
+        <span class="editorial-eyebrow-label">NUESTRA CASA</span>
+        <h2 class="modal-editorial-title" style="margin-top: 2px;">Quiénes Somos</h2>
+        <p class="modal-editorial-subtitle" style="margin: 0 auto;">
+          Travel &amp; Resorts Collection es una colección colombiana de hoteles y resorts boutique que une
+          la calidez de nuestra gente con estándares de hospitalidad de clase mundial.
+        </p>
+      </div>
+
+      <div class="about-us-body">
+        <p>
+          Nacimos con una idea sencilla: que cada viaje por Colombia se sienta como llegar a casa.
+          Hoy operamos <strong>seis santuarios</strong> —de playa, ciudad y montaña— donde la arquitectura,
+          la gastronomía local y el servicio personalizado se diseñan alrededor del viajero.
+        </p>
+        <p>
+          Creemos en el <strong>turismo responsable</strong>: trabajamos con comunidades locales,
+          proveedores de la región y prácticas sostenibles en cada una de nuestras sedes, para que
+          cada estancia deje una huella positiva en el destino.
+        </p>
+      </div>
+
+      <div class="about-us-values">
+        <div class="about-us-value">
+          <strong>Hospitalidad genuina</strong>
+          <span>Personas que atienden como anfitriones, no como agentes.</span>
+        </div>
+        <div class="about-us-value">
+          <strong>Destinos emblemáticos</strong>
+          <span>Cartagena, Medellín, San Andrés, Bogotá, Santa Marta y el Eje Cafetero.</span>
+        </div>
+        <div class="about-us-value">
+          <strong>Confianza total</strong>
+          <span>Reservas transparentes, vouchers oficiales con QR y atención 24/7.</span>
+        </div>
+      </div>
+
+      <div class="about-us-contact">
+        <span class="editorial-eyebrow-label">Hablemos</span>
+        <p>
+          Concierge y reservaciones por WhatsApp:
+          <a href="https://wa.me/573046598870" target="_blank" rel="noopener" style="color: var(--editorial-emerald); font-weight: 700; text-decoration: none;">+57 304 659 8870</a>
+          · reservas@travelresorts.com
+        </p>
+      </div>
+    </div>
+  </div>
+
   <!-- Contenedor Toast Flotante Editorial -->
   <div class="toast-shelf" id="toastShelf" aria-live="polite"></div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=7.2"></script>
-  <script src="js/app.js?v=7.2"></script>
+  <script src="js/api.js?v=7.3"></script>
+  <script src="js/app.js?v=7.3"></script>
 </body>
 
 </html>

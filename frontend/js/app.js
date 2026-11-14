@@ -246,8 +246,12 @@ document.addEventListener('DOMContentLoaded', () => {
       desc: 'Visión financiera global de las transacciones y gestión oficial de reembolsos.',
     },
     notifications: {
-      title: 'Centro de Notificaciones & Vouchers PDF',
-      desc: 'Monitoreo de eventos en RabbitMQ, emisión de comprobantes con código QR y entrega de correos.',
+      title: 'Centro de Notificaciones',
+      desc: 'Monitoreo del servicio de mensajería, herramientas de envío y auditoría de entregas.',
+    },
+    'guest-notifications': {
+      title: 'Mis Notificaciones',
+      desc: 'Los mensajes que te hemos enviado: confirmaciones, vouchers y avisos de tu estancia.',
     },
   };
 
@@ -530,9 +534,18 @@ document.addEventListener('DOMContentLoaded', () => {
       if (staffSidebarGroup) {
         staffSidebarGroup.style.display = 'none';
       }
-      const staffNotifTriggers = document.getElementById('staffNotifTriggers');
-      if (staffNotifTriggers) {
-        staffNotifTriggers.style.display = isAdmin ? 'block' : 'none';
+      const adminNotifOps = document.getElementById('adminNotifOps');
+      const guestNotifHeader = document.getElementById('guestNotifHeader');
+      if (adminNotifOps) {
+        adminNotifOps.style.display = isAdmin ? 'block' : 'none';
+      }
+      if (guestNotifHeader) {
+        guestNotifHeader.style.display = isAdmin ? 'none' : 'block';
+      }
+      // Etiqueta del sidebar y título de la pestaña según el rol
+      const notifSidebarLabel = document.getElementById('notifSidebarLabel');
+      if (notifSidebarLabel) {
+        notifSidebarLabel.textContent = isAdmin ? 'Centro de Notificaciones' : 'Mis Notificaciones';
       }
 
       // Registro de Hoteles y Sembrado Demo: Exclusivo de Administradores.
@@ -588,6 +601,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (TAB_METADATA[tabId]) {
       if (dashViewTitle) dashViewTitle.textContent = TAB_METADATA[tabId].title;
       if (dashViewDesc) dashViewDesc.textContent = TAB_METADATA[tabId].desc;
+    }
+
+    // La pestaña de notificaciones presenta un título distinto según el rol
+    if (tabId === 'notifications') {
+      const notifMeta = TAB_METADATA[isStaff ? 'notifications' : 'guest-notifications'];
+      if (notifMeta) {
+        if (dashViewTitle) dashViewTitle.textContent = notifMeta.title;
+        if (dashViewDesc) dashViewDesc.textContent = notifMeta.desc;
+      }
     }
 
     if (tabId === 'hotels') {
@@ -3089,56 +3111,90 @@ document.addEventListener('DOMContentLoaded', () => {
   // --------------------------------------------------------------------------
   // 17. TAB: NOTIFICACIONES & VOUCHERS (notification-service:3008)
   // --------------------------------------------------------------------------
-  const notificationsHistoryList = document.getElementById('notificationsHistoryList');
-  const notifCountBadge = document.getElementById('notifCountBadge');
-  const refreshNotifHistoryBtn = document.getElementById('refreshNotifHistoryBtn');
+  const notificationsHistoryList = document.getElementById('notificationsHistoryList'); // Vista ADMIN: auditoría
+  const guestMailList = document.getElementById('guestMailList'); // Vista HUÉSPED: buzón personal
+  const notifCountBadge = document.getElementById('notifCountBadge'); // Contador ADMIN
+  const guestNotifCountBadge = document.getElementById('guestNotifCountBadge'); // Contador HUÉSPED
+  const refreshNotifHistoryBtn = document.getElementById('refreshNotifHistoryBtn'); // Refrescar ADMIN
+  const refreshGuestNotifBtn = document.getElementById('refreshGuestNotifBtn'); // Refrescar HUÉSPED
 
-  const btnVoucherSample = document.getElementById('btnVoucherSample');
-  const btnTriggerWelcome = document.getElementById('btnTriggerWelcome');
-  const btnTriggerBookingConfirm = document.getElementById('btnTriggerBookingConfirm');
-  const btnTriggerPaymentFailed = document.getElementById('btnTriggerPaymentFailed');
-  const btnTriggerCheckinReminder = document.getElementById('btnTriggerCheckinReminder');
-  const btnTriggerRefund = document.getElementById('btnTriggerRefund');
+  // Nombres e iconos amigables por tipo de notificación (vista huésped)
+  const NOTIF_TYPE_FRIENDLY = {
+    WELCOME: { label: 'Bienvenida', icon: '🌟' },
+    BOOKING_CONFIRMATION: { label: 'Reserva Confirmada', icon: '🏨' },
+    PAYMENT_FAILED: { label: 'Pago Rechazado', icon: '⚠️' },
+    CHECKIN_REMINDER: { label: 'Recordatorio de Check-In', icon: '🔑' },
+    REFUND_RECEIPT: { label: 'Reembolso Procesado', icon: '💳' },
+  };
+
+  function isStaffUser() {
+    const user = api.getCurrentUser();
+    return !!user && user.role === 'HOTEL_ADMIN';
+  }
 
   async function loadNotificationHistory() {
+    const admin = isStaffUser();
     try {
       const history = await api.getNotificationHistory();
-      const currentUser = api.getCurrentUser();
-      const role = currentUser ? (currentUser.role || 'GUEST') : 'GUEST';
-      const isStaff = role === 'HOTEL_ADMIN';
+      let items = Array.isArray(history) ? history : (history?.data || []);
 
-      // Actualizar píldora de estado de SMTP (Gmail Real vs Sandbox)
-      api.getNotificationStatus().then(st => {
-        const textElem = document.getElementById('notifSmtpPillText');
-        const pillElem = document.getElementById('notifSmtpPill');
-        const btnOpenSmtp = document.getElementById('btnOpenSmtpConfig');
-        if (textElem && st?.smtp) {
-          if (st.smtp.isReal) {
-            textElem.textContent = st.smtp.provider || 'Gmail SMTP Oficial (Activo)';
-            if (pillElem) pillElem.style.borderColor = 'var(--editorial-emerald)';
-            if (btnOpenSmtp) btnOpenSmtp.style.display = isStaff ? 'inline-flex' : 'none';
-          } else {
-            textElem.textContent = 'Modo Previsualización (Clic para activar Gmail Real)';
-            if (btnOpenSmtp) btnOpenSmtp.style.display = isStaff ? 'inline-flex' : 'none';
-          }
+      // El huésped solo consulta su buzón personal (el backend ya filtra por su correo)
+      if (!admin) {
+        const currentUser = api.getCurrentUser();
+        if (currentUser && currentUser.email) {
+          items = items.filter(item => {
+            const recipient = (item.recipient || item.recipientEmail || item.email || '').toLowerCase();
+            return recipient === currentUser.email.toLowerCase();
+          });
         }
-      }).catch(() => {});
-
-      // GUEST solo ve sus propias notificaciones; el personal ve todo el registro
-      let filteredHistory = Array.isArray(history) ? history : (history?.data || []);
-      if (!isStaff && currentUser && currentUser.email) {
-        filteredHistory = filteredHistory.filter(item => {
-          const recipient = (item.recipient || item.recipientEmail || item.email || '').toLowerCase();
-          return recipient === currentUser.email.toLowerCase();
-        });
       }
-      renderNotificationHistory(filteredHistory);
+
+      renderNotificationHistory(items);
+
+      // El estado del proveedor de correo solo interesa al Administrador
+      if (admin) updateAdminSmtpStatus();
     } catch (err) {
       console.warn('No se pudo cargar el historial de notificaciones:', err);
     }
   }
 
+  // Estado del proveedor SMTP en las tarjetas del centro admin (Gmail real vs previsualización)
+  async function updateAdminSmtpStatus() {
+    try {
+      const st = await api.getNotificationStatus();
+      const textElem = document.getElementById('notifSmtpPillText');
+      const hintElem = document.getElementById('notifSmtpHint');
+      const cardElem = document.getElementById('notifSmtpPill');
+      const btnOpenSmtp = document.getElementById('btnOpenSmtpConfig');
+
+      if (st?.smtp && textElem) {
+        if (st.smtp.isReal) {
+          textElem.textContent = st.smtp.provider || 'Gmail SMTP Oficial';
+          if (hintElem) hintElem.textContent = `Enviando desde ${st.smtp.from || 'la cuenta oficial'}`;
+          if (cardElem) cardElem.style.borderColor = 'var(--editorial-emerald)';
+          if (btnOpenSmtp) btnOpenSmtp.style.display = 'none';
+        } else {
+          textElem.textContent = 'Modo Previsualización';
+          if (hintElem) hintElem.textContent = 'Sin Gmail conectado: los correos no llegan a bandeja real';
+          if (cardElem) cardElem.style.borderColor = 'var(--editorial-gold)';
+          if (btnOpenSmtp) btnOpenSmtp.style.display = 'inline-flex';
+        }
+      }
+    } catch (err) {
+      console.warn('No se pudo consultar el estado SMTP:', err);
+    }
+  }
+
   function renderNotificationHistory(history = []) {
+    if (isStaffUser()) {
+      renderAdminAuditLog(history);
+    } else {
+      renderGuestMailbox(history);
+    }
+  }
+
+  // VISTA ADMIN: registro de auditoría completo (todos los destinatarios)
+  function renderAdminAuditLog(history = []) {
     if (!notificationsHistoryList) return;
 
     if (notifCountBadge) {
@@ -3146,13 +3202,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (!history || history.length === 0) {
-      const user = api.getCurrentUser();
-      const isStaff = user && user.role === 'HOTEL_ADMIN';
       notificationsHistoryList.innerHTML = `
         <div class="notif-history-empty">
-          ${isStaff
-            ? 'No se han procesado notificaciones en esta sesión. Utiliza los botones de arriba para disparar eventos hacia RabbitMQ.'
-            : 'No tienes notificaciones registradas en tu buzón personal por el momento.'}
+          No se han procesado notificaciones en esta sesión. Utiliza las herramientas de envío de arriba para verificar la entrega.
         </div>
       `;
       return;
@@ -3164,10 +3216,10 @@ document.addEventListener('DOMContentLoaded', () => {
         ? `<span style="color: var(--editorial-emerald); font-size: 0.72rem; font-weight:600;">✓ Entregado a Gmail</span>`
         : '';
       const previewLink = item.previewUrl
-        ? `<a href="${item.previewUrl}" target="_blank" class="notif-link-btn" title="Abrir correo renderizado en Ethereal">Ver Email</a>`
+        ? `<a href="${item.previewUrl}" target="_blank" class="notif-link-btn" title="Abrir correo renderizado">Ver Email</a>`
         : deliveryBadge;
       const attachmentBadge = item.hasAttachment
-        ? `<span style="color:#6ee7b7; font-size: 0.72rem;">Voucher PDF</span>`
+        ? `<span style="color: var(--editorial-gold); font-size: 0.72rem; font-weight: 600;">Voucher PDF</span>`
         : '';
 
       return `
@@ -3175,10 +3227,10 @@ document.addEventListener('DOMContentLoaded', () => {
           <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
             <span class="notif-badge-tag ${item.type || ''}">${item.type || 'EVENT'}</span>
             <strong style="color: var(--editorial-text-main);">${item.recipient || '—'}</strong>
-            <span style="color: var(--text-dim); font-size: 0.75rem;">${item.subject || ''}</span>
+            <span style="color: var(--editorial-text-muted); font-size: 0.75rem;">${item.subject || ''}</span>
           </div>
           <div style="display: flex; align-items: center; gap: 0.6rem; margin-left: auto;">
-            <span style="color: var(--text-dim); font-size: 0.7rem;">${timeStr} (${item.durationMs ?? 0}ms)</span>
+            <span style="color: var(--editorial-text-subtle); font-size: 0.7rem;">${timeStr} (${item.durationMs ?? 0}ms)</span>
             ${attachmentBadge}
             ${previewLink}
           </div>
@@ -3186,6 +3238,65 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }).join('');
   }
+
+  // VISTA HUÉSPED: buzón personal limpio, sin información técnica interna
+  function renderGuestMailbox(history = []) {
+    if (!guestMailList) return;
+
+    if (guestNotifCountBadge) {
+      guestNotifCountBadge.textContent = `${history.length} mensaje${history.length === 1 ? '' : 's'}`;
+    }
+
+    if (!history || history.length === 0) {
+      guestMailList.innerHTML = `
+        <div class="guest-mail-empty">
+          <span class="guest-mail-empty-icon">📬</span>
+          <strong>Aún no tienes mensajes</strong>
+          <span>Cuando reserves, aquí encontrarás tu confirmación y el voucher oficial con código QR.</span>
+        </div>
+      `;
+      return;
+    }
+
+    guestMailList.innerHTML = history.map(item => {
+      const friendly = NOTIF_TYPE_FRIENDLY[item.type] || { label: 'Notificación', icon: '✉️' };
+      const when = item.timestamp
+        ? new Date(item.timestamp).toLocaleString('es-CO', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+        : '';
+      const sentOk = item.status !== 'FAILED';
+      const statusChip = !sentOk
+        ? `<span class="guest-mail-chip guest-mail-chip--warn">No pudo enviarse</span>`
+        : item.previewUrl
+          ? `<a href="${item.previewUrl}" target="_blank" rel="noopener" class="guest-mail-chip guest-mail-chip--link">Ver mensaje</a>`
+          : `<span class="guest-mail-chip guest-mail-chip--ok">Entregado</span>`;
+      const attachChip = item.hasAttachment ? `<span class="guest-mail-chip">Voucher PDF</span>` : '';
+
+      return `
+        <div class="guest-mail-item">
+          <span class="guest-mail-icon" aria-hidden="true">${friendly.icon}</span>
+          <div class="guest-mail-main">
+            <strong>${friendly.label}</strong>
+            <span class="guest-mail-subject">${item.subject || ''}</span>
+            <span class="guest-mail-date">${when}</span>
+          </div>
+          <div class="guest-mail-side">${attachChip}${statusChip}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Referencias a las herramientas de envío (solo Administrador)
+  const btnVoucherSample = document.getElementById('btnVoucherSample');
+  const btnTriggerWelcome = document.getElementById('btnTriggerWelcome');
+  const btnTriggerBookingConfirm = document.getElementById('btnTriggerBookingConfirm');
+  const btnTriggerPaymentFailed = document.getElementById('btnTriggerPaymentFailed');
+  const btnTriggerCheckinReminder = document.getElementById('btnTriggerCheckinReminder');
+  const btnTriggerRefund = document.getElementById('btnTriggerRefund');
+
+  refreshGuestNotifBtn?.addEventListener('click', () => {
+    loadNotificationHistory();
+    showToast('Tus notificaciones están al día', 'info');
+  });
 
   // Triggers de notificación
 
@@ -3376,6 +3487,36 @@ document.addEventListener('DOMContentLoaded', () => {
   refreshNotifHistoryBtn?.addEventListener('click', () => {
     loadNotificationHistory();
     showToast('Historial de notificaciones actualizado', 'info');
+  });
+
+  // --------------------------------------------------------------------------
+  // MODAL INSTITUCIONAL: QUIÉNES SOMOS (landing + footer del dashboard)
+  // --------------------------------------------------------------------------
+  const aboutUsModal = document.getElementById('aboutUsModal');
+  const closeAboutUsBtn = document.getElementById('closeAboutUsBtn');
+
+  document.querySelectorAll('.about-us-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (aboutUsModal) aboutUsModal.style.display = 'flex';
+    });
+  });
+
+  closeAboutUsBtn?.addEventListener('click', () => {
+    if (aboutUsModal) aboutUsModal.style.display = 'none';
+  });
+
+  aboutUsModal?.addEventListener('click', (e) => {
+    if (e.target === aboutUsModal) aboutUsModal.style.display = 'none';
+  });
+
+  // Links de navegación dentro del footer del dashboard
+  document.querySelectorAll('.site-footer [data-tab]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const tabId = link.getAttribute('data-tab');
+      if (tabId) switchDashboardTab(tabId);
+    });
   });
 
   // --------------------------------------------------------------------------
