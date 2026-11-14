@@ -1,7 +1,20 @@
 // API Gateway Client para el Frontend de Reservas Hoteleras
-const GATEWAY_BASE_URL = (typeof window !== 'undefined' && window.location)
-  ? `${window.location.protocol}//${window.location.hostname || 'localhost'}:3000`
-  : 'http://localhost:3000';
+// Soporta tanto Reverse Proxy unificado por Nginx (/api en el mismo origen para Cloud/HTTPS/Túneles)
+// como conexión directa al puerto 3000 en entornos locales sin Nginx.
+const GATEWAY_BASE_URL = (() => {
+  if (typeof window === 'undefined' || !window.location) {
+    return 'http://localhost:3000';
+  }
+  const { protocol, hostname, port, origin } = window.location;
+  if (protocol === 'file:' || port === '5500' || port === '5501') {
+    return `http://${hostname || 'localhost'}:3000`;
+  }
+  // En contenedores Nginx (puerto 80, 443, 5173 o dominios HTTPS/Cloudflare/Railway) usa el proxy interno /api
+  if (port === '5173' || port === '80' || port === '443' || port === '' || protocol === 'https:') {
+    return origin;
+  }
+  return `${protocol}//${hostname || 'localhost'}:3000`;
+})();
 
 class HotelApiClient {
   constructor() {
