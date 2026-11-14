@@ -486,31 +486,51 @@ export class BookingService implements OnModuleInit {
     }
 
     // Emitir booking.confirmed para que notification-service envíe el Voucher con QR y availability-service confirme el inventario
+    const confirmedPayload = {
+      id: confirmed.id,
+      bookingId: confirmed.id,
+      bookingCode: confirmed.bookingCode,
+      bookingReference: confirmed.bookingCode,
+      userId: confirmed.userId,
+      userEmail: confirmed.userEmail,
+      userName: confirmed.userName,
+      hotelId: confirmed.hotelId,
+      hotelName: confirmed.hotelName,
+      hotelAddress: 'Sede Principal Exclusiva',
+      hotelCity: 'Colombia',
+      roomId: confirmed.roomId,
+      roomNumber: confirmed.roomNumber,
+      roomName: confirmed.roomName,
+      roomTypeName: confirmed.roomName,
+      holdId: confirmed.holdId,
+      checkIn: confirmed.checkIn,
+      checkInDate: confirmed.checkIn,
+      checkOut: confirmed.checkOut,
+      checkOutDate: confirmed.checkOut,
+      nightsCount: confirmed.nightsCount,
+      nights: confirmed.nightsCount,
+      guestsCount: confirmed.guestsCount,
+      totalAmount: confirmed.totalAmount,
+      currency: confirmed.currency,
+      paymentId: confirmed.paymentId,
+    };
+
     try {
-      this.rabbitClient.emit('booking.confirmed', {
-        id: confirmed.id,
-        bookingCode: confirmed.bookingCode,
-        userId: confirmed.userId,
-        userEmail: confirmed.userEmail,
-        userName: confirmed.userName,
-        hotelId: confirmed.hotelId,
-        hotelName: confirmed.hotelName,
-        roomId: confirmed.roomId,
-        roomNumber: confirmed.roomNumber,
-        roomName: confirmed.roomName,
-        holdId: confirmed.holdId,
-        checkIn: confirmed.checkIn,
-        checkOut: confirmed.checkOut,
-        nightsCount: confirmed.nightsCount,
-        guestsCount: confirmed.guestsCount,
-        totalAmount: confirmed.totalAmount,
-        currency: confirmed.currency,
-        paymentId: confirmed.paymentId,
-      });
+      this.rabbitClient.emit('booking.confirmed', confirmedPayload);
       this.logger.log(`🐇 Evento 'booking.confirmed' emitido para generación de voucher PDF e inventario`);
     } catch (err) {
       this.logger.warn(`Fallo al emitir booking.confirmed: ${err.message}`);
     }
+
+    // Respaldo directo HTTP hacia notification-service
+    try {
+      const notifUrl = this.configService.get<string>('NOTIFICATIONS_SERVICE_URL', 'http://notification-service:3008');
+      await fetch(`${notifUrl}/api/notifications/internal/dispatch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event: 'booking.confirmed', payload: confirmedPayload }),
+      });
+    } catch {}
   }
 
   /**

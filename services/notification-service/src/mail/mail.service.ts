@@ -1,6 +1,8 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
+import * as fs from 'fs';
+import * as path from 'path';
 import { renderWelcomeEmail, WelcomeEmailData } from './templates/welcome.template';
 import {
   renderBookingConfirmationEmail,
@@ -47,7 +49,9 @@ export class MailService implements OnModuleInit {
     await this.initTransporter();
   }
 
-  getProviderInfo(): { isReal: boolean; provider: string; from: string } {
+  private readonly smtpStorePath = path.join(process.cwd(), 'src', '.smtp-config.json');
+
+  getProviderInfo(): { isReal: boolean; provider: string; from: string; user?: string } {
     return {
       isReal: this.isConfiguredWithRealSmtp,
       provider: this.providerName,
@@ -55,15 +59,71 @@ export class MailService implements OnModuleInit {
     };
   }
 
+  async configureSmtpRuntime(user: string, pass: string, fromName = 'Travel & Resorts'): Promise<{ isReal: boolean; provider: string; from: string; message: string }> {
+    const cleanUser = (user || '').trim();
+    const cleanPass = (pass || '').replace(/\s+/g, '');
+
+    if (!cleanUser || !cleanPass) {
+      throw new Error('Debes proporcionar el correo de Gmail y la Contraseña de Aplicación de 16 caracteres.');
+    }
+
+    const testTransporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: cleanUser, pass: cleanPass },
+      pool: true,
+      maxConnections: 5,
+    });
+
+    await testTransporter.verify();
+
+    this.transporter = testTransporter;
+    this.isConfiguredWithRealSmtp = true;
+    this.fromAddress = `${fromName} <${cleanUser}>`;
+    this.providerName = `Gmail Oficial (${cleanUser})`;
+
+    try {
+      fs.writeFileSync(
+        this.smtpStorePath,
+        JSON.stringify({ user: cleanUser, pass: cleanPass, from: this.fromAddress }, null, 2),
+        'utf8',
+      );
+    } catch (e) {
+      this.logger.warn(`No se pudo persistir .smtp-config.json: ${e.message}`);
+    }
+
+    this.logger.log(`✅ [Gmail Real Activo] Transporte SMTP configurado en caliente para ${cleanUser}`);
+    return {
+      isReal: true,
+      provider: this.providerName,
+      from: this.fromAddress,
+      message: `Conexión Gmail SMTP verificada y activada con éxito (${cleanUser}). Todos los correos llegarán a la bandeja de entrada real.`,
+    };
+  }
+
   private async initTransporter() {
-    const service = this.configService.get<string>('smtp.service');
-    const host = this.configService.get<string>('smtp.host', 'smtp.gmail.com');
-    const port = this.configService.get<number>('smtp.port', 465);
-    const user = this.configService.get<string>('smtp.user', '');
-    // Las app-passwords de Gmail se muestran en grupos de 4 con espacios, pero la
-    // contraseña real no los contiene; se normalizan para evitar fallos 535 de auth.
-    const pass = (this.configService.get<string>('smtp.pass', '') || '').replace(/\s+/g, '');
+    let service = this.configService.get<string>('smtp.service');
+    let host = this.configService.get<string>('smtp.host', 'smtp.gmail.com');
+    let port = this.configService.get<number>('smtp.port', 465);
+    let user = this.configService.get<string>('smtp.user', '');
+    let pass = (this.configService.get<string>('smtp.pass', '') || '').replace(/\s+/g, '');
     const secure = this.configService.get<boolean>('smtp.secure', true);
+
+    // Si no hay credenciales en variables de entorno, verificar si fueron guardadas desde el panel
+    if ((!user || !pass) && fs.existsSync(this.smtpStorePath)) {
+      try {
+        const saved = JSON.parse(fs.readFileSync(this.smtpStorePath, 'utf8'));
+        if (saved.user && saved.pass) {
+          user = saved.user;
+          pass = saved.pass.replace(/\s+/g, '');
+          service = 'gmail';
+          if (saved.from) this.fromAddress = saved.from;
+        }
+      } catch {}
+    }
+
+    if (user && !this.fromAddress.includes(user) && (service === 'gmail' || host.includes('gmail'))) {
+      this.fromAddress = `Travel & Resorts <${user}>`;
+    }
 
     if (user && pass) {
       if (service === 'gmail' || host.includes('gmail')) {

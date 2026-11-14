@@ -24,19 +24,27 @@ export class AuthService {
   ) {}
 
   private emitUserRegistered(user: { id: string; email: string; firstName: string; lastName: string; role?: string }) {
+    const payload = {
+      userId: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      loginUrl: 'http://localhost:5173',
+      role: user.role || 'GUEST',
+    };
     try {
-      this.notificationClient.emit('user.registered', {
-        userId: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        loginUrl: 'http://localhost',
-        role: user.role || 'GUEST',
-      });
+      this.notificationClient.emit('user.registered', payload);
       this.logger.log(`🐇 Evento 'user.registered' emitido a RabbitMQ para ${user.email}`);
     } catch (err) {
       this.logger.warn(`No se pudo emitir evento 'user.registered' a RabbitMQ: ${err.message}`);
     }
+
+    // Despacho directo garantizado hacia notification-service
+    fetch('http://notification-service:3008/api/notifications/internal/dispatch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event: 'user.registered', payload }),
+    }).catch(() => {});
   }
 
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {

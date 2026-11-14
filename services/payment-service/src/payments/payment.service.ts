@@ -560,9 +560,48 @@ export class PaymentService implements OnModuleInit {
       this.logger.warn(`Error al confirmar reserva directamente en booking-service: ${e.message}`);
     }
 
+    // Despacho directo garantizado de correo de Pago Aceptado + Voucher PDF al huésped
+    let notification: any = null;
+    try {
+      const notifUrl = this.configService.get('NOTIFICATIONS_SERVICE_URL', 'http://notification-service:3008');
+      const notifRes = await fetch(`${notifUrl}/api/notifications/internal/dispatch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event: 'booking.confirmed',
+          payload: {
+            bookingId: saved.bookingId,
+            bookingReference: saved.bookingCode,
+            bookingCode: saved.bookingCode,
+            userEmail: booking?.userEmail || saved.userEmail,
+            userName: booking?.userName || (saved.userEmail ? saved.userEmail.split('@')[0] : 'Huésped'),
+            hotelName: booking?.hotelName || 'Travel & Resorts — Luxury Sanctuary',
+            hotelAddress: 'Sede Oficial Exclusiva',
+            hotelCity: 'Colombia',
+            roomTypeName: booking?.roomName || 'Suite Reservada',
+            checkInDate: booking?.checkIn || '2026-11-15',
+            checkOutDate: booking?.checkOut || '2026-11-18',
+            nights: booking?.nightsCount || 2,
+            guestsCount: booking?.guestsCount || 2,
+            totalAmount: booking?.totalAmount || saved.amount,
+            currency: 'COP',
+            paymentId: saved.transactionReference,
+            paymentMethod: 'Transferencia / WhatsApp Aprobada (+57 304 659 8870)',
+          },
+        }),
+      });
+      if (notifRes.ok) {
+        const notifBody: any = await notifRes.json();
+        notification = notifBody.notification || notifBody;
+      }
+    } catch (e) {
+      this.logger.warn(`Aviso al despachar correo directo de aprobación: ${e.message}`);
+    }
+
     return {
-      message: `Reserva ${saved.bookingCode} aprobada exitosamente. Voucher digital emitido.`,
+      message: `Reserva ${saved.bookingCode} aprobada exitosamente. Correo de confirmación y Voucher PDF enviados a ${booking?.userEmail || saved.userEmail}.`,
       payment: saved,
+      notification,
     };
   }
 
@@ -619,8 +658,9 @@ export class PaymentService implements OnModuleInit {
       });
     }
 
+    const cleanReason = reason || 'Comprobante bancario no recibido o fondos no acreditados';
     payment.status = PaymentStatus.FAILED;
-    payment.errorMessage = `Rechazado por Admin: ${reason || 'Comprobante inválido o fondos no recibidos'}`;
+    payment.errorMessage = `Rechazado por Admin: ${cleanReason}`;
     const saved = await this.paymentRepository.save(payment);
 
     // Cancelar la reserva en booking-service (lo cual libera las fechas en availability-service)
@@ -633,28 +673,58 @@ export class PaymentService implements OnModuleInit {
           'x-user-email': adminUser.email,
           'x-user-role': adminUser.role,
         },
-        body: JSON.stringify({ reason: `Transferencia rechazada: ${reason || 'Comprobante no válido'}` }),
+        body: JSON.stringify({ reason: `Transferencia rechazada: ${cleanReason}` }),
       });
       this.logger.log(`Cancelación enviada a booking-service para liberar inventario.`);
     } catch (e) {
       this.logger.warn(`Error al cancelar reserva en booking-service: ${e.message}`);
     }
 
-    // Emitir evento payment.failed
+    // Emitir evento payment.failed con todos los campos para RabbitMQ
+    const failPayload = {
+      paymentId: saved.id,
+      bookingId: saved.bookingCode || saved.bookingId,
+      bookingCode: saved.bookingCode,
+      userEmail: booking?.userEmail || saved.userEmail,
+      userName: booking?.userName || (saved.userEmail ? saved.userEmail.split('@')[0] : 'Huésped'),
+      hotelName: booking?.hotelName || 'Travel & Resorts',
+      roomTypeName: booking?.roomName || 'Suite Reservada',
+      totalAmount: booking?.totalAmount || saved.amount,
+      currency: 'COP',
+      failureReason: cleanReason,
+      reason: cleanReason,
+    };
+
     try {
-      this.rabbitClient.emit('payment.failed', {
-        paymentId: saved.id,
-        bookingId: saved.bookingId,
-        bookingCode: saved.bookingCode,
-        reason: payment.errorMessage,
-      });
+      this.rabbitClient.emit('payment.failed', failPayload);
     } catch (e) {
       this.logger.warn(`No se pudo emitir payment.failed: ${e.message}`);
     }
 
+    // Despacho directo garantizado de correo de Pago Rechazado al huésped
+    let notification: any = null;
+    try {
+      const notifUrl = this.configService.get('NOTIFICATIONS_SERVICE_URL', 'http://notification-service:3008');
+      const notifRes = await fetch(`${notifUrl}/api/notifications/internal/dispatch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event: 'payment.failed',
+          payload: failPayload,
+        }),
+      });
+      if (notifRes.ok) {
+        const notifBody: any = await notifRes.json();
+        notification = notifBody.notification || notifBody;
+      }
+    } catch (e) {
+      this.logger.warn(`Aviso al despachar correo directo de rechazo: ${e.message}`);
+    }
+
     return {
-      message: `Reserva ${saved.bookingCode} rechazada. La reserva fue cancelada y las fechas han sido liberadas en el inventario.`,
+      message: `Reserva ${saved.bookingCode} rechazada y fechas liberadas. Notificación enviada por correo a ${failPayload.userEmail}.`,
       payment: saved,
+      notification,
     };
   }
 

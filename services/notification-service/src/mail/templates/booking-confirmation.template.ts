@@ -17,55 +17,61 @@ export interface BookingConfirmationEmailData {
 }
 
 export function renderBookingConfirmationEmail(data: BookingConfirmationEmailData): string {
-  const currency = data.currency || 'USD';
-  const dashboardUrl = data.dashboardUrl || 'http://localhost';
+  const rawAmount = Number(data.totalAmount) || 0;
+  const copAmount = rawAmount > 0 && rawAmount < 10000 ? rawAmount * 4000 : rawAmount;
+  const formattedAmount = new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    maximumFractionDigits: 0,
+  }).format(copAmount);
+  const dashboardUrl = data.dashboardUrl || 'http://localhost:5173';
 
   const bodyContent = `
     <p style="font-size: 16px; margin-top: 0;">
-      Estimado/a <strong style="color: #0f172a;">${data.guestName}</strong>,
+      Estimado/a <strong style="color: #13332E;">${data.guestName}</strong>,
     </p>
     <p>
-      ¡Tu reserva ha sido <span style="display: inline-block; background-color: #d1fae5; color: #065f46; font-weight: 700; padding: 2px 8px; border-radius: 4px; font-size: 13px;">CONFIRMADA Y PAGADA</span> con éxito!
+      Nos complace informarte que tu pago ha sido verificado por administración y tu reserva se encuentra <span style="display: inline-block; background-color: #d1fae5; color: #065f46; font-weight: 700; padding: 3px 10px; border-radius: 4px; font-size: 13px;">PAGO ACEPTADO &amp; RESERVA CONFIRMADA</span>.
     </p>
 
     <!-- Resumen de Reserva -->
-    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin: 20px 0; overflow: hidden;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #FAF9F6; border: 1px solid #E5E2DC; border-radius: 8px; margin: 20px 0; overflow: hidden;">
       <tr>
-        <td style="background-color: #1e1b4b; padding: 12px 18px; color: #ffffff;">
-          <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #cbd5e1;">Código de Confirmación:</span>
-          <div style="font-size: 18px; font-weight: 800; color: #fbbf24; margin-top: 2px;">${data.bookingReference}</div>
+        <td style="background-color: #13332E; padding: 14px 18px; color: #FAF9F6;">
+          <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #D4C5A9;">Código Oficial de Confirmación:</span>
+          <div style="font-size: 20px; font-weight: 800; color: #FAF9F6; margin-top: 3px; letter-spacing: 0.5px;">${data.bookingReference}</div>
         </td>
       </tr>
       <tr>
         <td style="padding: 18px;">
-          <table border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 14px; color: #334155;">
+          <table border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 14px; color: #2C2A25;">
             <tr>
-              <td style="padding: 5px 0; color: #64748b; width: 40%;">Hotel & Sede:</td>
-              <td style="padding: 5px 0; font-weight: 600; color: #0f172a;">${data.hotelName}</td>
+              <td style="padding: 6px 0; color: #6E6B64; width: 40%;">Hotel &amp; Sede:</td>
+              <td style="padding: 6px 0; font-weight: 700; color: #13332E;">${data.hotelName}</td>
             </tr>
             <tr>
-              <td style="padding: 5px 0; color: #64748b;">Ubicación:</td>
-              <td style="padding: 5px 0;">${data.hotelAddress}, ${data.hotelCity}</td>
+              <td style="padding: 6px 0; color: #6E6B64;">Ubicación:</td>
+              <td style="padding: 6px 0;">${data.hotelAddress}, ${data.hotelCity}</td>
             </tr>
             <tr>
-              <td style="padding: 5px 0; color: #64748b;">Tipo de Habitación:</td>
-              <td style="padding: 5px 0; font-weight: 600;">${data.roomTypeName}</td>
+              <td style="padding: 6px 0; color: #6E6B64;">Habitación / Suite:</td>
+              <td style="padding: 6px 0; font-weight: 600;">${data.roomTypeName}</td>
             </tr>
             <tr>
-              <td style="padding: 5px 0; color: #64748b;">Check-In:</td>
-              <td style="padding: 5px 0; color: #4f46e5; font-weight: 700;">${data.checkInDate} (a partir de las 15:00 hrs)</td>
+              <td style="padding: 6px 0; color: #6E6B64;">Check-In:</td>
+              <td style="padding: 6px 0; color: #13332E; font-weight: 700;">${data.checkInDate} (a partir de las 15:00 hrs)</td>
             </tr>
             <tr>
-              <td style="padding: 5px 0; color: #64748b;">Check-Out:</td>
-              <td style="padding: 5px 0; color: #4f46e5; font-weight: 700;">${data.checkOutDate} (hasta las 11:00 hrs)</td>
+              <td style="padding: 6px 0; color: #6E6B64;">Check-Out:</td>
+              <td style="padding: 6px 0; color: #8C703E; font-weight: 700;">${data.checkOutDate} (hasta las 12:00 hrs)</td>
             </tr>
             <tr>
-              <td style="padding: 5px 0; color: #64748b;">Duración & Huéspedes:</td>
-              <td style="padding: 5px 0;">${data.nights} Noche(s) &bull; ${data.guestsCount} Persona(s)</td>
+              <td style="padding: 6px 0; color: #6E6B64;">Duración &amp; Huéspedes:</td>
+              <td style="padding: 6px 0;">${data.nights} Noche(s) &bull; ${data.guestsCount} Persona(s)</td>
             </tr>
-            <tr style="border-top: 1px dashed #cbd5e1;">
-              <td style="padding: 10px 0 0 0; color: #64748b; font-weight: 700;">Total Pagado:</td>
-              <td style="padding: 10px 0 0 0; font-size: 16px; font-weight: 800; color: #059669;">${currency} $${Number(data.totalAmount).toFixed(2)}</td>
+            <tr style="border-top: 1px dashed #E5E2DC;">
+              <td style="padding: 12px 0 0 0; color: #6E6B64; font-weight: 700;">Valor Confirmado:</td>
+              <td style="padding: 12px 0 0 0; font-size: 17px; font-weight: 800; color: #13332E;">${formattedAmount} COP</td>
             </tr>
           </table>
         </td>

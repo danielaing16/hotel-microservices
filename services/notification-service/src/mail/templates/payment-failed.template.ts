@@ -13,69 +13,67 @@ export interface PaymentFailedEmailData {
 }
 
 export function renderPaymentFailedEmail(data: PaymentFailedEmailData): string {
-  const currency = data.currency || 'USD';
-  const retryUrl = data.retryPaymentUrl || 'http://localhost';
+  const rawAmount = Number(data.totalAmount) || 0;
+  const copAmount = rawAmount > 0 && rawAmount < 10000 ? rawAmount * 4000 : rawAmount;
+  const formattedAmount = new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    maximumFractionDigits: 0,
+  }).format(copAmount);
+  const retryUrl = data.retryPaymentUrl || 'http://localhost:5173';
 
   const bodyContent = `
     <p style="font-size: 16px; margin-top: 0;">
-      Estimado/a <strong style="color: #0f172a;">${data.guestName}</strong>,
+      Estimado/a <strong style="color: #13332E;">${data.guestName}</strong>,
     </p>
     <p>
-      Te informamos que la transacción para completar el pago de tu reserva en <strong style="color: #0f172a;">${data.hotelName}</strong> no pudo ser procesada satisfactoriamente por la entidad bancaria o pasarela de pagos.
+      Te informamos que el pago o comprobante asociado a tu solicitud de reserva en <strong style="color: #13332E;">${data.hotelName}</strong> ha sido <span style="display: inline-block; background-color: #fee2e2; color: #991b1b; font-weight: 700; padding: 3px 10px; border-radius: 4px; font-size: 13px;">RECHAZADO / NO APROBADO</span>.
     </p>
 
-    <!-- Tarjeta de Alerta de Error -->
-    <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid #ef4444; border-radius: 6px; padding: 18px; margin: 20px 0;">
+    <!-- Tarjeta de Alerta de Motivo -->
+    <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid #B42318; border-radius: 6px; padding: 18px; margin: 20px 0;">
       <div style="font-weight: 700; color: #991b1b; font-size: 14px; margin-bottom: 6px;">
-        ⚠️ Motivo del fallo reportado:
+        Motivo reportado por Administración:
       </div>
-      <div style="font-size: 14px; color: #b91c1c; font-family: monospace;">
-        ${data.failureReason || 'Fondos insuficientes o denegación preventiva por el banco emisor.'}
+      <div style="font-size: 14px; color: #b91c1c; font-weight: 600;">
+        ${data.failureReason || 'Comprobante bancario no recibido o fondos no acreditados.'}
       </div>
     </div>
 
-    <!-- Detalles de la Reserva en Riesgo -->
-    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin: 20px 0; padding: 16px; font-size: 14px; color: #334155;">
+    <!-- Detalles de la Reserva -->
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #FAF9F6; border: 1px solid #E5E2DC; border-radius: 8px; margin: 20px 0; padding: 16px; font-size: 14px; color: #2C2A25;">
       <tr>
-        <td style="padding: 4px 0; color: #64748b; width: 40%;">ID de Reserva:</td>
-        <td style="padding: 4px 0; font-family: monospace; font-weight: 600;">${data.bookingId}</td>
+        <td style="padding: 5px 0; color: #6E6B64; width: 40%;">Código de Reserva:</td>
+        <td style="padding: 5px 0; font-family: monospace; font-weight: 700; color: #13332E;">${data.bookingId}</td>
       </tr>
       <tr>
-        <td style="padding: 4px 0; color: #64748b;">Habitación:</td>
-        <td style="padding: 4px 0;">${data.roomTypeName}</td>
+        <td style="padding: 5px 0; color: #6E6B64;">Propiedad:</td>
+        <td style="padding: 5px 0; font-weight: 600;">${data.hotelName}</td>
       </tr>
       <tr>
-        <td style="padding: 4px 0; color: #64748b;">Monto Pendiente:</td>
-        <td style="padding: 4px 0; font-weight: 700; color: #ef4444;">${currency} $${Number(data.totalAmount).toFixed(2)}</td>
+        <td style="padding: 5px 0; color: #6E6B64;">Habitación / Suite:</td>
+        <td style="padding: 5px 0;">${data.roomTypeName}</td>
       </tr>
-      ${
-        data.expiresAt
-          ? `<tr>
-              <td style="padding: 4px 0; color: #64748b;">Expiración del Bloqueo:</td>
-              <td style="padding: 4px 0; font-weight: 700; color: #d97706;">${data.expiresAt}</td>
-            </tr>`
-          : ''
-      }
+      <tr>
+        <td style="padding: 5px 0; color: #6E6B64;">Valor de la Reserva:</td>
+        <td style="padding: 5px 0; font-weight: 700; color: #B42318;">${formattedAmount} COP</td>
+      </tr>
     </table>
 
-    <div style="background-color: #fffbeb; border: 1px solid #fef3c7; border-radius: 6px; padding: 14px; margin: 20px 0; font-size: 13px; color: #92400e;">
-      ⏳ <strong>Aviso importante de disponibilidad:</strong> Tu habitación se encuentra protegida temporalmente por nuestro candado anti-overbooking. Si el pago no se completa antes de su expiración, el bloqueo será liberado automáticamente en inventario para otros usuarios.
+    <div style="background-color: #FAF9F6; border: 1px solid #E5E2DC; border-radius: 6px; padding: 14px; margin: 20px 0; font-size: 13px; color: #6E6B64;">
+      <strong>Estado del inventario:</strong> Las fechas seleccionadas han sido liberadas en el sistema. Si deseas volver a reservar o enviar un nuevo comprobante, puedes hacerlo directamente desde el portal o comunicándote a nuestra línea oficial de WhatsApp <strong>+57 304 659 8870</strong>.
     </div>
-
-    <p style="font-size: 14px; color: #475569;">
-      Te recomendamos verificar los fondos disponibles de tu tarjeta o intentar con un método de pago alternativo.
-    </p>
   `;
 
   return renderBaseTemplate({
-    preheader: `Alerta: Pago no completado para tu reserva en ${data.hotelName}. Intenta nuevamente.`,
-    title: '⚠️ Notificación de Pago Fallido & Expiración de Reserva',
+    preheader: `Notificación sobre tu reserva ${data.bookingId} en ${data.hotelName}: Pago rechazado o no completado.`,
+    title: `Pago No Aprobado — Reserva ${data.bookingId}`,
     bodyContent,
     actionButton: {
-      text: 'Reintentar Pago Ahora',
+      text: 'Ir al Portal Travel & Resorts',
       url: retryUrl,
     },
-    footerNotice: 'Notificación generada automáticamente por el evento de compensación de Payments Service.',
+    footerNotice: 'Notificación oficial emitida por el Departamento de Reservas & Pagos de Travel & Resorts.',
   });
 }
 

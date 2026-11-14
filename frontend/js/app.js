@@ -279,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --------------------------------------------------------------------------
   // SISTEMA DE NOTIFICACIONES TOAST EDITORIAL (CREMA / VERDE ESMERALDA)
   // --------------------------------------------------------------------------
-  function showToast(message, type = 'info') {
+  function showToast(message, type = 'info', options = {}) {
     if (!toastShelf) return;
     const toast = document.createElement('div');
     toast.className = `toast-msg ${type}`;
@@ -289,11 +289,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (type === 'error' || type === 'warning') iconSvg = SVG_ICONS.alertCircle;
 
     const cleanMessage = String(message || '').replace(/^[✅🛑⚠️ℹ️🎉📅🔒🔓🗑️⏳💬✨🏨]+\s*/g, '');
-    toast.innerHTML = `<span class="toast-icon">${iconSvg}</span><span>${cleanMessage}</span>`;
+    const actionBtnHtml = options.actionUrl
+      ? `<a href="${options.actionUrl}" target="_blank" rel="noopener" style="margin-left: auto; background: rgba(255,255,255,0.16); color: inherit; border: 1px solid rgba(255,255,255,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.74rem; font-weight: 600; text-decoration: none; white-space: nowrap;">${options.actionText || 'Ver Correo'}</a>`
+      : '';
+
+    toast.innerHTML = `<span class="toast-icon">${iconSvg}</span><span style="flex:1;">${cleanMessage}</span>${actionBtnHtml}`;
     if (typeof toastShelf.appendChild === 'function') {
       toastShelf.appendChild(toast);
     }
 
+    const duration = options.actionUrl ? 8000 : 4400;
     setTimeout(() => {
       toast.style.opacity = '0';
       toast.style.transform = 'translateY(10px)';
@@ -301,7 +306,176 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
         if (typeof toast.remove === 'function') toast.remove();
       }, 300);
-    }, 4200);
+    }, duration);
+  }
+
+  // --------------------------------------------------------------------------
+  // DIÁLOGO EDITORIAL PERSONALIZADO (REEMPLAZA CONFIRM & PROMPT DEL NAVEGADOR)
+  // --------------------------------------------------------------------------
+  const editorialActionModal = document.getElementById('editorialActionModal');
+  const editorialActionCloseBtn = document.getElementById('editorialActionCloseBtn');
+  const editorialActionIconWrap = document.getElementById('editorialActionIconWrap');
+  const editorialActionEyebrow = document.getElementById('editorialActionEyebrow');
+  const editorialActionTitle = document.getElementById('editorialActionTitle');
+  const editorialActionSubtitle = document.getElementById('editorialActionSubtitle');
+  const editorialActionMetaBox = document.getElementById('editorialActionMetaBox');
+  const editorialActionInputSection = document.getElementById('editorialActionInputSection');
+  const editorialActionInputLabel = document.getElementById('editorialActionInputLabel');
+  const editorialQuickReasons = document.getElementById('editorialQuickReasons');
+  const editorialActionInput = document.getElementById('editorialActionInput');
+  const editorialActionEmailNotice = document.getElementById('editorialActionEmailNotice');
+  const editorialActionEmailNoticeText = document.getElementById('editorialActionEmailNoticeText');
+  const editorialActionCancelBtn = document.getElementById('editorialActionCancelBtn');
+  const editorialActionConfirmBtn = document.getElementById('editorialActionConfirmBtn');
+  const editorialActionConfirmText = document.getElementById('editorialActionConfirmText');
+
+  let activeEditorialResolver = null;
+
+  function closeEditorialDialog(result) {
+    if (editorialActionModal) editorialActionModal.style.display = 'none';
+    if (activeEditorialResolver) {
+      const fn = activeEditorialResolver;
+      activeEditorialResolver = null;
+      fn(result);
+    }
+  }
+
+  editorialActionCloseBtn?.addEventListener('click', () => closeEditorialDialog(null));
+  editorialActionCancelBtn?.addEventListener('click', () => closeEditorialDialog(null));
+  editorialActionModal?.addEventListener('click', (e) => {
+    if (e.target === editorialActionModal) closeEditorialDialog(null);
+  });
+
+  editorialActionConfirmBtn?.addEventListener('click', () => {
+    const isInputVisible = editorialActionInputSection && editorialActionInputSection.style.display !== 'none';
+    if (isInputVisible) {
+      const val = (editorialActionInput?.value || '').trim();
+      if (!val) {
+        editorialActionInput?.focus();
+        showToast('Por favor escribe o selecciona un motivo para continuar.', 'warning');
+        return;
+      }
+      closeEditorialDialog(val);
+    } else {
+      closeEditorialDialog(true);
+    }
+  });
+
+  function openEditorialDialog({
+    variant = 'emerald', // 'emerald' | 'danger' | 'gold'
+    eyebrow = 'CONFIRMACIÓN DE OPERACIÓN',
+    title = 'Confirmar Acción',
+    subtitle = '¿Deseas continuar con esta operación?',
+    metaHtml = '',
+    requireInput = false,
+    inputLabel = 'Motivo o comentario:',
+    inputPlaceholder = 'Escribe el motivo detallado...',
+    defaultValue = '',
+    quickReasons = [],
+    emailNotice = '',
+    confirmText = 'Confirmar',
+  } = {}) {
+    if (!editorialActionModal) {
+      return Promise.resolve(requireInput ? (defaultValue || 'Confirmado') : true);
+    }
+
+    if (editorialActionEyebrow) editorialActionEyebrow.textContent = eyebrow;
+    if (editorialActionTitle) editorialActionTitle.textContent = title;
+    if (editorialActionSubtitle) editorialActionSubtitle.textContent = subtitle;
+
+    if (editorialActionIconWrap) {
+      if (variant === 'danger') {
+        editorialActionIconWrap.style.background = 'rgba(180, 35, 24, 0.08)';
+        editorialActionIconWrap.style.color = '#B42318';
+        editorialActionIconWrap.style.borderColor = 'rgba(180, 35, 24, 0.25)';
+        editorialActionIconWrap.innerHTML = SVG_ICONS.alertCircle;
+      } else if (variant === 'gold') {
+        editorialActionIconWrap.style.background = 'rgba(166, 138, 86, 0.14)';
+        editorialActionIconWrap.style.color = '#8C703E';
+        editorialActionIconWrap.style.borderColor = 'rgba(166, 138, 86, 0.35)';
+        editorialActionIconWrap.innerHTML = SVG_ICONS.infoCircle;
+      } else {
+        editorialActionIconWrap.style.background = 'rgba(19, 51, 46, 0.08)';
+        editorialActionIconWrap.style.color = '#13332E';
+        editorialActionIconWrap.style.borderColor = 'rgba(19, 51, 46, 0.2)';
+        editorialActionIconWrap.innerHTML = SVG_ICONS.checkCircle;
+      }
+    }
+
+    if (editorialActionMetaBox) {
+      if (metaHtml) {
+        editorialActionMetaBox.innerHTML = metaHtml;
+        editorialActionMetaBox.style.display = 'block';
+      } else {
+        editorialActionMetaBox.style.display = 'none';
+      }
+    }
+
+    if (editorialActionInputSection) {
+      if (requireInput) {
+        editorialActionInputSection.style.display = 'flex';
+        if (editorialActionInputLabel) editorialActionInputLabel.textContent = inputLabel;
+        if (editorialActionInput) {
+          editorialActionInput.placeholder = inputPlaceholder;
+          editorialActionInput.value = defaultValue || '';
+        }
+        if (editorialQuickReasons) {
+          if (Array.isArray(quickReasons) && quickReasons.length > 0) {
+            editorialQuickReasons.style.display = 'flex';
+            editorialQuickReasons.innerHTML = quickReasons.map(r => `
+              <button type="button" class="editorial-quick-reason-chip"
+                style="padding: 4px 10px; font-size: 0.73rem; border-radius: 999px; background: #F2EFE9; border: 1px solid #E5E2DC; color: #2C2A25; cursor: pointer; font-weight: 500; transition: all 0.2s;">
+                ${r}
+              </button>
+            `).join('');
+            editorialQuickReasons.querySelectorAll('.editorial-quick-reason-chip').forEach(chip => {
+              chip.addEventListener('click', () => {
+                if (editorialActionInput) {
+                  editorialActionInput.value = chip.textContent.trim();
+                  editorialActionInput.focus();
+                }
+              });
+            });
+          } else {
+            editorialQuickReasons.style.display = 'none';
+            editorialQuickReasons.innerHTML = '';
+          }
+        }
+      } else {
+        editorialActionInputSection.style.display = 'none';
+      }
+    }
+
+    if (editorialActionEmailNotice) {
+      if (emailNotice) {
+        editorialActionEmailNotice.style.display = 'flex';
+        if (editorialActionEmailNoticeText) editorialActionEmailNoticeText.textContent = emailNotice;
+      } else {
+        editorialActionEmailNotice.style.display = 'none';
+      }
+    }
+
+    if (editorialActionConfirmBtn) {
+      if (variant === 'danger') {
+        editorialActionConfirmBtn.style.background = '#B42318';
+        editorialActionConfirmBtn.style.borderColor = '#B42318';
+        editorialActionConfirmBtn.style.color = '#FAF9F6';
+      } else {
+        editorialActionConfirmBtn.style.background = '#13332E';
+        editorialActionConfirmBtn.style.borderColor = '#13332E';
+        editorialActionConfirmBtn.style.color = '#FAF9F6';
+      }
+    }
+    if (editorialActionConfirmText) editorialActionConfirmText.textContent = confirmText;
+
+    editorialActionModal.style.display = 'flex';
+    if (requireInput && editorialActionInput) {
+      setTimeout(() => editorialActionInput.focus(), 60);
+    }
+
+    return new Promise((resolve) => {
+      activeEditorialResolver = resolve;
+    });
   }
 
   // --------------------------------------------------------------------------
@@ -851,7 +1025,14 @@ document.addEventListener('DOMContentLoaded', () => {
         e.stopPropagation();
         const id = btn.getAttribute('data-id');
         const name = btn.getAttribute('data-name');
-        if (confirm(`¿Confirmas que deseas desactivar la sede "${name}"?`)) {
+        const ok = await openEditorialDialog({
+          variant: 'danger',
+          eyebrow: 'GESTIÓN DE CATÁLOGO HOTELERO',
+          title: 'Desactivar Sede Hotelera',
+          subtitle: `¿Confirmas que deseas desactivar la propiedad "${name}" del catálogo público?`,
+          confirmText: 'Desactivar Propiedad',
+        });
+        if (ok) {
           try {
             await api.deleteHotel(id);
             showToast(`Sede "${name}" desactivada`, 'info');
@@ -986,7 +1167,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const btnSeedHotels = document.getElementById('btnSeedHotels');
   btnSeedHotels?.addEventListener('click', async () => {
-    if (!confirm('¿Deseas poblar el catálogo hotelero con las sedes oficiales demo (Cartagena, San Andrés, Santa Marta, etc.)?')) return;
+    const ok = await openEditorialDialog({
+      variant: 'emerald',
+      eyebrow: 'CATÁLOGO DEMOSTRATIVO',
+      title: 'Restaurar Sedes Oficiales',
+      subtitle: 'Se poblará el catálogo hotelero con las propiedades insignia de Bogotá, Cartagena, Medellín, Santa Marta y San Andrés.',
+      confirmText: 'Poblar Catálogo',
+    });
+    if (!ok) return;
     try {
       showToast('Sembrando catálogo de hoteles demo...', 'info');
       await api.seedHotels();
@@ -1427,8 +1615,15 @@ document.addEventListener('DOMContentLoaded', () => {
     activeHold = null;
   }
 
-  closeCheckoutModalBtn?.addEventListener('click', () => {
-    if (confirm('¿Deseas cancelar el proceso de pago y liberar la habitación?')) {
+  closeCheckoutModalBtn?.addEventListener('click', async () => {
+    const ok = await openEditorialDialog({
+      variant: 'gold',
+      eyebrow: 'LIBERACIÓN DE BLOQUEO TEMPORAL',
+      title: '¿Salir del Proceso de Reserva?',
+      subtitle: 'Si cierras esta ventana, se liberará el bloqueo temporal de 15 minutos sobre la suite seleccionada.',
+      confirmText: 'Liberar y Salir',
+    });
+    if (ok) {
       clearActiveHold();
       checkoutModal.style.display = 'none';
       showToast('Habitación liberada correctamente', 'info');
@@ -1838,7 +2033,15 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', async () => {
         const id = btn.getAttribute('data-id');
         const code = btn.getAttribute('data-code');
-        if (!confirm(`¿Confirmas que deseas cancelar la reserva ${code}? Se procesará la liberación de fechas.`)) return;
+        const ok = await openEditorialDialog({
+          variant: 'danger',
+          eyebrow: 'CANCELACIÓN DE ESTANCIA',
+          title: `Cancelar Reserva ${code}`,
+          subtitle: '¿Confirmas que deseas cancelar esta reserva? Las fechas serán liberadas inmediatamente en el inventario del hotel.',
+          emailNotice: 'Recibirás el comprobante de cancelación en tu correo electrónico registrado.',
+          confirmText: 'Confirmar Cancelación',
+        });
+        if (!ok) return;
 
         try {
           showToast(`Cancelando reserva ${code}...`, 'info');
@@ -1888,14 +2091,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Función auxiliar unificada para aprobar cualquier reserva (con respaldo directo en booking-service)
+  // Función auxiliar unificada para aprobar cualquier reserva y notificar por correo al huésped
   async function approveReservationUnified(codeOrId, bookingIdFallback) {
+    let res = null;
     try {
-      await api.approvePayment(codeOrId);
+      res = await api.approvePayment(codeOrId);
     } catch (firstErr) {
-      // Respaldo directo: confirmar la reserva en booking-service si payment-service aún no tenía el registro
       const target = bookingIdFallback || codeOrId;
-      await api.request(`/api/bookings/${target}/confirm-payment`, {
+      res = await api.request(`/api/bookings/${target}/confirm-payment`, {
         method: 'PATCH',
         body: JSON.stringify({
           bookingId: target,
@@ -1904,16 +2107,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }),
       });
     }
+    if (typeof loadNotificationHistory === 'function') loadNotificationHistory();
+    return res;
   }
 
-  // Función auxiliar unificada para rechazar cualquier reserva y liberar fechas
+  // Función auxiliar unificada para rechazar cualquier reserva, liberar fechas y notificar por correo al huésped
   async function rejectReservationUnified(codeOrId, reason, bookingIdFallback) {
+    let res = null;
     try {
-      await api.rejectPayment(codeOrId, reason);
+      res = await api.rejectPayment(codeOrId, reason);
     } catch (firstErr) {
       const target = bookingIdFallback || codeOrId;
-      await api.cancelBooking(target, `Transferencia rechazada: ${reason}`);
+      res = await api.cancelBooking(target, `Transferencia rechazada: ${reason}`);
     }
+    if (typeof loadNotificationHistory === 'function') loadNotificationHistory();
+    return res;
   }
 
   function renderReceptionTable(bookings = []) {
@@ -2000,12 +2208,19 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }).join('');
 
-    // Eventos de botones de recepción
+    // Eventos de botones de recepción con diálogos editoriales modernos
     document.querySelectorAll('.btn-checkin-action').forEach(btn => {
       btn.addEventListener('click', async () => {
         const id = btn.getAttribute('data-id');
         const code = btn.getAttribute('data-code');
-        if (!confirm(`¿Registrar entrada (Check-In) del huésped para la reserva ${code}?`)) return;
+        const ok = await openEditorialDialog({
+          variant: 'emerald',
+          eyebrow: 'RECEPCIÓN & FAST CHECK-IN',
+          title: `Registrar Check-In (${code})`,
+          subtitle: '¿Confirmas la llegada física del huésped a la propiedad para iniciar su estancia?',
+          confirmText: 'Registrar Entrada',
+        });
+        if (!ok) return;
 
         try {
           showToast(`Registrando Check-In para ${code}...`, 'info');
@@ -2023,12 +2238,31 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', async () => {
         const code = btn.getAttribute('data-code');
         const id = btn.getAttribute('data-id');
-        if (!confirm(`¿Autorizar y confirmar definitivamente la reserva ${code}? Las fechas quedarán bloqueadas permanentemente y se emitirá el voucher digital oficial.`)) return;
+        const bObj = bookings.find(x => x.bookingCode === code) || {};
+        const ok = await openEditorialDialog({
+          variant: 'emerald',
+          eyebrow: 'AUTORIZACIÓN DE PAGO & RESERVA',
+          title: `Aprobar Reserva ${code}`,
+          subtitle: 'Se confirmará la estancia de manera definitiva y se bloquearán las fechas en inventario.',
+          metaHtml: `
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Huésped:</span><strong>${bObj.userName || 'Huésped'} (${bObj.userEmail || ''})</strong></div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Propiedad:</span><strong>${bObj.hotelName || ''}</strong></div>
+            <div style="display:flex; justify-content:space-between;"><span>Valor Total:</span><strong style="color:var(--editorial-emerald);">${formatCOP(bObj.totalAmount || 0)}</strong></div>
+          `,
+          emailNotice: `Se enviará un correo de confirmación con el Voucher PDF oficial y código QR a ${bObj.userEmail || 'el huésped'}.`,
+          confirmText: 'Autorizar y Enviar Voucher',
+        });
+        if (!ok) return;
 
         try {
-          showToast(`Autorizando reserva ${code}...`, 'info');
-          await approveReservationUnified(code, id);
-          showToast(`¡Reserva ${code} autorizada y confirmada exitosamente!`, 'success');
+          showToast(`Autorizando reserva ${code} y enviando correo con Voucher PDF...`, 'info');
+          const res = await approveReservationUnified(code, id);
+          const previewUrl = res?.notification?.previewUrl;
+          showToast(
+            `Reserva ${code} confirmada. Correo con Voucher PDF enviado a ${bObj.userEmail || 'huésped'}.`,
+            'success',
+            previewUrl ? { actionUrl: previewUrl, actionText: 'Ver Correo Enviado' } : {}
+          );
           loadReceptionBookings();
           loadAdminDashboard();
           loadPayments();
@@ -2042,13 +2276,39 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', async () => {
         const code = btn.getAttribute('data-code');
         const id = btn.getAttribute('data-id');
-        const reason = prompt(`Motivo del rechazo de la reserva ${code} (se liberarán las fechas de inmediato):`, 'Comprobante no recibido o fondos insuficientes');
+        const bObj = bookings.find(x => x.bookingCode === code) || {};
+        const reason = await openEditorialDialog({
+          variant: 'danger',
+          eyebrow: 'RECHAZO DE SOLICITUD & LIBERACIÓN',
+          title: `Rechazar Reserva ${code}`,
+          subtitle: 'Selecciona o escribe el motivo del rechazo. Las fechas quedarán disponibles de inmediato.',
+          metaHtml: `
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Huésped:</span><strong>${bObj.userName || 'Huésped'} (${bObj.userEmail || ''})</strong></div>
+            <div style="display:flex; justify-content:space-between;"><span>Propiedad:</span><strong>${bObj.hotelName || ''} — ${bObj.roomName || ''}</strong></div>
+          `,
+          requireInput: true,
+          inputLabel: 'Motivo del rechazo (se enviará al correo del huésped):',
+          defaultValue: 'Comprobante bancario no recibido o fondos no acreditados',
+          quickReasons: [
+            'Comprobante no recibido en WhatsApp',
+            'Fondos no acreditados en cuenta',
+            'Referencia bancaria ilegible o inválida',
+            'Cancelación solicitada por el huésped',
+          ],
+          emailNotice: `Se enviará notificación inmediata del rechazo por correo electrónico a ${bObj.userEmail || 'el huésped'}.`,
+          confirmText: 'Rechazar y Notificar',
+        });
         if (!reason) return;
 
         try {
-          showToast(`Rechazando reserva ${code}...`, 'info');
-          await rejectReservationUnified(code, reason, id);
-          showToast(`Reserva ${code} rechazada. Fechas liberadas en inventario.`, 'info');
+          showToast(`Rechazando reserva ${code} y notificando por correo...`, 'info');
+          const res = await rejectReservationUnified(code, reason, id);
+          const previewUrl = res?.notification?.previewUrl;
+          showToast(
+            `Reserva ${code} rechazada y fechas liberadas. Correo enviado a ${bObj.userEmail || 'huésped'}.`,
+            'info',
+            previewUrl ? { actionUrl: previewUrl, actionText: 'Ver Correo Enviado' } : {}
+          );
           loadReceptionBookings();
           loadAdminDashboard();
           loadPayments();
@@ -2062,7 +2322,14 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', async () => {
         const id = btn.getAttribute('data-id');
         const code = btn.getAttribute('data-code');
-        if (!confirm(`¿Registrar salida (Check-Out) de la habitación para la reserva ${code}?`)) return;
+        const ok = await openEditorialDialog({
+          variant: 'gold',
+          eyebrow: 'FINALIZACIÓN DE ESTANCIA',
+          title: `Registrar Check-Out (${code})`,
+          subtitle: '¿Confirmas la salida del huésped para finalizar la estancia y habilitar la suite en inventario?',
+          confirmText: 'Completar Check-Out',
+        });
+        if (!ok) return;
 
         try {
           showToast(`Registrando Check-Out para ${code}...`, 'info');
@@ -2314,11 +2581,29 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', async () => {
         const code = btn.getAttribute('data-code');
         const bookingId = btn.getAttribute('data-booking-id');
-        if (!confirm(`¿Aprobar el pago y confirmar definitivamente la reserva ${code}?`)) return;
+        const pObj = pendingList.find(x => x.bookingCode === code) || {};
+        const ok = await openEditorialDialog({
+          variant: 'emerald',
+          eyebrow: 'AUTORIZACIÓN EJECUTIVA DE PAGO',
+          title: `Aprobar Reserva ${code}`,
+          subtitle: 'Se validará el pago reportado, confirmando la reserva y bloqueando las fechas.',
+          metaHtml: `
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Huésped:</span><strong>${pObj.userName || 'Huésped'} (${pObj.userEmail || ''})</strong></div>
+            <div style="display:flex; justify-content:space-between;"><span>Monto:</span><strong style="color:var(--editorial-emerald);">${formatCOP(pObj.amount || 0)}</strong></div>
+          `,
+          emailNotice: `Se enviará el correo de confirmación con el Voucher PDF oficial a ${pObj.userEmail || 'el huésped'}.`,
+          confirmText: 'Aprobar y Enviar Correo',
+        });
+        if (!ok) return;
         try {
-          showToast(`Autorizando reserva ${code}...`, 'info');
-          await approveReservationUnified(code, bookingId);
-          showToast(`¡Reserva ${code} aprobada y confirmada con éxito!`, 'success');
+          showToast(`Autorizando reserva ${code} y despachando Voucher PDF...`, 'info');
+          const res = await approveReservationUnified(code, bookingId);
+          const previewUrl = res?.notification?.previewUrl;
+          showToast(
+            `Reserva ${code} aprobada. Correo con Voucher PDF enviado a ${pObj.userEmail || 'huésped'}.`,
+            'success',
+            previewUrl ? { actionUrl: previewUrl, actionText: 'Ver Correo Enviado' } : {}
+          );
           loadAdminDashboard();
           loadReceptionBookings();
           loadPayments();
@@ -2332,12 +2617,34 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', async () => {
         const code = btn.getAttribute('data-code');
         const bookingId = btn.getAttribute('data-booking-id');
-        const reason = prompt(`Motivo del rechazo de la reserva ${code} (se notificará al huésped):`, 'Comprobante bancario no legible o fondos no acreditados');
+        const pObj = pendingList.find(x => x.bookingCode === code) || {};
+        const reason = await openEditorialDialog({
+          variant: 'danger',
+          eyebrow: 'RECHAZO DE TRANSFERENCIA',
+          title: `Rechazar Reserva ${code}`,
+          subtitle: 'Indica el motivo por el cual no se aprueba el pago. Se liberarán las fechas de inmediato.',
+          requireInput: true,
+          inputLabel: 'Motivo del rechazo (se enviará por correo al huésped):',
+          defaultValue: 'Comprobante bancario no legible o fondos no acreditados',
+          quickReasons: [
+            'Comprobante no recibido en WhatsApp',
+            'Fondos no acreditados en cuenta',
+            'Referencia bancaria inválida',
+            'Solicitud cancelada por el cliente',
+          ],
+          emailNotice: `Se notificará inmediatamente por correo electrónico a ${pObj.userEmail || 'el huésped'}.`,
+          confirmText: 'Rechazar y Notificar',
+        });
         if (!reason) return;
         try {
-          showToast(`Rechazando reserva ${code}...`, 'info');
-          await rejectReservationUnified(code, reason, bookingId);
-          showToast(`Reserva ${code} rechazada y fechas liberadas en inventario.`, 'info');
+          showToast(`Rechazando reserva ${code} y enviando correo...`, 'info');
+          const res = await rejectReservationUnified(code, reason, bookingId);
+          const previewUrl = res?.notification?.previewUrl;
+          showToast(
+            `Reserva ${code} rechazada y fechas liberadas. Correo enviado a ${pObj.userEmail || 'huésped'}.`,
+            'info',
+            previewUrl ? { actionUrl: previewUrl, actionText: 'Ver Correo Enviado' } : {}
+          );
           loadAdminDashboard();
           loadReceptionBookings();
           loadPayments();
@@ -2446,7 +2753,14 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', async () => {
         const id = btn.getAttribute('data-id');
         const email = btn.getAttribute('data-email');
-        if (!confirm(`¿Eliminar definitivamente la cuenta ${email}? Esta acción libera el correo para futuros registros.`)) return;
+        const ok = await openEditorialDialog({
+          variant: 'danger',
+          eyebrow: 'ADMINISTRACIÓN DE CUENTAS',
+          title: 'Eliminar Cuenta de Usuario',
+          subtitle: `¿Confirmas que deseas eliminar definitivamente la cuenta ${email}? El correo quedará libre para futuros registros.`,
+          confirmText: 'Eliminar Cuenta',
+        });
+        if (!ok) return;
         try {
           await api.deleteUser(id);
           showToast(`Cuenta ${email} eliminada`, 'success');
@@ -2493,7 +2807,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const btnDeleteGuests = document.getElementById('btnDeleteGuests');
   btnDeleteGuests?.addEventListener('click', async () => {
-    if (!confirm('¿Confirmas que deseas eliminar TODOS los usuarios con rol GUEST?\n\nEsta acción liberará sus correos para nuevas pruebas y registros limpios.')) return;
+    const ok = await openEditorialDialog({
+      variant: 'danger',
+      eyebrow: 'DEPURACIÓN DE DIRECTORIO',
+      title: 'Eliminar Cuentas de Huéspedes (GUEST)',
+      subtitle: 'Se eliminarán todas las cuentas de prueba con rol Huésped, conservando intacta la cuenta del Administrador.',
+      confirmText: 'Confirmar Depuración',
+    });
+    if (!ok) return;
     try {
       showToast('Eliminando usuarios GUEST...', 'info');
       const res = await api.deleteGuests();
@@ -2642,11 +2963,24 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', async () => {
         const code = btn.getAttribute('data-code');
         const bookingId = btn.getAttribute('data-booking-id');
-        if (!confirm(`¿Autorizar pago y confirmar la reserva ${code}?`)) return;
+        const ok = await openEditorialDialog({
+          variant: 'emerald',
+          eyebrow: 'CONCILIACIÓN FINANCIERA',
+          title: `Aprobar Pago (${code})`,
+          subtitle: '¿Confirmas la recepción de los fondos para aprobar la transacción y emitir el Voucher oficial?',
+          emailNotice: 'Se enviará notificación de pago aceptado y Voucher PDF al correo del huésped.',
+          confirmText: 'Aprobar Transacción',
+        });
+        if (!ok) return;
         try {
           showToast(`Autorizando ${code}...`, 'info');
-          await approveReservationUnified(code, bookingId);
-          showToast(`¡Reserva ${code} autorizada y confirmada!`, 'success');
+          const res = await approveReservationUnified(code, bookingId);
+          const previewUrl = res?.notification?.previewUrl;
+          showToast(
+            `Reserva ${code} autorizada y correo enviado al huésped.`,
+            'success',
+            previewUrl ? { actionUrl: previewUrl, actionText: 'Ver Correo Enviado' } : {}
+          );
           loadPayments();
           loadAdminDashboard();
           loadReceptionBookings();
@@ -2660,12 +2994,32 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', async () => {
         const code = btn.getAttribute('data-code');
         const bookingId = btn.getAttribute('data-booking-id');
-        const reason = prompt(`Motivo del rechazo para ${code}:`, 'Comprobante bancario no acreditado');
+        const reason = await openEditorialDialog({
+          variant: 'danger',
+          eyebrow: 'CONCILIACIÓN FINANCIERA',
+          title: `Rechazar Pago (${code})`,
+          subtitle: 'Indica el motivo del rechazo para cancelar la solicitud y notificar al cliente.',
+          requireInput: true,
+          inputLabel: 'Motivo del rechazo:',
+          defaultValue: 'Comprobante bancario no acreditado',
+          quickReasons: [
+            'Comprobante no recibido',
+            'Fondos no acreditados',
+            'Referencia inválida',
+          ],
+          emailNotice: 'Se enviará notificación inmediata del rechazo al correo del huésped.',
+          confirmText: 'Rechazar Pago',
+        });
         if (!reason) return;
         try {
           showToast(`Rechazando ${code}...`, 'info');
-          await rejectReservationUnified(code, reason, bookingId);
-          showToast(`Reserva ${code} rechazada y fechas liberadas.`, 'info');
+          const res = await rejectReservationUnified(code, reason, bookingId);
+          const previewUrl = res?.notification?.previewUrl;
+          showToast(
+            `Reserva ${code} rechazada y correo enviado al huésped.`,
+            'info',
+            previewUrl ? { actionUrl: previewUrl, actionText: 'Ver Correo Enviado' } : {}
+          );
           loadPayments();
           loadAdminDashboard();
           loadReceptionBookings();
@@ -2678,14 +3032,30 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.btn-refund-action').forEach(btn => {
       btn.addEventListener('click', async () => {
         const ref = btn.getAttribute('data-ref');
-        const reason = prompt(`Motivo del reembolso para la transacción ${ref}:`);
-        if (reason === null) return;
+        const reason = await openEditorialDialog({
+          variant: 'gold',
+          eyebrow: 'REVERSIÓN FINANCIERA',
+          title: `Reembolsar Transacción (${ref})`,
+          subtitle: 'Indica el motivo del reembolso para generar el comprobante oficial.',
+          requireInput: true,
+          inputLabel: 'Motivo del reembolso:',
+          defaultValue: 'Reembolso autorizado por administración a solicitud del huésped',
+          quickReasons: [
+            'Cancelación dentro del plazo flexible',
+            'Ajuste de tarifa autorizado',
+            'Solicitud directa del huésped',
+          ],
+          emailNotice: 'Se enviará el comprobante de reembolso al correo electrónico del huésped.',
+          confirmText: 'Procesar Reembolso',
+        });
+        if (!reason) return;
         try {
           showToast(`Procesando reembolso de ${ref}...`, 'info');
           await api.refundPayment(ref, reason);
           showToast(`Reembolso procesado para ${ref}`, 'success');
           loadPayments();
           loadAdminDashboard();
+          if (typeof loadNotificationHistory === 'function') loadNotificationHistory();
         } catch (err) {
           showToast(`Error: ${err.message}`, 'error');
         }
@@ -2737,16 +3107,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const role = currentUser ? (currentUser.role || 'GUEST') : 'GUEST';
       const isStaff = role === 'HOTEL_ADMIN';
 
-      // Actualizar píldora de estado de SMTP (Gmail / Ethereal)
+      // Actualizar píldora de estado de SMTP (Gmail Real vs Sandbox)
       api.getNotificationStatus().then(st => {
         const textElem = document.getElementById('notifSmtpPillText');
         const pillElem = document.getElementById('notifSmtpPill');
+        const btnOpenSmtp = document.getElementById('btnOpenSmtpConfig');
         if (textElem && st?.smtp) {
           if (st.smtp.isReal) {
-            textElem.textContent = st.smtp.provider || 'Gmail SMTP (Producción)';
-            if (pillElem) pillElem.style.borderColor = '#22c55e';
+            textElem.textContent = st.smtp.provider || 'Gmail SMTP Oficial (Activo)';
+            if (pillElem) pillElem.style.borderColor = 'var(--editorial-emerald)';
+            if (btnOpenSmtp) btnOpenSmtp.style.display = isStaff ? 'inline-flex' : 'none';
           } else {
-            textElem.textContent = 'Nodemailer (Ethereal Dev)';
+            textElem.textContent = 'Modo Previsualización (Clic para activar Gmail Real)';
+            if (btnOpenSmtp) btnOpenSmtp.style.display = isStaff ? 'inline-flex' : 'none';
           }
         }
       }).catch(() => {});
@@ -2815,6 +3188,59 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Triggers de notificación
+
+  // Controlador del Modal de Configuración de Gmail SMTP Real
+  const smtpConfigModal = document.getElementById('smtpConfigModal');
+  const btnOpenSmtpConfig = document.getElementById('btnOpenSmtpConfig');
+  const closeSmtpConfigModalBtn = document.getElementById('closeSmtpConfigModalBtn');
+  const cancelSmtpConfigBtn = document.getElementById('cancelSmtpConfigBtn');
+  const smtpConfigForm = document.getElementById('smtpConfigForm');
+  const notifSmtpPill = document.getElementById('notifSmtpPill');
+
+  function openSmtpModal() {
+    const u = api.getCurrentUser();
+    if (!u || u.role !== 'HOTEL_ADMIN') return;
+    if (smtpConfigModal) smtpConfigModal.style.display = 'flex';
+  }
+
+  btnOpenSmtpConfig?.addEventListener('click', openSmtpModal);
+  notifSmtpPill?.addEventListener('click', openSmtpModal);
+  closeSmtpConfigModalBtn?.addEventListener('click', () => {
+    if (smtpConfigModal) smtpConfigModal.style.display = 'none';
+  });
+  cancelSmtpConfigBtn?.addEventListener('click', () => {
+    if (smtpConfigModal) smtpConfigModal.style.display = 'none';
+  });
+  smtpConfigModal?.addEventListener('click', (e) => {
+    if (e.target === smtpConfigModal) smtpConfigModal.style.display = 'none';
+  });
+
+  smtpConfigForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const user = document.getElementById('smtpConfigUser')?.value.trim();
+    const pass = document.getElementById('smtpConfigPass')?.value.trim();
+    const submitBtn = document.getElementById('submitSmtpConfigBtn');
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>Verificando con Google SMTP...</span>';
+    }
+
+    try {
+      const res = await api.configureSmtp(user, pass);
+      showToast(res.message || `Gmail SMTP activado (${user}). Ahora todos los correos llegarán a la bandeja real.`, 'success');
+      if (smtpConfigModal) smtpConfigModal.style.display = 'none';
+      loadNotificationHistory();
+    } catch (err) {
+      showToast(`Error autenticando Gmail SMTP: ${err.message}`, 'error');
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>Verificar y Activar Gmail Real</span>';
+      }
+    }
+  });
+
   const btnVoucherSampleHeader = document.getElementById('btnVoucherSampleHeader');
   btnVoucherSampleHeader?.addEventListener('click', () => {
     const url = api.getVoucherSampleUrl();
@@ -3135,7 +3561,14 @@ document.addEventListener('DOMContentLoaded', () => {
         e.stopPropagation();
         const id = btn.getAttribute('data-id');
         const name = btn.getAttribute('data-name');
-        if (!confirm(`¿Dar de baja la habitación "${name}"?`)) return;
+        const ok = await openEditorialDialog({
+          variant: 'danger',
+          eyebrow: 'INVENTARIO DE SUITES',
+          title: 'Dar de Baja Habitación',
+          subtitle: `¿Confirmas que deseas eliminar la habitación "${name}" del inventario?`,
+          confirmText: 'Eliminar Habitación',
+        });
+        if (!ok) return;
 
         try {
           await api.deleteRoom(id);
@@ -3156,7 +3589,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const btnSeedRooms = document.getElementById('btnSeedRooms');
   btnSeedRooms?.addEventListener('click', async () => {
-    if (!confirm('¿Deseas poblar el inventario con las habitaciones y suites oficiales de demostración?')) return;
+    const ok = await openEditorialDialog({
+      variant: 'emerald',
+      eyebrow: 'INVENTARIO DEMOSTRATIVO',
+      title: 'Restaurar Suites Oficiales',
+      subtitle: 'Se cargarán las habitaciones y suites de lujo en todas las propiedades del catálogo.',
+      confirmText: 'Poblar Habitaciones',
+    });
+    if (!ok) return;
     try {
       showToast('Sembrando inventario de habitaciones demo...', 'info');
       await api.seedRooms();

@@ -38,7 +38,7 @@ export class NotificationsController {
   // =========================================================================
 
   @EventPattern('user.registered')
-  async handleUserRegisteredRmq(@Payload() data: UserRegisteredEventDto) {
+  async handleUserRegisteredRmq(@Payload() data: any) {
     this.logger.log(`📥 [RabbitMQ] Evento recibido: 'user.registered'`);
     return await this.notificationsService.handleUserRegistered(data);
   }
@@ -51,20 +51,26 @@ export class NotificationsController {
   }
 
   @EventPattern('booking.confirmed')
-  async handleBookingConfirmedRmq(@Payload() data: BookingConfirmedEventDto) {
-    this.logger.log(`📥 [RabbitMQ] Evento recibido: 'booking.confirmed' [${data.bookingReference}]`);
+  async handleBookingConfirmedRmq(@Payload() data: any) {
+    const ref = data?.bookingReference || data?.bookingCode || 'N/A';
+    this.logger.log(`📥 [RabbitMQ] Evento recibido: 'booking.confirmed' [${ref}]`);
     return await this.notificationsService.handleBookingConfirmed(data);
   }
 
   @EventPattern('payment.succeeded')
-  async handlePaymentSucceededRmq(@Payload() data: BookingConfirmedEventDto) {
-    this.logger.log(`📥 [RabbitMQ] Evento recibido: 'payment.succeeded' [${data.bookingReference}]`);
-    return await this.notificationsService.handleBookingConfirmed(data);
+  async handlePaymentSucceededRmq(@Payload() data: any) {
+    const ref = data?.bookingReference || data?.bookingCode || 'N/A';
+    this.logger.log(`📥 [RabbitMQ] Evento recibido: 'payment.succeeded' [${ref}]`);
+    if (data?.hotelName && data?.userEmail) {
+      return await this.notificationsService.handleBookingConfirmed(data);
+    }
+    return { status: 'DEFERRED_TO_BOOKING_CONFIRMED', ref };
   }
 
   @EventPattern('payment.failed')
-  async handlePaymentFailedRmq(@Payload() data: PaymentFailedEventDto) {
-    this.logger.log(`📥 [RabbitMQ] Evento recibido: 'payment.failed' [${data.bookingId}]`);
+  async handlePaymentFailedRmq(@Payload() data: any) {
+    const ref = data?.bookingCode || data?.bookingId || 'N/A';
+    this.logger.log(`📥 [RabbitMQ] Evento recibido: 'payment.failed' [${ref}]`);
     return await this.notificationsService.handlePaymentFailed(data);
   }
 
@@ -253,6 +259,45 @@ export class NotificationsController {
   })
   async sendRefundReceipt(@Body() dto: RefundEventDto) {
     return await this.notificationsService.handleRefund(dto);
+  }
+
+  @Post('internal/dispatch')
+  @ApiOperation({
+    summary: 'Despacho directo interno entre microservicios (Garantía de entrega de correo)',
+  })
+  async dispatchInternal(@Body() body: { event: string; payload: any }) {
+    const event = body?.event;
+    const payload = body?.payload || {};
+    this.logger.log(`📨 [Internal Dispatch] Evento directo: '${event}' para ${payload.userEmail || payload.email || 'N/A'}`);
+
+    if (event === 'user.registered') {
+      const log = await this.notificationsService.handleUserRegistered(payload);
+      return { message: 'Correo de bienvenida enviado', notification: log };
+    }
+    if (event === 'booking.confirmed' || event === 'payment.succeeded') {
+      const res = await this.notificationsService.handleBookingConfirmed(payload);
+      return { message: 'Correo de reserva confirmada y voucher PDF enviados', notification: res.log };
+    }
+    if (event === 'payment.failed' || event === 'booking.rejected') {
+      const log = await this.notificationsService.handlePaymentFailed(payload);
+      return { message: 'Correo de rechazo de pago enviado', notification: log };
+    }
+    if (event === 'payment.refunded') {
+      const log = await this.notificationsService.handleRefund(payload);
+      return { message: 'Correo de reembolso enviado', notification: log };
+    }
+    return { status: 'IGNORED', event };
+  }
+
+  @Post('smtp-config')
+  @UseGuards(RolesGuard)
+  @Roles(Role.HOTEL_ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Configurar credenciales reales de Gmail SMTP en caliente (Solo HOTEL_ADMIN)',
+  })
+  async configureSmtp(@Body() body: { user: string; pass: string }) {
+    return await this.notificationsService.configureSmtp(body?.user, body?.pass);
   }
 
   @Post('test-event')

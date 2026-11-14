@@ -310,6 +310,13 @@ class HotelApiClient {
     });
   }
 
+  async configureSmtp(user, pass) {
+    return await this.request('/api/notifications/smtp-config', {
+      method: 'POST',
+      body: JSON.stringify({ user, pass }),
+    });
+  }
+
   async getAllUsers() {
     return await this.request('/api/auth/users', {
       method: 'GET',
