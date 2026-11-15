@@ -22,10 +22,11 @@ export class NotificationsService {
   ) {}
 
   private readonly recentDispatchKeys = new Map<string, NotificationLogEntryDto>();
+  private readonly inFlightKeys = new Set<string>();
 
   private checkDuplicate(key: string): NotificationLogEntryDto | null {
     const existing = this.recentDispatchKeys.get(key);
-    if (existing && Date.now() - new Date(existing.timestamp).getTime() < 15000) {
+    if (existing && Date.now() - new Date(existing.timestamp).getTime() < 20000) {
       return existing;
     }
     return null;
@@ -137,74 +138,92 @@ export class NotificationsService {
     if (dup) {
       return { log: dup, pdfBuffer: Buffer.alloc(0) };
     }
+    if (this.inFlightKeys.has(dedupKey)) {
+      const placeholderLog: NotificationLogEntryDto = {
+        id: `in-flight-${Date.now()}`,
+        type: NotificationType.BOOKING_CONFIRMATION,
+        status: NotificationStatus.SENT,
+        recipient: userEmail,
+        subject: `🏨 Confirmación de Reserva [${bookingReference}] - ${hotelName}`,
+        hasAttachment: true,
+        durationMs: 0,
+        timestamp: new Date().toISOString(),
+      };
+      return { log: placeholderLog, pdfBuffer: Buffer.alloc(0) };
+    }
+    this.inFlightKeys.add(dedupKey);
 
-    this.logger.log(
-      `[Event: booking.confirmed] Procesando confirmación y voucher PDF para: ${bookingReference} (${userEmail})`,
-    );
+    try {
+      this.logger.log(
+        `[Event: booking.confirmed] Procesando confirmación y voucher PDF para: ${bookingReference} (${userEmail})`,
+      );
 
-    // Preparar estructura de datos para el motor PDFKit
-    const voucherData: VoucherData = {
-      bookingId: rawEvent?.bookingId || rawEvent?.id || bookingReference,
-      bookingReference,
-      guestName: userName,
-      guestEmail: userEmail,
-      guestPhone: rawEvent?.userPhone || rawEvent?.guestPhone || '+57 304 659 8870',
-      hotelName,
-      hotelAddress,
-      hotelCity,
-      roomTypeName,
-      checkInDate,
-      checkOutDate,
-      checkInTime: rawEvent?.checkInTime || '15:00',
-      checkOutTime: rawEvent?.checkOutTime || '11:00',
-      nights,
-      guestsCount,
-      totalAmount,
-      currency,
-      paymentId: rawEvent?.paymentId || rawEvent?.transactionReference || `PAY-${bookingReference}`,
-      paymentMethod: rawEvent?.paymentMethod || 'Transferencia Bancaria / WhatsApp Directo',
-      specialRequests: rawEvent?.specialRequests || 'Estancia garantizada y verificada en plataforma',
-      status: 'CONFIRMED',
-      adminName: 'Mauricio Medina',
-      adminEmail: 'mauromedina2508@gmail.com',
-      adminPhone: '+57 304 659 8870',
-    };
-
-    // Generar el Voucher en PDF de forma asíncrona y eficiente
-    const pdfBuffer = await this.voucherGeneratorService.generateVoucherPdf(voucherData);
-
-    // Despachar el correo electrónico con el PDF adjunto
-    const result = await this.mailService.sendBookingConfirmationEmail(
-      userEmail,
-      {
-        guestName: userName,
+      // Preparar estructura de datos para el motor PDFKit
+      const voucherData: VoucherData = {
+        bookingId: rawEvent?.bookingId || rawEvent?.id || bookingReference,
         bookingReference,
+        guestName: userName,
+        guestEmail: userEmail,
+        guestPhone: rawEvent?.userPhone || rawEvent?.guestPhone || '+57 304 659 8870',
         hotelName,
         hotelAddress,
         hotelCity,
         roomTypeName,
         checkInDate,
         checkOutDate,
+        checkInTime: rawEvent?.checkInTime || '15:00',
+        checkOutTime: rawEvent?.checkOutTime || '11:00',
         nights,
         guestsCount,
         totalAmount,
         currency,
-        dashboardUrl: rawEvent?.dashboardUrl || 'http://localhost:5173',
-      },
-      pdfBuffer,
-    );
+        paymentId: rawEvent?.paymentId || rawEvent?.transactionReference || `PAY-${bookingReference}`,
+        paymentMethod: rawEvent?.paymentMethod || 'Transferencia Bancaria / WhatsApp Directo',
+        specialRequests: rawEvent?.specialRequests || 'Estancia garantizada y verificada en plataforma',
+        status: 'CONFIRMED',
+        adminName: 'Mauricio Medina',
+        adminEmail: 'mauromedina2508@gmail.com',
+        adminPhone: '+57 304 659 8870',
+      };
 
-    const log = this.recordLog(
-      NotificationType.BOOKING_CONFIRMATION,
-      userEmail,
-      `🏨 Confirmación de Reserva [${bookingReference}] - ${hotelName}`,
-      result,
-      Date.now() - start,
-      true,
-    );
+      // Generar el Voucher en PDF de forma asíncrona y eficiente
+      const pdfBuffer = await this.voucherGeneratorService.generateVoucherPdf(voucherData);
 
-    this.recentDispatchKeys.set(dedupKey, log);
-    return { log, pdfBuffer };
+      // Despachar el correo electrónico con el PDF adjunto
+      const result = await this.mailService.sendBookingConfirmationEmail(
+        userEmail,
+        {
+          guestName: userName,
+          bookingReference,
+          hotelName,
+          hotelAddress,
+          hotelCity,
+          roomTypeName,
+          checkInDate,
+          checkOutDate,
+          nights,
+          guestsCount,
+          totalAmount,
+          currency,
+          dashboardUrl: rawEvent?.dashboardUrl || 'http://localhost:5173',
+        },
+        pdfBuffer,
+      );
+
+      const log = this.recordLog(
+        NotificationType.BOOKING_CONFIRMATION,
+        userEmail,
+        `🏨 Confirmación de Reserva [${bookingReference}] - ${hotelName}`,
+        result,
+        Date.now() - start,
+        true,
+      );
+
+      this.recentDispatchKeys.set(dedupKey, log);
+      return { log, pdfBuffer };
+    } finally {
+      this.inFlightKeys.delete(dedupKey);
+    }
   }
 
   /**
@@ -297,33 +316,62 @@ export class NotificationsService {
   /**
    * 5. Manejo del comprobante de Reembolso (booking.cancelled / payment.refunded)
    */
-  async handleRefund(event: RefundEventDto): Promise<NotificationLogEntryDto> {
+  async handleRefund(rawEvent: any): Promise<NotificationLogEntryDto> {
     const start = Date.now();
-    this.logger.log(
-      `[Event: payment.refunded] Enviando comprobante de reembolso a: ${event.userEmail} [${event.bookingReference}]`,
-    );
+    const bookingReference =
+      rawEvent?.bookingReference || rawEvent?.bookingCode || rawEvent?.bookingId || 'TR-2026';
+    const userEmail = rawEvent?.userEmail || rawEvent?.email;
+    if (!userEmail) {
+      this.logger.warn(`[Event: payment.refunded] Ignorado para ${bookingReference}: sin userEmail`);
+      return null as any;
+    }
 
-    const result = await this.mailService.sendRefundReceiptEmail(event.userEmail, {
-      guestName: event.userName,
-      bookingReference: event.bookingReference,
-      refundId: event.refundId,
-      hotelName: event.hotelName,
-      roomTypeName: event.roomTypeName,
-      refundAmount: event.refundAmount,
-      originalAmount: event.originalAmount,
-      currency: event.currency || 'USD',
-      reason: event.reason,
-      portalUrl: event.portalUrl,
-    });
+    const dedupKey = `REFUND:${bookingReference}:${userEmail.toLowerCase()}`;
+    const dup = this.checkDuplicate(dedupKey);
+    if (dup) return dup;
+    if (this.inFlightKeys.has(dedupKey)) return null as any;
+    this.inFlightKeys.add(dedupKey);
 
-    return this.recordLog(
-      NotificationType.REFUND_RECEIPT,
-      event.userEmail,
-      `🧾 Comprobante Oficial de Reembolso [${event.bookingReference}]`,
-      result,
-      Date.now() - start,
-      false,
-    );
+    try {
+      const userName = rawEvent?.userName || rawEvent?.guestName || userEmail.split('@')[0];
+      const hotelName = rawEvent?.hotelName || 'Bogotá Grand Plaza & Financial Center';
+      const roomTypeName = rawEvent?.roomTypeName || rawEvent?.roomName || 'Suite Reservada';
+      const rawRefund = Number(rawEvent?.refundAmount || rawEvent?.amount || 0);
+      const refundAmount = rawRefund > 0 && rawRefund < 50000 ? rawRefund * 4000 : rawRefund;
+      const rawOrig = Number(rawEvent?.originalAmount || rawEvent?.amount || rawRefund || 0);
+      const originalAmount = rawOrig > 0 && rawOrig < 50000 ? rawOrig * 4000 : rawOrig;
+      const refundId = rawEvent?.refundId || `REF-${bookingReference}`;
+
+      this.logger.log(
+        `[Event: payment.refunded] Enviando comprobante de reembolso a: ${userEmail} [${bookingReference}]`,
+      );
+
+      const result = await this.mailService.sendRefundReceiptEmail(userEmail, {
+        guestName: userName,
+        bookingReference,
+        refundId,
+        hotelName,
+        roomTypeName,
+        refundAmount,
+        originalAmount,
+        currency: 'COP',
+        reason: rawEvent?.reason || 'Reembolso autorizado por administración',
+        portalUrl: rawEvent?.portalUrl || 'http://localhost:5173',
+      });
+
+      const log = this.recordLog(
+        NotificationType.REFUND_RECEIPT,
+        userEmail,
+        `🧾 Comprobante Oficial de Reembolso [${bookingReference}] - ${hotelName}`,
+        result,
+        Date.now() - start,
+        false,
+      );
+      this.recentDispatchKeys.set(dedupKey, log);
+      return log;
+    } finally {
+      this.inFlightKeys.delete(dedupKey);
+    }
   }
 
   /**

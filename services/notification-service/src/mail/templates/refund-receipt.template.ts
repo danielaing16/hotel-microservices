@@ -15,9 +15,15 @@ export interface RefundReceiptEmailData {
 }
 
 export function renderRefundReceiptEmail(data: RefundReceiptEmailData): string {
-  const currency = data.currency || 'USD';
-  const portalUrl = data.portalUrl || 'http://localhost';
-  const processedAt = data.processedAt || new Date().toLocaleString();
+  const currency = data.currency || 'COP';
+  const portalUrl = data.portalUrl || 'http://localhost:5173';
+  const processedAt = data.processedAt || new Date().toLocaleString('es-CO');
+  const rawOrig = Number(data.originalAmount || 0);
+  const origCop = rawOrig > 0 && rawOrig < 50000 ? rawOrig * 4000 : rawOrig;
+  const rawRef = Number(data.refundAmount || 0);
+  const refCop = rawRef > 0 && rawRef < 50000 ? rawRef * 4000 : rawRef;
+  const formattedOriginal = `$${origCop.toLocaleString('es-CO')} ${currency}`;
+  const formattedRefund = `$${refCop.toLocaleString('es-CO')} ${currency}`;
 
   const bodyContent = `
     <p style="font-size: 16px; margin-top: 0;">
@@ -52,7 +58,7 @@ export function renderRefundReceiptEmail(data: RefundReceiptEmailData): string {
             </tr>
             <tr>
               <td style="padding: 5px 0; color: #64748b;">Importe Original Cobrado:</td>
-              <td style="padding: 5px 0; text-decoration: line-through; color: #64748b;">${currency} $${Number(data.originalAmount).toFixed(2)}</td>
+              <td style="padding: 5px 0; text-decoration: line-through; color: #64748b;">${formattedOriginal}</td>
             </tr>
             <tr>
               <td style="padding: 5px 0; color: #64748b;">Fecha de Procesamiento:</td>
@@ -68,7 +74,7 @@ export function renderRefundReceiptEmail(data: RefundReceiptEmailData): string {
             }
             <tr style="border-top: 1px dashed #cbd5e1;">
               <td style="padding: 10px 0 0 0; font-weight: 700; color: #0f172a;">MONTO REEMBOLSADO:</td>
-              <td style="padding: 10px 0 0 0; font-size: 16px; font-weight: 800; color: #059669;">${currency} $${Number(data.refundAmount).toFixed(2)}</td>
+              <td style="padding: 10px 0 0 0; font-size: 16px; font-weight: 800; color: #059669;">${formattedRefund}</td>
             </tr>
           </table>
         </td>

@@ -50,8 +50,14 @@ export class BookingController {
 
   @EventPattern('payment.failed')
   async handlePaymentFailedRmq(@Payload() data: any) {
-    this.logger.log(`ðŸ“¥ [RabbitMQ] Evento 'payment.failed' recibido en Booking Service`);
+    this.logger.log(`📥 [RabbitMQ] Evento 'payment.failed' recibido en Booking Service`);
     return await this.bookingService.handlePaymentFailed(data);
+  }
+
+  @EventPattern('payment.refunded')
+  async handlePaymentRefundedRmq(@Payload() data: any) {
+    this.logger.log(`📥 [RabbitMQ] Evento 'payment.refunded' recibido en Booking Service`);
+    return await this.bookingService.handlePaymentRefunded(data);
   }
 
   // =========================================================================

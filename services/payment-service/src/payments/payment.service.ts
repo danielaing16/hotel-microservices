@@ -39,8 +39,43 @@ export class PaymentService implements OnModuleInit {
         this.logger.log('Inicializando registros de pagos con datos semilla...');
         await this.seed();
       }
+      setTimeout(() => {
+        this.reconcileRefundedBookings().catch((e) =>
+          this.logger.warn(`No se pudo reconciliar reservas reembolsadas al iniciar: ${e.message}`),
+        );
+      }, 4000);
     } catch (err) {
       this.logger.warn(`No se pudo verificar o sembrar pagos iniciales: ${err.message}`);
+    }
+  }
+
+  private async reconcileRefundedBookings() {
+    const refunded = await this.paymentRepository.find({
+      where: { status: PaymentStatus.REFUNDED },
+    });
+    if (!refunded.length) return;
+    const bookingServiceUrl =
+      this.configService.get<string>('BOOKINGS_SERVICE_URL') || 'http://booking-service:3005';
+    for (const p of refunded) {
+      const target = p.bookingId || p.bookingCode;
+      if (!target) continue;
+      const refundReason = p.errorMessage?.toLowerCase().includes('reembols')
+        ? p.errorMessage
+        : `Reembolsada: ${p.errorMessage || 'Reembolso autorizado por administración'}`;
+      try {
+        await fetch(`${bookingServiceUrl}/api/bookings/${encodeURIComponent(target)}/cancel`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-user-id': p.userId || 'admin-system',
+            'x-user-email': p.userEmail || 'mauromedina2508@gmail.com',
+            'x-user-role': 'HOTEL_ADMIN',
+          },
+          body: JSON.stringify({ reason: refundReason }),
+        });
+      } catch {
+        // Ignorar si booking-service aún no responde
+      }
     }
   }
 
@@ -378,7 +413,7 @@ export class PaymentService implements OnModuleInit {
   }
 
   /**
-   * Ejecuta un reembolso total de una transacción (Reversión financiera)
+   * Ejecuta un reembolso total de una transacción (Reversión financiera + Cancelación de Reserva + Correo)
    */
   async refundPayment(idOrRef: string, reason?: string, user?: RequestUser) {
     const payment = await this.findOne(idOrRef, user);
@@ -393,28 +428,104 @@ export class PaymentService implements OnModuleInit {
       );
     }
 
+    const cleanReason = (reason || 'Reembolso autorizado por administración').trim();
     payment.status = PaymentStatus.REFUNDED;
-    payment.errorMessage = reason || 'Reembolso autorizado por administración';
+    payment.errorMessage = cleanReason;
     const updated = await this.paymentRepository.save(payment);
 
-    // Emitir evento RabbitMQ: payment.refunded
+    // 1. Consultar y cancelar la reserva asociada en booking-service (y liberar inventario)
+    const bookingsUrl = this.configService.get('BOOKINGS_SERVICE_URL', 'http://booking-service:3005');
+    const bookingLookupKey = updated.bookingCode || updated.bookingId;
+    let booking: any = null;
+
+    if (bookingLookupKey) {
+      try {
+        const getRes = await fetch(`${bookingsUrl}/api/bookings/${encodeURIComponent(bookingLookupKey)}`, {
+          headers: {
+            'x-user-id': user?.id || updated.userId || 'admin-system',
+            'x-user-role': 'HOTEL_ADMIN',
+            'x-user-email': user?.email || 'mauromedina2508@gmail.com',
+          },
+          signal: AbortSignal.timeout(4000),
+        });
+        if (getRes.ok) {
+          booking = await getRes.json();
+        }
+      } catch (e) {
+        this.logger.warn(`No se pudo consultar reserva ${bookingLookupKey} durante reembolso: ${e.message}`);
+      }
+
+      try {
+        const cancelTarget = booking?.id || bookingLookupKey;
+        await fetch(`${bookingsUrl}/api/bookings/${encodeURIComponent(cancelTarget)}/cancel`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-user-id': user?.id || updated.userId || 'admin-system',
+            'x-user-role': 'HOTEL_ADMIN',
+            'x-user-email': user?.email || 'mauromedina2508@gmail.com',
+          },
+          body: JSON.stringify({
+            reason: `Reembolsada: ${cleanReason}`,
+          }),
+          signal: AbortSignal.timeout(4000),
+        });
+        this.logger.log(`🔄 Reserva ${bookingLookupKey} marcada como Reembolsada/Cancelada en booking-service`);
+      } catch (e) {
+        this.logger.warn(`Aviso al sincronizar cancelación por reembolso en booking-service: ${e.message}`);
+      }
+    }
+
+    const rawAmt = Number(updated.amount || booking?.totalAmount || 0);
+    const copAmount = rawAmt > 0 && rawAmt < 50000 ? rawAmt * 4000 : rawAmt;
+    const refundPayload = {
+      paymentId: updated.id,
+      refundId: `REF-${updated.transactionReference || updated.bookingCode || Date.now()}`,
+      bookingId: booking?.id || updated.bookingId,
+      bookingCode: updated.bookingCode || booking?.bookingCode || 'TR-2026',
+      bookingReference: updated.bookingCode || booking?.bookingCode || 'TR-2026',
+      userId: booking?.userId || updated.userId,
+      userEmail: booking?.userEmail || updated.userEmail,
+      userName: booking?.userName || (updated.userEmail ? updated.userEmail.split('@')[0] : 'Huésped'),
+      hotelName: booking?.hotelName || 'Travel & Resorts — Luxury Sanctuary',
+      roomTypeName: booking?.roomName || 'Suite Reservada',
+      amount: copAmount,
+      refundAmount: copAmount,
+      originalAmount: copAmount,
+      currency: 'COP',
+      reason: cleanReason,
+      portalUrl: 'http://localhost:5173',
+    };
+
+    // 2. Emitir evento RabbitMQ: payment.refunded
     try {
-      this.rabbitClient.emit('payment.refunded', {
-        paymentId: updated.id,
-        bookingId: updated.bookingId,
-        bookingCode: updated.bookingCode,
-        amount: updated.amount,
-        currency: updated.currency,
-        userId: updated.userId,
-        reason: updated.errorMessage,
-      });
+      this.rabbitClient.emit('payment.refunded', refundPayload);
       this.logger.log(`🐇 Evento 'payment.refunded' emitido para ${updated.transactionReference}`);
     } catch (err) {
       this.logger.warn(`No se pudo emitir payment.refunded: ${err.message}`);
     }
 
+    // 3. Despacho directo garantizado hacia notification-service
+    try {
+      const notifUrl = this.configService.get('NOTIFICATIONS_SERVICE_URL', 'http://notification-service:3008');
+      const internalSecret = this.configService.get('JWT_SECRET', 'super_secret_jwt_key_hotel_2026_dev');
+      await fetch(`${notifUrl}/api/notifications/internal/dispatch`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-internal-token': internalSecret,
+        },
+        body: JSON.stringify({
+          event: 'payment.refunded',
+          payload: refundPayload,
+        }),
+      });
+    } catch (e) {
+      this.logger.warn(`Aviso al despachar correo directo de reembolso: ${e.message}`);
+    }
+
     return {
-      message: `Reembolso de $${updated.amount} ${updated.currency} procesado correctamente.`,
+      message: `Reembolso de $${copAmount.toLocaleString('es-CO')} COP procesado y reserva ${refundPayload.bookingCode} actualizada a Reembolsada.`,
       payment: updated,
     };
   }

@@ -566,6 +566,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnSeedRooms.style.display = isAdmin ? 'inline-flex' : 'none';
       }
 
+      switchDashboardTab(isAdmin ? 'admin-dashboard' : 'hotels');
       loadHotels();
     } else {
       authCanvas.style.display = 'flex';
@@ -1944,8 +1945,17 @@ document.addEventListener('DOMContentLoaded', () => {
     CHECKED_IN: { label: 'En Estancia (Check-In)', color: '#1F6E58', bg: 'rgba(31, 110, 88, 0.12)' },
     COMPLETED: { label: 'Finalizada (Check-Out)', color: '#66635B', bg: '#F2EFE9' },
     CANCELLED: { label: 'Cancelada', color: '#9E3B33', bg: 'rgba(158, 59, 51, 0.1)' },
+    REFUNDED: { label: 'Reembolsada', color: '#8C6D32', bg: 'rgba(166, 138, 86, 0.18)' },
     PENDING_PAYMENT: { label: 'Pendiente de Aprobación', color: '#8C6D32', bg: 'rgba(166, 138, 86, 0.16)' },
   };
+
+  function resolveBookingStatusBadge(b) {
+    const reason = (b?.cancellationReason || '').toLowerCase();
+    if (b?.status === 'REFUNDED' || (b?.status === 'CANCELLED' && reason.includes('reembols'))) {
+      return BOOKING_STATUS_MAP.REFUNDED;
+    }
+    return BOOKING_STATUS_MAP[b?.status] || { label: b?.status || 'Desconocido', color: '#1C1B18', bg: '#F2EFE9' };
+  }
 
   function renderMyBookings(bookings = []) {
     if (!myBookingsList) return;
@@ -1963,8 +1973,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     myBookingsList.innerHTML = bookings.map(b => {
-      const st = BOOKING_STATUS_MAP[b.status] || { label: b.status, color: '#1C1B18', bg: '#F2EFE9' };
+      const isRefunded = b.status === 'REFUNDED' || (b.status === 'CANCELLED' && (b.cancellationReason || '').toLowerCase().includes('reembols'));
+      const st = resolveBookingStatusBadge(b);
       const canCancel = b.status === 'CONFIRMED' || b.status === 'PENDING_PAYMENT';
+      const canDownloadVoucher = b.status === 'CONFIRMED' || b.status === 'CHECKED_IN' || b.status === 'COMPLETED';
+      const nightsCount = b.nightsCount || b.nights || 1;
 
       return `
         <div class="booking-card" data-booking-id="${b.id}">
@@ -1995,7 +2008,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${SVG_ICONS.calendar}
                 <span><strong>${b.checkIn}</strong> al <strong>${b.checkOut}</strong></span>
               </div>
-              <div style="color: var(--editorial-text-muted); font-size: 0.78rem; margin-top: 2px;">${b.nights} noche(s) · ${b.guestsCount} huésped(es)</div>
+              <div style="color: var(--editorial-text-muted); font-size: 0.78rem; margin-top: 2px;">${nightsCount} noche(s) · ${b.guestsCount} huésped(es)</div>
             </div>
 
             <div>
@@ -2005,6 +2018,12 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
             </div>
           </div>
+
+          ${isRefunded ? `
+            <div style="background: rgba(166, 138, 86, 0.12); border: 1px solid rgba(166, 138, 86, 0.35); border-radius: 8px; padding: 0.65rem 0.95rem; font-size: 0.8rem; color: #6B5223;">
+              <strong>Reembolso Procesado:</strong> ${b.cancellationReason || 'Esta reserva fue reembolsada por la administración y los fondos fueron reintegrados.'}
+            </div>
+          ` : ''}
 
           ${b.status === 'PENDING_PAYMENT' ? `
             <div style="background: var(--editorial-pill-sand); border: 1px solid rgba(166, 138, 86, 0.4); border-radius: 8px; padding: 0.7rem 0.95rem; font-size: 0.8rem; color: var(--editorial-text-main); display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
@@ -2018,27 +2037,31 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           ` : ''}
 
-          <div style="display: flex; justify-content: flex-end; gap: 0.65rem; border-top: 1px solid var(--editorial-border); padding-top: 0.85rem; flex-wrap: wrap;">
-            <button type="button" class="btn-hotel-secondary btn-download-voucher"
-              data-code="${b.bookingCode}"
-              data-hotel="${b.hotelName}"
-              data-room="${b.roomName}"
-              data-checkin="${b.checkIn}"
-              data-checkout="${b.checkOut}"
-              data-nights="${b.nights}"
-              data-guests="${b.guestsCount}"
-              data-total="${getCOPPrice(b.totalAmount)}"
-              data-currency="${b.currency || 'COP'}">
-              ${SVG_ICONS.fileText}
-              <span>Descargar Voucher PDF (QR)</span>
-            </button>
+          ${(canDownloadVoucher || canCancel) ? `
+            <div style="display: flex; justify-content: flex-end; gap: 0.65rem; border-top: 1px solid var(--editorial-border); padding-top: 0.85rem; flex-wrap: wrap;">
+              ${canDownloadVoucher ? `
+                <button type="button" class="btn-hotel-secondary btn-download-voucher"
+                  data-code="${b.bookingCode}"
+                  data-hotel="${b.hotelName}"
+                  data-room="${b.roomName}"
+                  data-checkin="${b.checkIn}"
+                  data-checkout="${b.checkOut}"
+                  data-nights="${nightsCount}"
+                  data-guests="${b.guestsCount}"
+                  data-total="${getCOPPrice(b.totalAmount)}"
+                  data-currency="${b.currency || 'COP'}">
+                  ${SVG_ICONS.fileText}
+                  <span>Descargar Voucher PDF (QR)</span>
+                </button>
+              ` : ''}
 
-            ${canCancel ? `
-              <button type="button" class="btn-hotel-secondary danger btn-cancel-booking" data-id="${b.id}" data-code="${b.bookingCode}">
-                <span>Cancelar Reserva</span>
-              </button>
-            ` : ''}
-          </div>
+              ${canCancel ? `
+                <button type="button" class="btn-hotel-secondary danger btn-cancel-booking" data-id="${b.id}" data-code="${b.bookingCode}">
+                  <span>Cancelar Reserva</span>
+                </button>
+              ` : ''}
+            </div>
+          ` : ''}
         </div>
       `;
     }).join('');
@@ -2208,7 +2231,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     receptionTableBody.innerHTML = bookings.map(b => {
-      const st = BOOKING_STATUS_MAP[b.status] || { label: b.status, color: 'var(--editorial-text-main)', bg: '#F2EFE9' };
+      const st = resolveBookingStatusBadge(b);
 
       let actionsHtml = '';
       if (b.status === 'CONFIRMED') {
@@ -3121,9 +3144,10 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           showToast(`Procesando reembolso de ${ref}...`, 'info');
           await api.refundPayment(ref, reason);
-          showToast(`Reembolso procesado para ${ref}`, 'success');
+          showToast(`Reembolso procesado para ${ref}. Reserva actualizada y correo enviado.`, 'success');
           loadPayments();
           loadAdminDashboard();
+          loadReceptionBookings();
           if (typeof loadNotificationHistory === 'function') loadNotificationHistory();
         } catch (err) {
           showToast(`Error: ${err.message}`, 'error');

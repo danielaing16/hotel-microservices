@@ -307,6 +307,14 @@ export class BookingService implements OnModuleInit {
     const booking = await this.findOne(idOrCode, user);
 
     if (booking.status === BookingStatus.CANCELLED) {
+      if (reason && reason.toLowerCase().includes('reembols')) {
+        booking.cancellationReason = reason;
+        const saved = await this.bookingRepository.save(booking);
+        return {
+          message: `Reserva ${saved.bookingCode} actualizada como Reembolsada.`,
+          booking: saved,
+        };
+      }
       throw new BadRequestException('La reserva ya se encuentra cancelada');
     }
 
@@ -577,6 +585,41 @@ export class BookingService implements OnModuleInit {
           reason: booking.cancellationReason,
         });
       } catch (err) {}
+    }
+  }
+
+  /**
+   * Consumidor EDA: Maneja reembolso de pago (RabbitMQ 'payment.refunded')
+   */
+  async handlePaymentRefunded(data: any) {
+    const bookingId = data?.bookingId;
+    const bookingCode = data?.bookingCode || data?.bookingReference;
+    if (!bookingId && !bookingCode) return;
+
+    let booking: Booking | null = null;
+    if (bookingId && this.isUuid(bookingId)) {
+      booking = await this.bookingRepository.findOne({ where: { id: bookingId } });
+    }
+    if (!booking && bookingCode) {
+      booking = await this.bookingRepository.findOne({ where: { bookingCode } });
+    }
+    if (!booking) return;
+
+    booking.status = BookingStatus.CANCELLED;
+    booking.cancellationReason = `Reembolsada: ${data.reason || 'Reembolso autorizado por administración'}`;
+    await this.bookingRepository.save(booking);
+    this.logger.log(`🔄 Reserva ${booking.bookingCode} marcada como REEMBOLSADA/CANCELADA tras reembolso.`);
+
+    if (booking.holdId) {
+      try {
+        const availUrl = this.configService.get<string>('AVAILABILITY_SERVICE_URL', 'http://availability-service:3004');
+        await fetch(`${availUrl}/api/availability/release`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ holdId: booking.holdId }),
+          signal: AbortSignal.timeout(3000),
+        });
+      } catch {}
     }
   }
 
