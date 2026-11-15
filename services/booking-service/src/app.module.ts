@@ -17,11 +17,15 @@ import { AuthHeaderMiddleware } from './common/middleware/auth-header.middleware
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
-        host: config.get<string>('DB_HOST', 'booking-db'),
-        port: parseInt(config.get<string>('DB_PORT', '5432'), 10),
-        username: config.get<string>('DB_USERNAME', 'postgres'),
-        password: config.get<string>('DB_PASSWORD', 'postgres123'),
-        database: config.get<string>('DB_DATABASE', 'hotel_booking_db'),
+        ...(config.get<string>('DATABASE_URL')
+          ? { url: config.get<string>('DATABASE_URL') }
+          : {
+              host: config.get<string>('DB_HOST', 'booking-db'),
+              port: parseInt(config.get<string>('DB_PORT', '5432'), 10),
+              username: config.get<string>('DB_USERNAME', 'postgres'),
+              password: config.get<string>('DB_PASSWORD', 'postgres123'),
+              database: config.get<string>('DB_DATABASE', 'hotel_booking_db'),
+            }),
         entities: [Booking],
         synchronize: true, // Auto-creación de tablas para entorno de desarrollo
         logging: false,

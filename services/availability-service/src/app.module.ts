@@ -29,11 +29,15 @@ import { AuthHeaderMiddleware } from './common/middleware/auth-header.middleware
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        host: configService.get<string>('DB_HOST', 'localhost'),
-        port: parseInt(configService.get<string>('DB_PORT', '5435'), 10),
-        username: configService.get<string>('DB_USERNAME', 'postgres'),
-        password: configService.get<string>('DB_PASSWORD', 'postgres123'),
-        database: configService.get<string>('DB_DATABASE', 'hotel_availability_db'),
+        ...(configService.get<string>('DATABASE_URL')
+          ? { url: configService.get<string>('DATABASE_URL') }
+          : {
+              host: configService.get<string>('DB_HOST', 'localhost'),
+              port: parseInt(configService.get<string>('DB_PORT', '5435'), 10),
+              username: configService.get<string>('DB_USERNAME', 'postgres'),
+              password: configService.get<string>('DB_PASSWORD', 'postgres123'),
+              database: configService.get<string>('DB_DATABASE', 'hotel_availability_db'),
+            }),
         entities: [RoomReservation],
         autoLoadEntities: true,
         synchronize: true,

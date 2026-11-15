@@ -16,11 +16,15 @@ import { User } from './users/entities/user.entity';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        host: configService.get<string>('DB_HOST', 'localhost'),
-        port: parseInt(configService.get<string>('DB_PORT', '5432'), 10),
-        username: configService.get<string>('DB_USERNAME', 'postgres'),
-        password: configService.get<string>('DB_PASSWORD', 'postgres123'),
-        database: configService.get<string>('DB_DATABASE', 'hotel_auth_db'),
+        ...(configService.get<string>('DATABASE_URL')
+          ? { url: configService.get<string>('DATABASE_URL') }
+          : {
+              host: configService.get<string>('DB_HOST', 'localhost'),
+              port: parseInt(configService.get<string>('DB_PORT', '5432'), 10),
+              username: configService.get<string>('DB_USERNAME', 'postgres'),
+              password: configService.get<string>('DB_PASSWORD', 'postgres123'),
+              database: configService.get<string>('DB_DATABASE', 'hotel_auth_db'),
+            }),
         entities: [User],
         autoLoadEntities: true,
         synchronize: true, // Auto-sincronización del esquema para desarrollo ágil
