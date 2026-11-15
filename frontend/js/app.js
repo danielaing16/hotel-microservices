@@ -776,67 +776,6 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast('Para restablecer tu contraseña, contacta a concierge@travelresorts.com', 'info');
   });
 
-  // Explorar como huésped rápido
-  exploreAsGuestBtn?.addEventListener('click', async () => {
-    if (api.getToken() && api.getCurrentUser()) {
-      refreshSessionView();
-      return;
-    }
-
-    try {
-      showToast('Iniciando sesión como Huésped Invitado...', 'info');
-      await api.login('guest@hotel.com', 'guest123');
-      showToast('¡Bienvenido a Travel & Resorts!', 'success');
-      refreshSessionView();
-    } catch {
-      try {
-        await api.register({
-          firstName: 'Carlos',
-          lastName: 'Valderrama',
-          email: 'guest@hotel.com',
-          phone: '+57 300 123 4567',
-          role: 'GUEST',
-          password: 'guest123',
-        }, true);
-        showToast('¡Bienvenido a Travel & Resorts!', 'success');
-        refreshSessionView();
-      } catch (regErr) {
-        loginFormView.style.display = 'block';
-        registerFormView.style.display = 'none';
-        const em = document.getElementById('loginEmail');
-        if (em) em.value = 'guest@hotel.com';
-        showToast('Ingresa tus credenciales para acceder', 'info');
-      }
-    }
-  });
-
-  // Botones de Acceso Rápido por Rol para Demostración RBAC (1 Clic)
-  async function quickLoginAs(email, password, roleLabel) {
-    showToast(`Autenticando como ${roleLabel}...`, 'info');
-    try {
-      await api.login(email, password);
-      showToast(`¡Sesión iniciada con éxito! Modo activo: ${roleLabel}`, 'success');
-      refreshSessionView();
-    } catch (err) {
-      showToast(`Error al autenticar: ${err.message}`, 'error');
-    }
-  }
-
-  document.getElementById('btnQuickGuest')?.addEventListener('click', () => {
-    quickLoginAs('guest@hotel.com', 'guest123', 'Huésped (GUEST)');
-  });
-
-  document.getElementById('btnQuickAdmin')?.addEventListener('click', async () => {
-    showToast('Autenticando como Administrador General (Mauricio Medina)...', 'info');
-    try {
-      await api.login('mauromedina2508@gmail.com', '140724');
-      showToast('¡Sesión iniciada con éxito! Modo activo: Administrador General (Mauricio Medina)', 'success');
-      refreshSessionView();
-    } catch {
-      quickLoginAs('admin@hotel.com', 'admin123', 'Administrador General (HOTEL_ADMIN)');
-    }
-  });
-
   // Envío de Login con estado de carga y spinner minimalista
   loginForm?.addEventListener('submit', async (e) => {
     e.preventDefault();

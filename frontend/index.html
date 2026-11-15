@@ -10,7 +10,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css?v=8.5">
+  <link rel="stylesheet" href="css/styles.css?v=9.0">
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2313332E%22 stroke-width=%221.5%22><polygon points=%2212 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2%22/><circle cx=%2212%22 cy=%2212%22 r=%222%22/></svg>">
 </head>
@@ -25,7 +25,7 @@
     <!-- PANEL IZQUIERDO (45%): Formulario Editorial en Crema Suave (#FAF9F6) -->
     <div class="editorial-left-panel">
 
-      <!-- Barra Superior Minimalista: Logo + Explorar Destinos -->
+      <!-- Barra Superior Minimalista: Logo -->
       <header class="editorial-top-bar stagger-item" style="--stagger-idx: 0;">
         <div class="editorial-brand">
           <svg class="editorial-brand-mark" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -38,15 +38,6 @@
             <span class="editorial-brand-sub">SANCTUARIES &amp; PRIVATE RETREATS</span>
           </div>
         </div>
-
-        <button type="button" class="editorial-explore-link" id="exploreAsGuestBtn">
-          <span>Explorar destinos</span>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
-            stroke-linecap="round" stroke-linejoin="round">
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-            <polyline points="12 5 19 12 12 19"></polyline>
-          </svg>
-        </button>
       </header>
 
       <!-- Cuerpo Central del Formulario -->
@@ -129,24 +120,7 @@
             </button>
           </div>
 
-          <!-- Sección Discreta Tipo Píldora/Tabs para Acceso Rápido Demo -->
-          <div class="editorial-demo-box stagger-item" style="--stagger-idx: 8;">
-            <span class="editorial-demo-label">Acceso rápido Demo</span>
-            <div class="editorial-demo-pills" role="group" aria-label="Acceso rápido de demostración">
-              <button type="button" class="editorial-demo-tab" id="btnQuickGuest"
-                title="Ingresar como Huésped para explorar y reservar estancias">
-                <span class="demo-dot"></span>
-                <span>Huésped</span>
-              </button>
-              <button type="button" class="editorial-demo-tab" id="btnQuickAdmin"
-                title="Ingresar como Administrador para gestionar hoteles, tarifas y pagos">
-                <span class="demo-dot admin"></span>
-                <span>Admin</span>
-              </button>
-            </div>
-          </div>
-
-          <p class="editorial-switch-prompt stagger-item" style="--stagger-idx: 9;">
+          <p class="editorial-switch-prompt stagger-item" style="--stagger-idx: 8;">
             ¿Aún no eres miembro de la colección?
             <a href="#" id="goToRegisterLink">Crear una cuenta</a>
           </p>
@@ -2029,8 +2003,8 @@
   <div class="toast-shelf" id="toastShelf" aria-live="polite"></div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=8.5"></script>
-  <script src="js/app.js?v=8.5"></script>
+  <script src="js/api.js?v=9.0"></script>
+  <script src="js/app.js?v=9.0"></script>
 </body>
 
 </html>

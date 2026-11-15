@@ -263,9 +263,16 @@ export class NotificationsController {
 
   @Post('internal/dispatch')
   @ApiOperation({
-    summary: 'Despacho directo interno entre microservicios (Garantía de entrega de correo)',
+    summary: 'Despacho directo interno entre microservicios (Protegido con x-internal-token)',
   })
-  async dispatchInternal(@Body() body: { event: string; payload: any }) {
+  async dispatchInternal(
+    @Headers('x-internal-token') internalToken: string,
+    @Body() body: { event: string; payload: any },
+  ) {
+    const expectedSecret = process.env.JWT_SECRET || 'super_secret_jwt_key_hotel_2026_dev';
+    if (!internalToken || internalToken !== expectedSecret) {
+      throw new UnauthorizedException('Token interno de microservicio inválido o ausente');
+    }
     const event = body?.event;
     const payload = body?.payload || {};
     this.logger.log(`📨 [Internal Dispatch] Evento directo: '${event}' para ${payload.userEmail || payload.email || 'N/A'}`);

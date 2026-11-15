@@ -40,9 +40,9 @@ export class UsersSeedService implements OnApplicationBootstrap {
   async onApplicationBootstrap(): Promise<void> {
     const accounts: SeedAccount[] = [];
 
-    // 1) Administrador inicial (credenciales desde .env o cuenta principal por defecto)
-    const adminEmail = (this.config.get<string>('SEED_ADMIN_EMAIL', 'mauromedina2508@gmail.com') || 'mauromedina2508@gmail.com').trim();
-    const adminPassword = this.config.get<string>('SEED_ADMIN_PASSWORD', '140724') || '140724';
+    // 1) Administrador inicial (credenciales desde .env; nunca expuestas en código fuente)
+    const adminEmail = this.config.get<string>('SEED_ADMIN_EMAIL', '').trim();
+    const adminPassword = this.config.get<string>('SEED_ADMIN_PASSWORD', '');
     if (adminEmail && adminPassword) {
       accounts.push({
         email: adminEmail.toLowerCase(),
@@ -51,6 +51,8 @@ export class UsersSeedService implements OnApplicationBootstrap {
         lastName: this.config.get<string>('SEED_ADMIN_LASTNAME', 'Medina') || 'Medina',
         role: Role.HOTEL_ADMIN,
       });
+    } else if (adminEmail || adminPassword) {
+      this.logger.warn('SEED_ADMIN_EMAIL y SEED_ADMIN_PASSWORD deben definirse juntos en .env; se omite el admin inicial.');
     }
 
     // 2) Cuentas demo (solo desarrollo)

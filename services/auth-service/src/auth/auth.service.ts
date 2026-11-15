@@ -40,9 +40,13 @@ export class AuthService {
     }
 
     // Despacho directo garantizado hacia notification-service
+    const internalSecret = this.configService.get<string>('JWT_SECRET', 'super_secret_jwt_key_hotel_2026_dev');
     fetch('http://notification-service:3008/api/notifications/internal/dispatch', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-internal-token': internalSecret,
+      },
       body: JSON.stringify({ event: 'user.registered', payload }),
     }).catch(() => {});
   }

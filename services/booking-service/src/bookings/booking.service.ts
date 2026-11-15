@@ -525,9 +525,13 @@ export class BookingService implements OnModuleInit {
     // Respaldo directo HTTP hacia notification-service
     try {
       const notifUrl = this.configService.get<string>('NOTIFICATIONS_SERVICE_URL', 'http://notification-service:3008');
+      const internalSecret = this.configService.get<string>('JWT_SECRET', 'super_secret_jwt_key_hotel_2026_dev');
       await fetch(`${notifUrl}/api/notifications/internal/dispatch`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-internal-token': internalSecret,
+        },
         body: JSON.stringify({ event: 'booking.confirmed', payload: confirmedPayload }),
       });
     } catch {}

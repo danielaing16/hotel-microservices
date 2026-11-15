@@ -91,7 +91,17 @@ export class ReverseProxyMiddleware implements NestMiddleware {
   }
 
   use(req: Request, res: Response, next: NextFunction) {
-    // SEGURIDAD: nunca confiar en cabeceras de identidad enviadas por el cliente.
+    // SEGURIDAD: Bloquear cualquier intento externo de invocar rutas internas de microservicios
+    const urlPath = (req.originalUrl || req.url || '').toLowerCase();
+    if (urlPath.includes('/internal/') || urlPath.endsWith('/confirm-hold')) {
+      return res.status(403).json({
+        statusCode: 403,
+        error: 'Forbidden',
+        message: 'Acceso denegado: ruta exclusiva para comunicación interna entre microservicios.',
+      });
+    }
+
+    // SEGURIDAD: nunca confiar en cabeceras de identidad o tokens internos enviados por el cliente.
     // Los microservicios downstream confían en x-user-* porque solo el Gateway las inyecta
     // a partir de un JWT verificado, así que se eliminan antes de procesar la petición.
     for (const header of [
@@ -101,6 +111,7 @@ export class ReverseProxyMiddleware implements NestMiddleware {
       'x-userrole',
       'x-user-email',
       'x-useremail',
+      'x-internal-token',
     ]) {
       delete req.headers[header];
     }

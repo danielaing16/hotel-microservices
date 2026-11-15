@@ -564,9 +564,13 @@ export class PaymentService implements OnModuleInit {
     let notification: any = null;
     try {
       const notifUrl = this.configService.get('NOTIFICATIONS_SERVICE_URL', 'http://notification-service:3008');
+      const internalSecret = this.configService.get('JWT_SECRET', 'super_secret_jwt_key_hotel_2026_dev');
       const notifRes = await fetch(`${notifUrl}/api/notifications/internal/dispatch`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-internal-token': internalSecret,
+        },
         body: JSON.stringify({
           event: 'booking.confirmed',
           payload: {
@@ -705,9 +709,13 @@ export class PaymentService implements OnModuleInit {
     let notification: any = null;
     try {
       const notifUrl = this.configService.get('NOTIFICATIONS_SERVICE_URL', 'http://notification-service:3008');
+      const internalSecret = this.configService.get('JWT_SECRET', 'super_secret_jwt_key_hotel_2026_dev');
       const notifRes = await fetch(`${notifUrl}/api/notifications/internal/dispatch`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-internal-token': internalSecret,
+        },
         body: JSON.stringify({
           event: 'payment.failed',
           payload: failPayload,
