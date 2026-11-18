@@ -2,15 +2,15 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://hotel-api-gateway.onrender.com/api/:path*"
+      "destination": "https://tr-cloud-gateway.onrender.com/api/:path*"
     },
     {
       "source": "/health",
-      "destination": "https://hotel-api-gateway.onrender.com/health"
+      "destination": "https://tr-cloud-gateway.onrender.com/health"
     },
     {
       "source": "/health/:path*",
-      "destination": "https://hotel-api-gateway.onrender.com/health/:path*"
+      "destination": "https://tr-cloud-gateway.onrender.com/health/:path*"
     }
   ]
 }

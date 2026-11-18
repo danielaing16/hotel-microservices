@@ -1,28 +1,23 @@
 # ============================================================================
-# Render Blueprint — Travel & Resorts (8 Servicios en Plan Gratis)
-# ============================================================================
-# Cómo usar:
-# 1. En Render Dashboard haz clic en "New +" -> "Blueprint"
-# 2. Conecta este repositorio de GitHub (rama main)
-# 3. Completa una sola vez las variables secretas del grupo "hotel-cloud-secrets"
-# 4. Haz clic en "Apply" para desplegar todos los microservicios automáticamente
+# Render Blueprint — Travel & Resorts (8 Web Services en Plan Gratis $0)
+# Comunicación por HTTPS público (100% compatible con Render Free Tier)
 # ============================================================================
 
 envVarGroups:
-  - name: hotel-cloud-secrets
+  - name: tr-cloud-secrets
     envVars:
       - key: NODE_ENV
         value: production
       - key: DB_SSL
         value: "true"
       - key: DATABASE_URL
-        sync: false # Pega aquí tu PostgreSQL URL de Neon.tech (o de Render PostgreSQL)
+        sync: false # Pega aquí tu Connection String de Neon.tech (postgresql://...sslmode=require)
       - key: JWT_SECRET
-        generateValue: true # Render genera automáticamente un secreto criptográfico seguro
+        generateValue: true
       - key: ADMIN_SEED_EMAIL
         value: mauromedina2508@gmail.com
       - key: ADMIN_SEED_PASSWORD
-        sync: false # Define aquí la contraseña del administrador (mín. 8 caracteres)
+        sync: false # Contraseña del administrador (mín. 8 caracteres)
       - key: SMTP_SERVICE
         value: gmail
       - key: SMTP_HOST
@@ -34,16 +29,16 @@ envVarGroups:
       - key: SMTP_USER
         value: mauromedina2508@gmail.com
       - key: SMTP_PASS
-        sync: false # Pega aquí tu App Password de Gmail (16 letras)
+        sync: false # App Password de Gmail (16 letras)
       - key: SMTP_FROM
         value: "Travel & Resorts <mauromedina2508@gmail.com>"
       - key: FRONTEND_URL
-        sync: false # Pega aquí tu URL pública de Vercel (ej. https://tu-proyecto.vercel.app)
+        sync: false # URL de tu Frontend en Vercel (ej. https://hotel-microservices.vercel.app)
 
 services:
-  # 1. Notification Service (Correos + Vouchers PDF con QR)
+  # 1. Notification Service (Correos Gmail + Vouchers PDF con QR)
   - type: web
-    name: hotel-notification-service
+    name: tr-cloud-notifications
     runtime: node
     plan: free
     rootDir: services/notification-service
@@ -51,122 +46,95 @@ services:
     startCommand: npm run start:prod
     healthCheckPath: /health
     envVars:
-      - fromGroup: hotel-cloud-secrets
+      - fromGroup: tr-cloud-secrets
 
   # 2. Auth Service (Usuarios, Login, Registro, JWT, RBAC)
   - type: web
-    name: hotel-auth-service
+    name: tr-cloud-auth
     runtime: node
     plan: free
     rootDir: services/auth-service
     buildCommand: npm install --include=dev && npm run build
     startCommand: npm run start:prod
     envVars:
-      - fromGroup: hotel-cloud-secrets
+      - fromGroup: tr-cloud-secrets
       - key: NOTIFICATIONS_SERVICE_URL
-        fromService:
-          type: web
-          name: hotel-notification-service
-          property: host
+        value: https://tr-cloud-notifications.onrender.com
 
   # 3. Hotels Service (Catálogo de Sedes Hoteleras)
   - type: web
-    name: hotel-hotels-service
+    name: tr-cloud-hotels
     runtime: node
     plan: free
     rootDir: services/hotels-service
     buildCommand: npm install --include=dev && npm run build
     startCommand: npm run start:prod
     envVars:
-      - fromGroup: hotel-cloud-secrets
+      - fromGroup: tr-cloud-secrets
 
   # 4. Rooms Service (Inventario de Habitaciones)
   - type: web
-    name: hotel-rooms-service
+    name: tr-cloud-rooms
     runtime: node
     plan: free
     rootDir: services/rooms-service
     buildCommand: npm install --include=dev && npm run build
     startCommand: npm run start:prod
     envVars:
-      - fromGroup: hotel-cloud-secrets
+      - fromGroup: tr-cloud-secrets
       - key: HOTELS_SERVICE_URL
-        fromService:
-          type: web
-          name: hotel-hotels-service
-          property: host
+        value: https://tr-cloud-hotels.onrender.com
 
-  # 5. Availability Service (Disponibilidad & Soft-Locks en Redis)
+  # 5. Availability Service (Disponibilidad & Bloqueos TTL)
   - type: web
-    name: hotel-availability-service
+    name: tr-cloud-availability
     runtime: node
     plan: free
     rootDir: services/availability-service
     buildCommand: npm install --include=dev && npm run build
     startCommand: npm run start:prod
     envVars:
-      - fromGroup: hotel-cloud-secrets
+      - fromGroup: tr-cloud-secrets
       - key: ROOMS_SERVICE_URL
-        fromService:
-          type: web
-          name: hotel-rooms-service
-          property: host
+        value: https://tr-cloud-rooms.onrender.com
 
   # 6. Booking Service (Orquestador de Reservas, Check-In/Out)
   - type: web
-    name: hotel-booking-service
+    name: tr-cloud-bookings
     runtime: node
     plan: free
     rootDir: services/booking-service
     buildCommand: npm install --include=dev && npm run build
     startCommand: npm run start:prod
     envVars:
-      - fromGroup: hotel-cloud-secrets
+      - fromGroup: tr-cloud-secrets
       - key: HOTELS_SERVICE_URL
-        fromService:
-          type: web
-          name: hotel-hotels-service
-          property: host
+        value: https://tr-cloud-hotels.onrender.com
       - key: ROOMS_SERVICE_URL
-        fromService:
-          type: web
-          name: hotel-rooms-service
-          property: host
+        value: https://tr-cloud-rooms.onrender.com
       - key: AVAILABILITY_SERVICE_URL
-        fromService:
-          type: web
-          name: hotel-availability-service
-          property: host
+        value: https://tr-cloud-availability.onrender.com
       - key: NOTIFICATIONS_SERVICE_URL
-        fromService:
-          type: web
-          name: hotel-notification-service
-          property: host
+        value: https://tr-cloud-notifications.onrender.com
 
   # 7. Payment Service (Pagos, Conciliación y Reembolsos)
   - type: web
-    name: hotel-payment-service
+    name: tr-cloud-payments
     runtime: node
     plan: free
     rootDir: services/payment-service
     buildCommand: npm install --include=dev && npm run build
     startCommand: npm run start:prod
     envVars:
-      - fromGroup: hotel-cloud-secrets
+      - fromGroup: tr-cloud-secrets
       - key: BOOKINGS_SERVICE_URL
-        fromService:
-          type: web
-          name: hotel-booking-service
-          property: host
+        value: https://tr-cloud-bookings.onrender.com
       - key: NOTIFICATIONS_SERVICE_URL
-        fromService:
-          type: web
-          name: hotel-notification-service
-          property: host
+        value: https://tr-cloud-notifications.onrender.com
 
   # 8. API Gateway Unificado (Punto de entrada para Vercel)
   - type: web
-    name: hotel-api-gateway
+    name: tr-cloud-gateway
     runtime: node
     plan: free
     rootDir: gateway
@@ -174,43 +142,22 @@ services:
     startCommand: npm run start:prod
     healthCheckPath: /health
     envVars:
-      - fromGroup: hotel-cloud-secrets
+      - fromGroup: tr-cloud-secrets
       - key: THROTTLE_TTL
         value: "60"
       - key: THROTTLE_LIMIT
         value: "120"
       - key: AUTH_SERVICE_URL
-        fromService:
-          type: web
-          name: hotel-auth-service
-          property: host
+        value: https://tr-cloud-auth.onrender.com
       - key: HOTELS_SERVICE_URL
-        fromService:
-          type: web
-          name: hotel-hotels-service
-          property: host
+        value: https://tr-cloud-hotels.onrender.com
       - key: ROOMS_SERVICE_URL
-        fromService:
-          type: web
-          name: hotel-rooms-service
-          property: host
+        value: https://tr-cloud-rooms.onrender.com
       - key: AVAILABILITY_SERVICE_URL
-        fromService:
-          type: web
-          name: hotel-availability-service
-          property: host
+        value: https://tr-cloud-availability.onrender.com
       - key: BOOKINGS_SERVICE_URL
-        fromService:
-          type: web
-          name: hotel-booking-service
-          property: host
+        value: https://tr-cloud-bookings.onrender.com
       - key: PAYMENTS_SERVICE_URL
-        fromService:
-          type: web
-          name: hotel-payment-service
-          property: host
+        value: https://tr-cloud-payments.onrender.com
       - key: NOTIFICATIONS_SERVICE_URL
-        fromService:
-          type: web
-          name: hotel-notification-service
-          property: host
+        value: https://tr-cloud-notifications.onrender.com
