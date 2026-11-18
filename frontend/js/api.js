@@ -61,7 +61,7 @@ class HotelApiClient {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const maxAttempts = 3;
+    const maxAttempts = 6;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         const response = await fetch(url, {
@@ -69,10 +69,10 @@ class HotelApiClient {
           headers,
         });
 
-        // En Render Free, un microservicio dormido puede tardar ~25-35s en despertar (502/503/504).
+        // En Render Free, un microservicio dormido puede tardar ~25-40s en despertar (502/503/504).
         // Reintentar automáticamente para evitar errores visibles al usuario durante el cold start.
         if ((response.status === 502 || response.status === 503 || response.status === 504) && attempt < maxAttempts) {
-          await new Promise(r => setTimeout(r, 3000));
+          await new Promise(r => setTimeout(r, 4000));
           continue;
         }
 
