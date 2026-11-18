@@ -41,8 +41,13 @@ export class UsersSeedService implements OnApplicationBootstrap {
     const accounts: SeedAccount[] = [];
 
     // 1) Administrador inicial (credenciales desde .env; nunca expuestas en código fuente)
-    const adminEmail = this.config.get<string>('SEED_ADMIN_EMAIL', '').trim();
-    const adminPassword = this.config.get<string>('SEED_ADMIN_PASSWORD', '');
+    const adminEmail = (
+      this.config.get<string>('SEED_ADMIN_EMAIL', '') ||
+      this.config.get<string>('ADMIN_SEED_EMAIL', '')
+    ).trim();
+    const adminPassword =
+      this.config.get<string>('SEED_ADMIN_PASSWORD', '') ||
+      this.config.get<string>('ADMIN_SEED_PASSWORD', '');
     if (adminEmail && adminPassword) {
       accounts.push({
         email: adminEmail.toLowerCase(),
