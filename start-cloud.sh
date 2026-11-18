@@ -2,7 +2,6 @@
 set -e
 
 export NODE_ENV=${NODE_ENV:-production}
-export DB_SSL=${DB_SSL:-true}
 export AUTH_SERVICE_URL=http://127.0.0.1:3001
 export HOTELS_SERVICE_URL=http://127.0.0.1:3002
 export ROOMS_SERVICE_URL=http://127.0.0.1:3003
