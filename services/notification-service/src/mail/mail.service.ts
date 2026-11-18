@@ -38,6 +38,7 @@ export class MailService implements OnModuleInit {
   private fromAddress: string;
   private isConfiguredWithRealSmtp = false;
   private providerName = 'Ethereal (Simulación)';
+  private brevoApiKey = '';
 
   constructor(private readonly configService: ConfigService) {
     this.fromAddress =
@@ -101,6 +102,19 @@ export class MailService implements OnModuleInit {
   }
 
   private async initTransporter() {
+    this.brevoApiKey = (this.configService.get<string>('BREVO_API_KEY') || '').trim();
+    const senderEmail = (this.configService.get<string>('smtp.user') || '').trim();
+    if (senderEmail && !this.fromAddress.includes(senderEmail)) {
+      this.fromAddress = `Travel & Resorts <${senderEmail}>`;
+    }
+
+    if (this.brevoApiKey) {
+      this.isConfiguredWithRealSmtp = true;
+      this.providerName = `Brevo HTTPS API (${senderEmail || 'mauromedina2508@gmail.com'})`;
+      this.logger.log(`✅ [Email Delivery Activo] Brevo HTTPS API (puerto 443) configurado para ${this.fromAddress}`);
+      return;
+    }
+
     let service = this.configService.get<string>('smtp.service');
     let host = this.configService.get<string>('smtp.host', 'smtp.gmail.com');
     let port = this.configService.get<number>('smtp.port', 465);
@@ -202,8 +216,15 @@ export class MailService implements OnModuleInit {
     }>;
   }): Promise<EmailSendResult> {
     try {
+      if (this.brevoApiKey) {
+        return await this.sendViaBrevoApi(options);
+      }
+
       if (!this.transporter) {
         await this.initTransporter();
+        if (this.brevoApiKey) {
+          return await this.sendViaBrevoApi(options);
+        }
       }
 
       const mailOptions = {
@@ -245,6 +266,62 @@ export class MailService implements OnModuleInit {
         error: error.message,
       };
     }
+  }
+
+  private async sendViaBrevoApi(options: {
+    to: string;
+    subject: string;
+    html: string;
+    attachments?: Array<{
+      filename: string;
+      content: Buffer | string;
+      contentType?: string;
+    }>;
+  }): Promise<EmailSendResult> {
+    const match = this.fromAddress.match(/^(.*)<([^>]+)>$/);
+    const senderName = (match ? match[1] : 'Travel & Resorts').trim().replace(/^"|"$/g, '') || 'Travel & Resorts';
+    const senderEmail = (match ? match[2] : this.configService.get<string>('smtp.user') || 'mauromedina2508@gmail.com').trim();
+
+    const body: any = {
+      sender: { name: senderName, email: senderEmail },
+      to: [{ email: options.to }],
+      subject: options.subject,
+      htmlContent: options.html,
+    };
+
+    if (options.attachments?.length) {
+      body.attachment = options.attachments.map((att) => ({
+        name: att.filename,
+        content: Buffer.isBuffer(att.content)
+          ? att.content.toString('base64')
+          : Buffer.from(att.content).toString('base64'),
+      }));
+    }
+
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'content-type': 'application/json',
+        'api-key': this.brevoApiKey,
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(15000),
+    });
+
+    const data: any = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data?.message || `Brevo API HTTP ${res.status}`);
+    }
+
+    this.logger.log(`✉️ [Brevo HTTPS] Correo enviado a ${options.to} | MessageId: ${data?.messageId || 'ok'}`);
+    return {
+      success: true,
+      messageId: data?.messageId || `brevo_${Date.now()}`,
+      recipient: options.to,
+      subject: options.subject,
+      simulated: false,
+    };
   }
 
   /**

@@ -29,7 +29,9 @@ envVarGroups:
       - key: SMTP_USER
         value: mauromedina2508@gmail.com
       - key: SMTP_PASS
-        sync: false # App Password de Gmail (16 letras)
+        sync: false # App Password de Gmail (nota: Render Free bloquea puertos SMTP; usa BREVO_API_KEY para envío por HTTPS 443)
+      - key: BREVO_API_KEY
+        sync: false # API Key gratuita de Brevo (envía correos reales por HTTPS puerto 443 en Render Free)
       - key: SMTP_FROM
         value: "Travel & Resorts <mauromedina2508@gmail.com>"
       - key: FRONTEND_URL
