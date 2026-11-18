@@ -1,0 +1,222 @@
+# ============================================================================
+# Render Blueprint — Travel & Resorts (8 Servicios en Plan Gratis)
+# ============================================================================
+# Cómo usar:
+# 1. En Render Dashboard haz clic en "New +" -> "Blueprint"
+# 2. Conecta este repositorio de GitHub (rama main)
+# 3. Completa una sola vez las variables secretas del grupo "hotel-cloud-secrets"
+# 4. Haz clic en "Apply" para desplegar todos los microservicios automáticamente
+# ============================================================================
+
+envVarGroups:
+  - name: hotel-cloud-secrets
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_SSL
+        value: "true"
+      - key: DATABASE_URL
+        sync: false # Pega aquí tu PostgreSQL URL de Neon.tech (ej. postgresql://user:pass@ep-xxx.neon.tech/neondb?sslmode=require)
+      - key: REDIS_URL
+        sync: false # Pega aquí tu Redis TLS URL de Upstash (ej. rediss://default:xxx@xxx.upstash.io:6379)
+      - key: RABBITMQ_URL
+        sync: false # Pega aquí tu AMQPS URL de CloudAMQP (ej. amqps://user:pass@xxx.cloudamqp.com/vhost)
+      - key: RABBITMQ_QUEUE
+        value: hotel_notifications_queue
+      - key: JWT_SECRET
+        generateValue: true # Render genera automáticamente un secreto criptográfico seguro
+      - key: ADMIN_SEED_EMAIL
+        value: mauromedina2508@gmail.com
+      - key: ADMIN_SEED_PASSWORD
+        sync: false # Define aquí la contraseña del administrador (mín. 8 caracteres)
+      - key: SMTP_SERVICE
+        value: gmail
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "465"
+      - key: SMTP_SECURE
+        value: "true"
+      - key: SMTP_USER
+        value: mauromedina2508@gmail.com
+      - key: SMTP_PASS
+        sync: false # Pega aquí tu App Password de Gmail (16 letras)
+      - key: SMTP_FROM
+        value: "Travel & Resorts <mauromedina2508@gmail.com>"
+      - key: FRONTEND_URL
+        sync: false # Pega aquí tu URL pública de Vercel (ej. https://tu-proyecto.vercel.app)
+
+services:
+  # 1. Notification Service (Correos + Vouchers PDF con QR)
+  - type: web
+    name: hotel-notification-service
+    runtime: node
+    plan: free
+    rootDir: services/notification-service
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /health
+    envVars:
+      - fromGroup: hotel-cloud-secrets
+
+  # 2. Auth Service (Usuarios, Login, Registro, JWT, RBAC)
+  - type: web
+    name: hotel-auth-service
+    runtime: node
+    plan: free
+    rootDir: services/auth-service
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - fromGroup: hotel-cloud-secrets
+      - key: NOTIFICATIONS_SERVICE_URL
+        fromService:
+          type: web
+          name: hotel-notification-service
+          property: host
+
+  # 3. Hotels Service (Catálogo de Sedes Hoteleras)
+  - type: web
+    name: hotel-hotels-service
+    runtime: node
+    plan: free
+    rootDir: services/hotels-service
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - fromGroup: hotel-cloud-secrets
+
+  # 4. Rooms Service (Inventario de Habitaciones)
+  - type: web
+    name: hotel-rooms-service
+    runtime: node
+    plan: free
+    rootDir: services/rooms-service
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - fromGroup: hotel-cloud-secrets
+      - key: HOTELS_SERVICE_URL
+        fromService:
+          type: web
+          name: hotel-hotels-service
+          property: host
+
+  # 5. Availability Service (Disponibilidad & Soft-Locks en Redis)
+  - type: web
+    name: hotel-availability-service
+    runtime: node
+    plan: free
+    rootDir: services/availability-service
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - fromGroup: hotel-cloud-secrets
+      - key: ROOMS_SERVICE_URL
+        fromService:
+          type: web
+          name: hotel-rooms-service
+          property: host
+
+  # 6. Booking Service (Orquestador de Reservas, Check-In/Out)
+  - type: web
+    name: hotel-booking-service
+    runtime: node
+    plan: free
+    rootDir: services/booking-service
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - fromGroup: hotel-cloud-secrets
+      - key: HOTELS_SERVICE_URL
+        fromService:
+          type: web
+          name: hotel-hotels-service
+          property: host
+      - key: ROOMS_SERVICE_URL
+        fromService:
+          type: web
+          name: hotel-rooms-service
+          property: host
+      - key: AVAILABILITY_SERVICE_URL
+        fromService:
+          type: web
+          name: hotel-availability-service
+          property: host
+      - key: NOTIFICATIONS_SERVICE_URL
+        fromService:
+          type: web
+          name: hotel-notification-service
+          property: host
+
+  # 7. Payment Service (Pagos, Conciliación y Reembolsos)
+  - type: web
+    name: hotel-payment-service
+    runtime: node
+    plan: free
+    rootDir: services/payment-service
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - fromGroup: hotel-cloud-secrets
+      - key: BOOKINGS_SERVICE_URL
+        fromService:
+          type: web
+          name: hotel-booking-service
+          property: host
+      - key: NOTIFICATIONS_SERVICE_URL
+        fromService:
+          type: web
+          name: hotel-notification-service
+          property: host
+
+  # 8. API Gateway Unificado (Punto de entrada para Vercel)
+  - type: web
+    name: hotel-api-gateway
+    runtime: node
+    plan: free
+    rootDir: gateway
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /health
+    envVars:
+      - fromGroup: hotel-cloud-secrets
+      - key: THROTTLE_TTL
+        value: "60"
+      - key: THROTTLE_LIMIT
+        value: "120"
+      - key: AUTH_SERVICE_URL
+        fromService:
+          type: web
+          name: hotel-auth-service
+          property: host
+      - key: HOTELS_SERVICE_URL
+        fromService:
+          type: web
+          name: hotel-hotels-service
+          property: host
+      - key: ROOMS_SERVICE_URL
+        fromService:
+          type: web
+          name: hotel-rooms-service
+          property: host
+      - key: AVAILABILITY_SERVICE_URL
+        fromService:
+          type: web
+          name: hotel-availability-service
+          property: host
+      - key: BOOKINGS_SERVICE_URL
+        fromService:
+          type: web
+          name: hotel-booking-service
+          property: host
+      - key: PAYMENTS_SERVICE_URL
+        fromService:
+          type: web
+          name: hotel-payment-service
+          property: host
+      - key: NOTIFICATIONS_SERVICE_URL
+        fromService:
+          type: web
+          name: hotel-notification-service
+          property: host

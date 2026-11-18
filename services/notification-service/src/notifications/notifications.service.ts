@@ -55,7 +55,7 @@ export class NotificationsService {
       firstName: event.firstName || email.split('@')[0],
       lastName: event.lastName || '',
       email,
-      loginUrl: event.loginUrl || 'http://localhost:5173',
+      loginUrl: event.loginUrl || process.env.FRONTEND_URL || 'http://localhost:5173',
     });
 
     const log = this.recordLog(
@@ -205,7 +205,7 @@ export class NotificationsService {
           guestsCount,
           totalAmount,
           currency,
-          dashboardUrl: rawEvent?.dashboardUrl || 'http://localhost:5173',
+          dashboardUrl: rawEvent?.dashboardUrl || process.env.FRONTEND_URL || 'http://localhost:5173',
         },
         pdfBuffer,
       );
@@ -265,7 +265,7 @@ export class NotificationsService {
       totalAmount,
       currency: rawEvent?.currency || 'COP',
       failureReason,
-      retryPaymentUrl: rawEvent?.retryPaymentUrl || 'http://localhost:5173',
+      retryPaymentUrl: rawEvent?.retryPaymentUrl || process.env.FRONTEND_URL || 'http://localhost:5173',
       expiresAt: rawEvent?.expiresAt || 'Fechas liberadas en inventario',
     });
 
@@ -356,7 +356,7 @@ export class NotificationsService {
         originalAmount,
         currency: 'COP',
         reason: rawEvent?.reason || 'Reembolso autorizado por administración',
-        portalUrl: rawEvent?.portalUrl || 'http://localhost:5173',
+        portalUrl: rawEvent?.portalUrl || process.env.FRONTEND_URL || 'http://localhost:5173',
       });
 
       const log = this.recordLog(

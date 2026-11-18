@@ -1,3 +1,9 @@
+const normalizeUrl = (val: string | undefined, fallback: string): string => {
+  const raw = (val || '').trim();
+  if (!raw) return fallback;
+  return /^https?:\/\//i.test(raw) ? raw.replace(/\/+$/, '') : `https://${raw.replace(/\/+$/, '')}`;
+};
+
 export default () => ({
   port: parseInt(process.env.PORT, 10) || 3000,
   environment: process.env.NODE_ENV || 'development',
@@ -5,13 +11,13 @@ export default () => ({
     secret: process.env.JWT_SECRET || 'super_secret_jwt_key_hotel_2026_dev',
   },
   services: {
-    auth: process.env.AUTH_SERVICE_URL || 'http://auth-service:3001',
-    hotels: process.env.HOTELS_SERVICE_URL || 'http://hotels-service:3002',
-    rooms: process.env.ROOMS_SERVICE_URL || 'http://rooms-service:3003',
-    availability: process.env.AVAILABILITY_SERVICE_URL || 'http://availability-service:3004',
-    bookings: process.env.BOOKINGS_SERVICE_URL || 'http://booking-service:3005',
-    payments: process.env.PAYMENTS_SERVICE_URL || 'http://payment-service:3006',
-    notifications: process.env.NOTIFICATIONS_SERVICE_URL || 'http://notification-service:3008',
+    auth: normalizeUrl(process.env.AUTH_SERVICE_URL, 'http://auth-service:3001'),
+    hotels: normalizeUrl(process.env.HOTELS_SERVICE_URL, 'http://hotels-service:3002'),
+    rooms: normalizeUrl(process.env.ROOMS_SERVICE_URL, 'http://rooms-service:3003'),
+    availability: normalizeUrl(process.env.AVAILABILITY_SERVICE_URL, 'http://availability-service:3004'),
+    bookings: normalizeUrl(process.env.BOOKINGS_SERVICE_URL, 'http://booking-service:3005'),
+    payments: normalizeUrl(process.env.PAYMENTS_SERVICE_URL, 'http://payment-service:3006'),
+    notifications: normalizeUrl(process.env.NOTIFICATIONS_SERVICE_URL, 'http://notification-service:3008'),
   },
   throttler: {
     ttl: parseInt(process.env.THROTTLE_TTL, 10) || 60,

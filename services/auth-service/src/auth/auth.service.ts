@@ -24,12 +24,13 @@ export class AuthService {
   ) {}
 
   private emitUserRegistered(user: { id: string; email: string; firstName: string; lastName: string; role?: string }) {
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:5173');
     const payload = {
       userId: user.id,
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
-      loginUrl: 'http://localhost:5173',
+      loginUrl: frontendUrl,
       role: user.role || 'GUEST',
     };
     try {
@@ -41,7 +42,9 @@ export class AuthService {
 
     // Despacho directo garantizado hacia notification-service
     const internalSecret = this.configService.get<string>('JWT_SECRET', 'super_secret_jwt_key_hotel_2026_dev');
-    fetch('http://notification-service:3008/api/notifications/internal/dispatch', {
+    const rawNotifUrl = this.configService.get<string>('NOTIFICATIONS_SERVICE_URL', 'http://notification-service:3008');
+    const notifUrl = /^https?:\/\//i.test(rawNotifUrl) ? rawNotifUrl : `https://${rawNotifUrl}`;
+    fetch(`${notifUrl}/api/notifications/internal/dispatch`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -26,22 +26,29 @@ import { AuthHeaderMiddleware } from './common/middleware/auth-header.middleware
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        ...(configService.get<string>('DATABASE_URL')
-          ? { url: configService.get<string>('DATABASE_URL') }
-          : {
-              host: configService.get<string>('DB_HOST', 'localhost'),
-              port: parseInt(configService.get<string>('DB_PORT', '5433'), 10),
-              username: configService.get<string>('DB_USERNAME', 'postgres'),
-              password: configService.get<string>('DB_PASSWORD', 'postgres123'),
-              database: configService.get<string>('DB_DATABASE', 'hotel_hotels_db'),
-            }),
-        entities: [Hotel],
-        autoLoadEntities: true,
-        synchronize: true, // Sincronización automática de esquemas para desarrollo
-        logging: configService.get<string>('NODE_ENV') === 'development',
-      }),
+      useFactory: (configService: ConfigService) => {
+        const databaseUrl = configService.get<string>('DATABASE_URL');
+        const useSsl =
+          configService.get<string>('DB_SSL') === 'true' ||
+          Boolean(databaseUrl && /sslmode=require|neon\.tech|render\.com|supabase/i.test(databaseUrl));
+        return {
+          type: 'postgres' as const,
+          ...(databaseUrl
+            ? { url: databaseUrl }
+            : {
+                host: configService.get<string>('DB_HOST', 'localhost'),
+                port: parseInt(configService.get<string>('DB_PORT', '5433'), 10),
+                username: configService.get<string>('DB_USERNAME', 'postgres'),
+                password: configService.get<string>('DB_PASSWORD', 'postgres123'),
+                database: configService.get<string>('DB_DATABASE', 'hotel_hotels_db'),
+              }),
+          ssl: useSsl ? { rejectUnauthorized: false } : false,
+          entities: [Hotel],
+          autoLoadEntities: true,
+          synchronize: true,
+          logging: configService.get<string>('NODE_ENV') === 'development',
+        };
+      },
     }),
     HotelsModule,
   ],

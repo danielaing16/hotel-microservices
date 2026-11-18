@@ -14,13 +14,24 @@ import { Client } from 'pg';
  */
 export async function runPreBootMigrations(): Promise<void> {
   const logger = new Logger('PreBootMigration');
-  const client = new Client({
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432', 10),
-    user: process.env.DB_USERNAME || 'postgres',
-    password: process.env.DB_PASSWORD || 'postgres123',
-    database: process.env.DB_DATABASE || 'hotel_auth_db',
-  });
+  const databaseUrl = process.env.DATABASE_URL;
+  const useSsl =
+    process.env.DB_SSL === 'true' ||
+    Boolean(databaseUrl && /sslmode=require|neon\.tech|render\.com|supabase/i.test(databaseUrl));
+
+  const client = databaseUrl
+    ? new Client({
+        connectionString: databaseUrl,
+        ssl: useSsl ? { rejectUnauthorized: false } : undefined,
+      })
+    : new Client({
+        host: process.env.DB_HOST || 'localhost',
+        port: parseInt(process.env.DB_PORT || '5432', 10),
+        user: process.env.DB_USERNAME || 'postgres',
+        password: process.env.DB_PASSWORD || 'postgres123',
+        database: process.env.DB_DATABASE || 'hotel_auth_db',
+        ssl: useSsl ? { rejectUnauthorized: false } : undefined,
+      });
 
   try {
     await client.connect();

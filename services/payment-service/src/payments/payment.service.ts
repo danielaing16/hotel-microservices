@@ -32,6 +32,12 @@ export class PaymentService implements OnModuleInit {
     private readonly rabbitClient: ClientProxy,
   ) {}
 
+  private getServiceUrl(key: string, fallback: string): string {
+    const raw = (this.configService.get<string>(key) || '').trim();
+    if (!raw) return fallback;
+    return /^https?:\/\//i.test(raw) ? raw.replace(/\/+$/, '') : `https://${raw.replace(/\/+$/, '')}`;
+  }
+
   async onModuleInit() {
     try {
       const count = await this.paymentRepository.count();
@@ -54,8 +60,7 @@ export class PaymentService implements OnModuleInit {
       where: { status: PaymentStatus.REFUNDED },
     });
     if (!refunded.length) return;
-    const bookingServiceUrl =
-      this.configService.get<string>('BOOKINGS_SERVICE_URL') || 'http://booking-service:3005';
+    const bookingServiceUrl = this.getServiceUrl('BOOKINGS_SERVICE_URL', 'http://booking-service:3005');
     for (const p of refunded) {
       const target = p.bookingId || p.bookingCode;
       if (!target) continue;
@@ -434,7 +439,7 @@ export class PaymentService implements OnModuleInit {
     const updated = await this.paymentRepository.save(payment);
 
     // 1. Consultar y cancelar la reserva asociada en booking-service (y liberar inventario)
-    const bookingsUrl = this.configService.get('BOOKINGS_SERVICE_URL', 'http://booking-service:3005');
+    const bookingsUrl = this.getServiceUrl('BOOKINGS_SERVICE_URL', 'http://booking-service:3005');
     const bookingLookupKey = updated.bookingCode || updated.bookingId;
     let booking: any = null;
 
@@ -507,7 +512,7 @@ export class PaymentService implements OnModuleInit {
 
     // 3. Despacho directo garantizado hacia notification-service
     try {
-      const notifUrl = this.configService.get('NOTIFICATIONS_SERVICE_URL', 'http://notification-service:3008');
+      const notifUrl = this.getServiceUrl('NOTIFICATIONS_SERVICE_URL', 'http://notification-service:3008');
       const internalSecret = this.configService.get('JWT_SECRET', 'super_secret_jwt_key_hotel_2026_dev');
       await fetch(`${notifUrl}/api/notifications/internal/dispatch`, {
         method: 'POST',
@@ -544,7 +549,7 @@ export class PaymentService implements OnModuleInit {
    * Aprueba una transferencia bancaria manual (Solo Administrador)
    */
   async approvePayment(idOrRef: string, adminUser: RequestUser) {
-    const bookingsUrl = this.configService.get('BOOKINGS_SERVICE_URL', 'http://booking-service:3005');
+    const bookingsUrl = this.getServiceUrl('BOOKINGS_SERVICE_URL', 'http://booking-service:3005');
     let payment: Payment | null = null;
     try {
       payment = await this.findOne(idOrRef, adminUser);
@@ -674,7 +679,7 @@ export class PaymentService implements OnModuleInit {
     // Despacho directo garantizado de correo de Pago Aceptado + Voucher PDF al huésped
     let notification: any = null;
     try {
-      const notifUrl = this.configService.get('NOTIFICATIONS_SERVICE_URL', 'http://notification-service:3008');
+      const notifUrl = this.getServiceUrl('NOTIFICATIONS_SERVICE_URL', 'http://notification-service:3008');
       const internalSecret = this.configService.get('JWT_SECRET', 'super_secret_jwt_key_hotel_2026_dev');
       const notifRes = await fetch(`${notifUrl}/api/notifications/internal/dispatch`, {
         method: 'POST',
@@ -724,7 +729,7 @@ export class PaymentService implements OnModuleInit {
    * Rechaza una transferencia bancaria manual (Solo Administrador) y libera fechas
    */
   async rejectPayment(idOrRef: string, reason: string, adminUser: RequestUser) {
-    const bookingsUrl = this.configService.get('BOOKINGS_SERVICE_URL', 'http://booking-service:3005');
+    const bookingsUrl = this.getServiceUrl('BOOKINGS_SERVICE_URL', 'http://booking-service:3005');
     let payment: Payment | null = null;
     try {
       payment = await this.findOne(idOrRef, adminUser);
@@ -819,7 +824,7 @@ export class PaymentService implements OnModuleInit {
     // Despacho directo garantizado de correo de Pago Rechazado al huésped
     let notification: any = null;
     try {
-      const notifUrl = this.configService.get('NOTIFICATIONS_SERVICE_URL', 'http://notification-service:3008');
+      const notifUrl = this.getServiceUrl('NOTIFICATIONS_SERVICE_URL', 'http://notification-service:3008');
       const internalSecret = this.configService.get('JWT_SECRET', 'super_secret_jwt_key_hotel_2026_dev');
       const notifRes = await fetch(`${notifUrl}/api/notifications/internal/dispatch`, {
         method: 'POST',

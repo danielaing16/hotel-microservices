@@ -32,6 +32,12 @@ export class BookingService implements OnModuleInit {
     private readonly rabbitClient: ClientProxy,
   ) {}
 
+  private getServiceUrl(key: string, fallback: string): string {
+    const raw = (this.configService.get<string>(key) || '').trim();
+    if (!raw) return fallback;
+    return /^https?:\/\//i.test(raw) ? raw.replace(/\/+$/, '') : `https://${raw.replace(/\/+$/, '')}`;
+  }
+
   async onModuleInit() {
     try {
       const count = await this.bookingRepository.count();
@@ -77,20 +83,14 @@ export class BookingService implements OnModuleInit {
       throw new BadRequestException('La fecha de checkIn debe ser estrictamente anterior a checkOut');
     }
 
-    const roomsUrl = this.configService.get<string>(
-      'ROOMS_SERVICE_URL',
-      'http://rooms-service:3003',
-    );
-    const availabilityUrl = this.configService.get<string>(
-      'AVAILABILITY_SERVICE_URL',
-      'http://availability-service:3004',
-    );
+    const roomsUrl = this.getServiceUrl('ROOMS_SERVICE_URL', 'http://rooms-service:3003');
+    const availabilityUrl = this.getServiceUrl('AVAILABILITY_SERVICE_URL', 'http://availability-service:3004');
 
     // 1. Obtener detalles de la habitación desde rooms-service
     let roomData: any = null;
     try {
       const res = await fetch(`${roomsUrl}/api/rooms/${dto.roomId}`, {
-        signal: AbortSignal.timeout(3500),
+        signal: AbortSignal.timeout(15000),
       });
       if (res.ok) {
         roomData = await res.json();
@@ -327,7 +327,7 @@ export class BookingService implements OnModuleInit {
     const updated = await this.bookingRepository.save(booking);
 
     // 1. Liberar el bloqueo en availability-service
-    const availabilityUrl = this.configService.get<string>(
+    const availabilityUrl = this.getServiceUrl(
       'AVAILABILITY_SERVICE_URL',
       'http://availability-service:3004',
     );
@@ -337,7 +337,7 @@ export class BookingService implements OnModuleInit {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ holdId: booking.holdId }),
-          signal: AbortSignal.timeout(3000),
+          signal: AbortSignal.timeout(15000),
         });
       } catch (err) {
         this.logger.warn(`Error al liberar hold en availability: ${err.message}`);
@@ -465,7 +465,7 @@ export class BookingService implements OnModuleInit {
     this.logger.log(`✅ Reserva ${confirmed.bookingCode} marcada como CONFIRMADA tras pago.`);
 
     // Sincronización directa con Availability Service para asegurar agotamiento de fechas
-    const availabilityUrl = this.configService.get<string>(
+    const availabilityUrl = this.getServiceUrl(
       'AVAILABILITY_SERVICE_URL',
       'http://availability-service:3004',
     );
@@ -532,7 +532,7 @@ export class BookingService implements OnModuleInit {
 
     // Respaldo directo HTTP hacia notification-service
     try {
-      const notifUrl = this.configService.get<string>('NOTIFICATIONS_SERVICE_URL', 'http://notification-service:3008');
+      const notifUrl = this.getServiceUrl('NOTIFICATIONS_SERVICE_URL', 'http://notification-service:3008');
       const internalSecret = this.configService.get<string>('JWT_SECRET', 'super_secret_jwt_key_hotel_2026_dev');
       await fetch(`${notifUrl}/api/notifications/internal/dispatch`, {
         method: 'POST',
@@ -562,12 +562,12 @@ export class BookingService implements OnModuleInit {
       // Liberar inventario en availability-service
       if (booking.holdId) {
         try {
-          const availUrl = this.configService.get<string>('AVAILABILITY_SERVICE_URL', 'http://availability-service:3004');
+          const availUrl = this.getServiceUrl('AVAILABILITY_SERVICE_URL', 'http://availability-service:3004');
           await fetch(`${availUrl}/api/availability/release`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ holdId: booking.holdId }),
-            signal: AbortSignal.timeout(3000),
+            signal: AbortSignal.timeout(15000),
           });
           this.logger.log(`🔓 Fechas liberadas en availability tras fallo de pago para hold ${booking.holdId}`);
         } catch (err) {
@@ -612,12 +612,12 @@ export class BookingService implements OnModuleInit {
 
     if (booking.holdId) {
       try {
-        const availUrl = this.configService.get<string>('AVAILABILITY_SERVICE_URL', 'http://availability-service:3004');
+        const availUrl = this.getServiceUrl('AVAILABILITY_SERVICE_URL', 'http://availability-service:3004');
         await fetch(`${availUrl}/api/availability/release`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ holdId: booking.holdId }),
-          signal: AbortSignal.timeout(3000),
+          signal: AbortSignal.timeout(15000),
         });
       } catch {}
     }

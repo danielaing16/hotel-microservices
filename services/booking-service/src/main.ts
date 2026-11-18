@@ -28,8 +28,15 @@ async function bootstrap() {
     },
   });
 
-  await app.startAllMicroservices();
-  logger.log(`🐇 Consumidor RabbitMQ conectado a cola: '${rabbitQueue}'`);
+  try {
+    await app.startAllMicroservices();
+    logger.log(`🐇 Consumidor RabbitMQ conectado a cola: '${rabbitQueue}'`);
+  } catch (err) {
+    logger.warn(
+      `⚠️ RabbitMQ no está disponible al iniciar (${(err as Error).message}). ` +
+        `El servicio HTTP REST seguirá activo y operativo.`,
+    );
+  }
 
   // 2. CORS y Filtros Globales
   app.enableCors({

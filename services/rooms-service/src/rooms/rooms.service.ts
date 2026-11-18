@@ -60,14 +60,15 @@ export class RoomsService implements OnModuleInit {
     }
 
     const slugMap = new Map<string, { id: string; name: string }>();
-    const hotelsUrl = this.configService.get<string>(
+    const rawHotelsUrl = this.configService.get<string>(
       'HOTELS_SERVICE_URL',
       'http://hotels-service:3002',
     );
+    const hotelsUrl = /^https?:\/\//i.test(rawHotelsUrl) ? rawHotelsUrl : `https://${rawHotelsUrl}`;
 
     try {
       const response = await fetch(`${hotelsUrl}/api/hotels?limit=100`, {
-        signal: AbortSignal.timeout(2500),
+        signal: AbortSignal.timeout(15000),
       });
       if (response.ok) {
         const body: any = await response.json();

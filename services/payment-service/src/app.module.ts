@@ -15,21 +15,28 @@ import { AuthHeaderMiddleware } from './common/middleware/auth-header.middleware
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-        ...(config.get<string>('DATABASE_URL')
-          ? { url: config.get<string>('DATABASE_URL') }
-          : {
-              host: config.get<string>('DB_HOST', 'payment-db'),
-              port: parseInt(config.get<string>('DB_PORT', '5432'), 10),
-              username: config.get<string>('DB_USERNAME', 'postgres'),
-              password: config.get<string>('DB_PASSWORD', 'postgres123'),
-              database: config.get<string>('DB_DATABASE', 'hotel_payment_db'),
-            }),
-        entities: [Payment],
-        synchronize: true, // Auto-creación de tablas en entorno de desarrollo
-        logging: false,
-      }),
+      useFactory: (config: ConfigService) => {
+        const databaseUrl = config.get<string>('DATABASE_URL');
+        const useSsl =
+          config.get<string>('DB_SSL') === 'true' ||
+          Boolean(databaseUrl && /sslmode=require|neon\.tech|render\.com|supabase/i.test(databaseUrl));
+        return {
+          type: 'postgres' as const,
+          ...(databaseUrl
+            ? { url: databaseUrl }
+            : {
+                host: config.get<string>('DB_HOST', 'payment-db'),
+                port: parseInt(config.get<string>('DB_PORT', '5432'), 10),
+                username: config.get<string>('DB_USERNAME', 'postgres'),
+                password: config.get<string>('DB_PASSWORD', 'postgres123'),
+                database: config.get<string>('DB_DATABASE', 'hotel_payment_db'),
+              }),
+          ssl: useSsl ? { rejectUnauthorized: false } : false,
+          entities: [Payment],
+          synchronize: true,
+          logging: false,
+        };
+      },
     }),
     JwtModule.registerAsync({
       imports: [ConfigModule],

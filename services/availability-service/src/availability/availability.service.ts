@@ -104,16 +104,17 @@ export class AvailabilityService implements OnModuleInit {
       throw new BadRequestException('La fecha de checkIn debe ser estrictamente anterior a checkOut');
     }
 
-    const roomsUrl = this.configService.get<string>(
+    const rawRoomsUrl = this.configService.get<string>(
       'ROOMS_SERVICE_URL',
       'http://rooms-service:3003',
     );
+    const roomsUrl = /^https?:\/\//i.test(rawRoomsUrl) ? rawRoomsUrl : `https://${rawRoomsUrl}`;
 
     // 1. Obtener habitaciones del hotel desde rooms-service
     let allRooms: any[] = [];
     try {
       const res = await fetch(`${roomsUrl}/api/rooms?hotelId=${encodeURIComponent(query.hotelId)}&limit=100`, {
-        signal: AbortSignal.timeout(3000),
+        signal: AbortSignal.timeout(15000),
       });
       if (res.ok) {
         const body: any = await res.json();
