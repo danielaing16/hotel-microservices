@@ -39,6 +39,7 @@ export class MailService implements OnModuleInit {
   private isConfiguredWithRealSmtp = false;
   private providerName = 'Ethereal (Simulación)';
   private brevoApiKey = '';
+  private gmailWebhookUrl = '';
 
   constructor(private readonly configService: ConfigService) {
     this.fromAddress =
@@ -102,10 +103,18 @@ export class MailService implements OnModuleInit {
   }
 
   private async initTransporter() {
+    this.gmailWebhookUrl = (this.configService.get<string>('GMAIL_WEBHOOK_URL') || '').trim();
     this.brevoApiKey = (this.configService.get<string>('BREVO_API_KEY') || '').trim();
     const senderEmail = (this.configService.get<string>('smtp.user') || '').trim();
     if (senderEmail && !this.fromAddress.includes(senderEmail)) {
       this.fromAddress = `Travel & Resorts <${senderEmail}>`;
+    }
+
+    if (this.gmailWebhookUrl) {
+      this.isConfiguredWithRealSmtp = true;
+      this.providerName = `Gmail Apps Script HTTPS (${senderEmail || 'Gmail'})`;
+      this.logger.log(`✅ [Email Delivery Activo] Gmail Webhook HTTPS (puerto 443) configurado.`);
+      return;
     }
 
     if (this.brevoApiKey) {
@@ -216,12 +225,19 @@ export class MailService implements OnModuleInit {
     }>;
   }): Promise<EmailSendResult> {
     try {
+      if (this.gmailWebhookUrl) {
+        return await this.sendViaGmailWebhook(options);
+      }
+
       if (this.brevoApiKey) {
         return await this.sendViaBrevoApi(options);
       }
 
       if (!this.transporter) {
         await this.initTransporter();
+        if (this.gmailWebhookUrl) {
+          return await this.sendViaGmailWebhook(options);
+        }
         if (this.brevoApiKey) {
           return await this.sendViaBrevoApi(options);
         }
@@ -266,6 +282,51 @@ export class MailService implements OnModuleInit {
         error: error.message,
       };
     }
+  }
+
+  private async sendViaGmailWebhook(options: {
+    to: string;
+    subject: string;
+    html: string;
+    attachments?: Array<{
+      filename: string;
+      content: Buffer | string;
+      contentType?: string;
+    }>;
+  }): Promise<EmailSendResult> {
+    const payload = {
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+      attachments: (options.attachments || []).map((att) => ({
+        filename: att.filename,
+        contentType: att.contentType || 'application/pdf',
+        contentBase64: Buffer.isBuffer(att.content)
+          ? att.content.toString('base64')
+          : Buffer.from(att.content).toString('base64'),
+      })),
+    };
+
+    const res = await fetch(this.gmailWebhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      redirect: 'follow',
+      signal: AbortSignal.timeout(20000),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Gmail Webhook HTTP ${res.status}`);
+    }
+
+    this.logger.log(`✉️ [Gmail Apps Script HTTPS] Correo real enviado a ${options.to}`);
+    return {
+      success: true,
+      messageId: `gas_${Date.now()}`,
+      recipient: options.to,
+      subject: options.subject,
+      simulated: false,
+    };
   }
 
   private async sendViaBrevoApi(options: {
