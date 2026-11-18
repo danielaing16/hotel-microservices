@@ -16,13 +16,7 @@ envVarGroups:
       - key: DB_SSL
         value: "true"
       - key: DATABASE_URL
-        sync: false # Pega aquí tu PostgreSQL URL de Neon.tech (ej. postgresql://user:pass@ep-xxx.neon.tech/neondb?sslmode=require)
-      - key: REDIS_URL
-        sync: false # Pega aquí tu Redis TLS URL de Upstash (ej. rediss://default:xxx@xxx.upstash.io:6379)
-      - key: RABBITMQ_URL
-        sync: false # Pega aquí tu AMQPS URL de CloudAMQP (ej. amqps://user:pass@xxx.cloudamqp.com/vhost)
-      - key: RABBITMQ_QUEUE
-        value: hotel_notifications_queue
+        sync: false # Pega aquí tu PostgreSQL URL de Neon.tech (o de Render PostgreSQL)
       - key: JWT_SECRET
         generateValue: true # Render genera automáticamente un secreto criptográfico seguro
       - key: ADMIN_SEED_EMAIL

@@ -29,23 +29,25 @@ async function bootstrap() {
     }),
   );
 
-  // Conexión del Microservicio a RabbitMQ (Consumidor de eventos transaccionales)
-  const rabbitUrl =
-    configService.get<string>('RABBITMQ_URL') || 'amqp://guest:guest@localhost:5672';
+  // Conexión del Microservicio a RabbitMQ (solo si RABBITMQ_URL está configurado o en desarrollo)
+  const rawRabbitUrl = (configService.get<string>('RABBITMQ_URL') || '').trim();
+  const rabbitUrl = rawRabbitUrl || (process.env.NODE_ENV !== 'production' ? 'amqp://guest:guest@localhost:5672' : '');
   const rabbitQueue =
     configService.get<string>('RABBITMQ_QUEUE') || 'hotel_notifications_queue';
 
-  app.connectMicroservice<MicroserviceOptions>({
-    transport: Transport.RMQ,
-    options: {
-      urls: [rabbitUrl],
-      queue: rabbitQueue,
-      queueOptions: {
-        durable: true,
+  if (rabbitUrl) {
+    app.connectMicroservice<MicroserviceOptions>({
+      transport: Transport.RMQ,
+      options: {
+        urls: [rabbitUrl],
+        queue: rabbitQueue,
+        queueOptions: {
+          durable: true,
+        },
+        noAck: true,
       },
-      noAck: true,
-    },
-  });
+    });
+  }
 
   // Documentación Interactiva OpenAPI / Swagger
   const config = new DocumentBuilder()
@@ -74,15 +76,17 @@ async function bootstrap() {
     customSiteTitle: 'Availability Service API Docs',
   });
 
-  // Iniciar consumidor de eventos RabbitMQ
-  try {
-    await app.startAllMicroservices();
-    logger.log(`🐇 Consumidor RabbitMQ conectado activamente a la cola: '${rabbitQueue}'`);
-  } catch (err) {
-    logger.warn(
-      `⚠️ RabbitMQ no está disponible en este momento (${err.message}). ` +
-        `El servicio seguirá escuchando peticiones REST y reintentará conexión al broker.`,
-    );
+  // Iniciar consumidor de eventos RabbitMQ (solo si se configuró)
+  if (rabbitUrl) {
+    try {
+      await app.startAllMicroservices();
+      logger.log(`🐇 Consumidor RabbitMQ conectado activamente a la cola: '${rabbitQueue}'`);
+    } catch (err) {
+      logger.warn(
+        `⚠️ RabbitMQ no está disponible en este momento (${err.message}). ` +
+          `El servicio seguirá escuchando peticiones REST y reintentará conexión al broker.`,
+      );
+    }
   }
 
   const port = process.env.PORT || 3004;

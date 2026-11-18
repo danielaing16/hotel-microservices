@@ -5,18 +5,37 @@ import Redis from 'ioredis';
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RedisService.name);
-  private client: Redis;
+  private client: Redis | null = null;
+  private useMemoryFallback = false;
+  private readonly memoryLocks = new Map<string, { value: string; expiresAt: number }>();
 
   constructor(private readonly configService: ConfigService) {}
 
+  private purgeExpiredMemoryLocks() {
+    const now = Date.now();
+    for (const [k, v] of this.memoryLocks.entries()) {
+      if (v.expiresAt <= now) {
+        this.memoryLocks.delete(k);
+      }
+    }
+  }
+
   onModuleInit() {
-    const redisUrl = this.configService.get<string>('REDIS_URL');
-    const host = this.configService.get<string>('REDIS_HOST', 'localhost');
+    const redisUrl = (this.configService.get<string>('REDIS_URL') || '').trim();
+    const host = (this.configService.get<string>('REDIS_HOST') || '').trim();
     const port = parseInt(this.configService.get<string>('REDIS_PORT', '6379'), 10);
 
+    // En producción sin REDIS_URL ni REDIS_HOST, usar bloqueos en memoria TTL automáticamente
+    if (!redisUrl && !host && this.configService.get<string>('NODE_ENV') === 'production') {
+      this.useMemoryFallback = true;
+      this.logger.log('🟡 Redis externo no configurado: usando motor de bloqueos TTL en memoria.');
+      return;
+    }
+
     const commonOpts = {
-      retryStrategy: (times: number) => Math.min(times * 200, 2000),
-      maxRetriesPerRequest: 3,
+      retryStrategy: (times: number) => (times > 3 ? null : Math.min(times * 200, 1500)),
+      maxRetriesPerRequest: 2,
+      connectTimeout: 3000,
     };
 
     if (redisUrl) {
@@ -26,7 +45,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       });
     } else {
       this.client = new Redis({
-        host,
+        host: host || 'localhost',
         port,
         password: this.configService.get<string>('REDIS_PASSWORD') || undefined,
         ...commonOpts,
@@ -34,11 +53,13 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
 
     this.client.on('connect', () => {
-      this.logger.log(`🟢 Conexión exitosa a Redis (${redisUrl ? 'REDIS_URL' : `${host}:${port}`})`);
+      this.useMemoryFallback = false;
+      this.logger.log(`🟢 Conexión exitosa a Redis (${redisUrl ? 'REDIS_URL' : `${host || 'localhost'}:${port}`})`);
     });
 
     this.client.on('error', (err) => {
-      this.logger.warn(`⚠️ Error de conexión a Redis: ${err.message}`);
+      this.useMemoryFallback = true;
+      this.logger.warn(`⚠️ Redis no disponible (${err.message}). Activando respaldo de bloqueos TTL en memoria.`);
     });
   }
 
@@ -48,7 +69,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  getClient(): Redis {
+  getClient(): Redis | null {
     return this.client;
   }
 
@@ -105,6 +126,25 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
     const keys = nights.map((night) => `lock:room:${roomId}:night:${night}`);
 
+    const acquireInMemory = (): { success: boolean; conflictingDate?: string } => {
+      this.purgeExpiredMemoryLocks();
+      for (const key of keys) {
+        const existing = this.memoryLocks.get(key);
+        if (existing && existing.value !== holdId) {
+          return { success: false, conflictingDate: key.replace(`lock:room:${roomId}:night:`, '') };
+        }
+      }
+      const expiresAt = Date.now() + ttlSeconds * 1000;
+      for (const key of keys) {
+        this.memoryLocks.set(key, { value: holdId, expiresAt });
+      }
+      return { success: true };
+    };
+
+    if (this.useMemoryFallback || !this.client || this.client.status !== 'ready') {
+      return acquireInMemory();
+    }
+
     try {
       const result: any = await this.client.eval(
         luaScript,
@@ -146,8 +186,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         return { success: false, conflictingDate: conflictingNight };
       }
     } catch (err) {
-      this.logger.error(`Error ejecutando script Lua en Redis: ${err.message}`);
-      return { success: false };
+      this.logger.warn(`Redis no respondió (${err.message}); aplicando bloqueo TTL en memoria.`);
+      this.useMemoryFallback = true;
+      return acquireInMemory();
     }
   }
 
@@ -157,6 +198,17 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   async releaseHold(holdId: string, roomId: string, checkIn: string, checkOut: string): Promise<boolean> {
     const nights = this.getDatesBetween(checkIn, checkOut);
     const keys = nights.map((night) => `lock:room:${roomId}:night:${night}`);
+
+    for (const key of keys) {
+      const existing = this.memoryLocks.get(key);
+      if (existing && existing.value === holdId) {
+        this.memoryLocks.delete(key);
+      }
+    }
+
+    if (this.useMemoryFallback || !this.client || this.client.status !== 'ready') {
+      return true;
+    }
 
     // Solo libera las llaves si pertenecen a este holdId específico
     const releaseScript = `
@@ -175,8 +227,8 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       this.logger.log(`🔓 Soft-lock liberado exitosamente [Hold: ${holdId}] para habitación ${roomId}`);
       return true;
     } catch (err) {
-      this.logger.error(`Error al liberar bloqueo en Redis: ${err.message}`);
-      return false;
+      this.logger.warn(`Error al liberar bloqueo en Redis (${err.message}); liberado en memoria.`);
+      return true;
     }
   }
 
@@ -185,24 +237,47 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
    */
   async isRoomLocked(roomId: string, checkIn: string, checkOut: string): Promise<boolean> {
     const nights = this.getDatesBetween(checkIn, checkOut);
-    for (const night of nights) {
-      const key = `lock:room:${roomId}:night:${night}`;
-      const locked = await this.client.get(key);
-      if (locked) {
-        return true;
-      }
+    if (this.useMemoryFallback || !this.client || this.client.status !== 'ready') {
+      this.purgeExpiredMemoryLocks();
+      return nights.some((night) => this.memoryLocks.has(`lock:room:${roomId}:night:${night}`));
     }
-    return false;
+    try {
+      for (const night of nights) {
+        const key = `lock:room:${roomId}:night:${night}`;
+        const locked = await this.client.get(key);
+        if (locked) {
+          return true;
+        }
+      }
+      return false;
+    } catch {
+      this.purgeExpiredMemoryLocks();
+      return nights.some((night) => this.memoryLocks.has(`lock:room:${roomId}:night:${night}`));
+    }
   }
 
   /**
    * Obtiene los días bloqueados en Redis para una habitación en un mes específico
    */
   async getLockedNightsForRoom(roomId: string, yearMonth: string): Promise<string[]> {
-    // yearMonth = '2026-11'
-    const pattern = `lock:room:${roomId}:night:${yearMonth}-*`;
-    const keys = await this.client.keys(pattern);
-    return keys.map((k) => k.replace(`lock:room:${roomId}:night:`, ''));
+    const prefix = `lock:room:${roomId}:night:`;
+    if (this.useMemoryFallback || !this.client || this.client.status !== 'ready') {
+      this.purgeExpiredMemoryLocks();
+      const result: string[] = [];
+      for (const k of this.memoryLocks.keys()) {
+        if (k.startsWith(`${prefix}${yearMonth}-`)) {
+          result.push(k.replace(prefix, ''));
+        }
+      }
+      return result;
+    }
+    try {
+      const pattern = `${prefix}${yearMonth}-*`;
+      const keys = await this.client.keys(pattern);
+      return keys.map((k) => k.replace(prefix, ''));
+    } catch {
+      return [];
+    }
   }
 }
 

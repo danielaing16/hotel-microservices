@@ -10,32 +10,34 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
 
-  // 1. Configuración de RabbitMQ Microservice Consumer
-  const rabbitMqUrl =
-    process.env.RABBITMQ_URL || 'amqp://guest:guest@rabbitmq:5672';
+  // 1. Configuración de RabbitMQ Microservice Consumer (solo si está configurado o en desarrollo)
+  const rawRabbitUrl = (process.env.RABBITMQ_URL || '').trim();
+  const rabbitMqUrl = rawRabbitUrl || (process.env.NODE_ENV !== 'production' ? 'amqp://guest:guest@rabbitmq:5672' : '');
   const rabbitQueue =
     process.env.RABBITMQ_QUEUE || 'hotel_notifications_queue';
 
-  app.connectMicroservice<MicroserviceOptions>({
-    transport: Transport.RMQ,
-    options: {
-      urls: [rabbitMqUrl],
-      queue: rabbitQueue,
-      queueOptions: {
-        durable: true,
+  if (rabbitMqUrl) {
+    app.connectMicroservice<MicroserviceOptions>({
+      transport: Transport.RMQ,
+      options: {
+        urls: [rabbitMqUrl],
+        queue: rabbitQueue,
+        queueOptions: {
+          durable: true,
+        },
+        noAck: true,
       },
-      noAck: true,
-    },
-  });
+    });
 
-  try {
-    await app.startAllMicroservices();
-    logger.log(`🐇 Consumidor RabbitMQ conectado a cola: '${rabbitQueue}'`);
-  } catch (err) {
-    logger.warn(
-      `⚠️ RabbitMQ no está disponible al iniciar (${(err as Error).message}). ` +
-        `El servicio HTTP REST seguirá activo y operativo.`,
-    );
+    try {
+      await app.startAllMicroservices();
+      logger.log(`🐇 Consumidor RabbitMQ conectado a cola: '${rabbitQueue}'`);
+    } catch (err) {
+      logger.warn(
+        `⚠️ RabbitMQ no está disponible al iniciar (${(err as Error).message}). ` +
+          `El servicio HTTP REST seguirá activo y operativo.`,
+      );
+    }
   }
 
   // 2. CORS y Filtros Globales
