@@ -20,6 +20,12 @@ class HotelApiClient {
   constructor() {
     this.baseUrl = GATEWAY_BASE_URL;
     this.listeners = [];
+    this.warmUpServices();
+  }
+
+  warmUpServices() {
+    if (typeof window === 'undefined' || !window.location?.hostname?.includes('vercel.app')) return;
+    fetch(`${this.baseUrl}/health/services`, { method: 'GET' }).catch(() => {});
   }
 
   onLog(callback) {
@@ -55,29 +61,43 @@ class HotelApiClient {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    try {
-      const response = await fetch(url, {
-        ...options,
-        headers,
-      });
+    const maxAttempts = 3;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const response = await fetch(url, {
+          ...options,
+          headers,
+        });
 
-      const durationMs = Date.now() - start;
-      const data = await response.json().catch(() => null);
+        // En Render Free, un microservicio dormido puede tardar ~25-35s en despertar (502/503/504).
+        // Reintentar automáticamente para evitar errores visibles al usuario durante el cold start.
+        if ((response.status === 502 || response.status === 503 || response.status === 504) && attempt < maxAttempts) {
+          await new Promise(r => setTimeout(r, 3000));
+          continue;
+        }
 
-      if (!response.ok) {
-        const errorMsg = data?.message || `Error HTTP ${response.status}`;
-        this.notifyLog(options.method || 'GET', endpoint, response.status, durationMs, null, errorMsg);
-        throw new Error(errorMsg);
+        const durationMs = Date.now() - start;
+        const data = await response.json().catch(() => null);
+
+        if (!response.ok) {
+          const errorMsg = data?.message || `Error HTTP ${response.status}`;
+          this.notifyLog(options.method || 'GET', endpoint, response.status, durationMs, null, errorMsg);
+          throw new Error(errorMsg);
+        }
+
+        this.notifyLog(options.method || 'GET', endpoint, response.status, durationMs, data);
+        return data;
+      } catch (err) {
+        if (attempt < maxAttempts && (err.name === 'TypeError' || /502|503|504|Failed to fetch/i.test(err.message))) {
+          await new Promise(r => setTimeout(r, 3000));
+          continue;
+        }
+        const durationMs = Date.now() - start;
+        if (!options.silent) {
+          this.notifyLog(options.method || 'GET', endpoint, 0, durationMs, null, err.message);
+        }
+        throw err;
       }
-
-      this.notifyLog(options.method || 'GET', endpoint, response.status, durationMs, data);
-      return data;
-    } catch (err) {
-      const durationMs = Date.now() - start;
-      if (!options.silent) {
-        this.notifyLog(options.method || 'GET', endpoint, 0, durationMs, null, err.message);
-      }
-      throw err;
     }
   }
 
