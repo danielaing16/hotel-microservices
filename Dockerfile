@@ -1,10 +1,11 @@
 # =============================================================================
-# DOCKERFILE CLOUD ALL-IN-ONE (RAILWAY / FLY.IO / KOYEB FREE TIER)
-# Empaqueta Frontend + API Gateway + 7 Microservicios en 1 solo contenedor
-# para no superar el límite de 3 servicios del plan gratuito de Railway.
+# DOCKERFILE CLOUD ALL-IN-ONE (HUGGING FACE SPACES / KOYEB / RAILWAY)
+# Empaqueta Frontend (Nginx) + API Gateway + 7 Microservicios + Redis embebido
+# en 1 solo contenedor compatible con ejecución sin root (UID 1000).
 # =============================================================================
 FROM node:20-alpine AS builder
 WORKDIR /app
+RUN apk add --no-cache libc6-compat python3 make g++
 
 # 1. API Gateway
 COPY gateway/package*.json ./gateway/
@@ -54,9 +55,13 @@ RUN cd services/notification-service && npm install --legacy-peer-deps
 COPY services/notification-service ./services/notification-service
 RUN cd services/notification-service && npm run build && npm prune --production --legacy-peer-deps
 
-# Etapa final ligera con Node 20 + Nginx
+# =============================================================================
+# Etapa final ligera: Node 20 + Nginx + Redis local embebido (compatible UID 1000)
+# =============================================================================
 FROM node:20-alpine
-RUN apk add --no-cache nginx && mkdir -p /run/nginx
+RUN apk add --no-cache libc6-compat nginx redis && \
+    mkdir -p /tmp/nginx /var/log/nginx /var/lib/nginx/tmp && \
+    chmod -R 777 /tmp/nginx /var/log/nginx /var/lib/nginx
 
 WORKDIR /app
 COPY --from=builder /app/gateway/dist ./gateway/dist
@@ -83,9 +88,10 @@ COPY --from=builder /app/services/payment-service/node_modules ./services/paymen
 COPY --from=builder /app/services/notification-service/dist ./services/notification-service/dist
 COPY --from=builder /app/services/notification-service/node_modules ./services/notification-service/node_modules
 
-COPY frontend /usr/share/nginx/html
+COPY frontend /app/frontend
 COPY start-cloud.sh /app/start-cloud.sh
 RUN sed -i 's/\r$//' /app/start-cloud.sh && chmod +x /app/start-cloud.sh
 
-EXPOSE 8080
+ENV PORT=7860
+EXPOSE 7860
 CMD ["/bin/sh", "/app/start-cloud.sh"]
