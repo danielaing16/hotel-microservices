@@ -1179,12 +1179,11 @@ body {
   background-color: var(--editorial-surface);
   border: 1px solid var(--editorial-border);
   border-radius: 14px;
-  padding: 0.85rem 1.1rem;
+  padding: 0.95rem 1.15rem;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.85rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
   box-shadow: 0 4px 20px rgba(28, 27, 24, 0.035);
 }
 
@@ -1193,13 +1192,13 @@ body {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.65rem;
-  flex: 1;
+  width: 100%;
 }
 
 .filter-input-wrap {
   position: relative;
-  flex: 1;
-  min-width: 220px;
+  flex: 2 1 240px;
+  min-width: 200px;
   display: flex;
   align-items: center;
 }
@@ -1236,6 +1235,8 @@ body {
 }
 
 .filter-select {
+  flex: 1 1 165px;
+  min-width: 155px;
   height: 40px;
   padding: 0 2rem 0 0.85rem;
   background-color: var(--editorial-bg);
@@ -1257,8 +1258,9 @@ body {
 }
 
 .filter-checkbox-wrap {
+  flex: 0 0 auto;
   height: 40px;
-  padding: 0 0.9rem;
+  padding: 0 0.95rem;
   background-color: var(--editorial-bg);
   border: 1px solid var(--editorial-border);
   border-radius: 8px;
@@ -1268,6 +1270,7 @@ body {
   font-size: 0.82rem;
   font-weight: 500;
   color: var(--editorial-text-main);
+  white-space: nowrap;
   cursor: pointer;
   user-select: none;
   transition: all 0.22s var(--editorial-ease);
@@ -1288,8 +1291,18 @@ body {
 .hotels-actions-row {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  justify-content: flex-end;
+  gap: 0.6rem;
   flex-wrap: wrap;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--editorial-border);
+}
+
+.hotels-actions-row .btn-hotel-action,
+.hotels-actions-row .btn-hotel-secondary {
+  height: 38px;
+  padding: 0 1.05rem;
+  white-space: nowrap;
 }
 
 /* Botones Editoriales del Dashboard */
@@ -2492,6 +2505,7 @@ textarea.input-pill {
   }
 
   .hotels-toolbar {
+    padding: 0.85rem;
     flex-direction: column;
     align-items: stretch;
   }
@@ -2501,9 +2515,21 @@ textarea.input-pill {
     align-items: stretch;
   }
 
+  .filter-input-wrap,
   .filter-select,
   .filter-checkbox-wrap {
     width: 100%;
+    flex: none;
+  }
+
+  .hotels-actions-row {
+    justify-content: stretch;
+  }
+
+  .hotels-actions-row .btn-hotel-action,
+  .hotels-actions-row .btn-hotel-secondary {
+    flex: 1 1 140px;
+    justify-content: center;
   }
 
   .toast-shelf {
